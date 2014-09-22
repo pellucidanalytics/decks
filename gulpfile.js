@@ -4,10 +4,10 @@ var nib = require("nib");
 
 var paths = {
     demo: {
-        html: "demo/index.html",
-        js: "demo/index.js",
-        styl: "demo/index.styl",
-        out: "demo/www"
+        html: "src-demo/index.html",
+        js: "src-demo/index.js",
+        styl: "src-demo/index.styl",
+        out: "dist/demo"
     },
     src: {
         js: "src/index.js",
@@ -16,17 +16,11 @@ var paths = {
     }
 };
 
-// Distribution tasks
-
 gulp.task("stylus-dist", function() {
     gulp.src(paths.src.styl)
         .pipe(stylus({ use: nib() }))
         .pipe(gulp.dest(paths.src.out));
 });
-
-gulp.task("dist", ["stylus-dist"]);
-
-// Demo tasks
 
 gulp.task("html-demo", function() {
     gulp.src(paths.demo.html)
@@ -39,8 +33,6 @@ gulp.task("stylus-demo", function() {
         .pipe(gulp.dest(paths.demo.out));
 });
 
+gulp.task("dist", ["stylus-dist"]);
 gulp.task("demo", ["html-demo", "stylus-demo"]);
-
-// Default task
-
 gulp.task("default", ["dist", "demo"]);
