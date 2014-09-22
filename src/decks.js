@@ -1,6 +1,3 @@
-var Stacks = function(options) {
-    this.container = options.containerElt;
-    this.stackSelector = options.stackSelector;
-}
+var decks = {};
 
-module.exports = Stacks;
+module.exports = decks;
