@@ -157,7 +157,7 @@ _.each(tagGroups, function(tagGroup) {
   _.each(tags, function(tag) {
 
     // Each chart has one or more tags
-    var charts = getChartsForTag(tag);
+    var charts = library.getChartsForTag(tag);
     var items = [];
 
     _.each(charts, function(chart) {
@@ -176,8 +176,8 @@ _.each(tagGroups, function(tagGroup) {
 
 
 var deck = new Deck({
-  stacks: stacks
-  container: <some element>
+  collections: collections,
+  container: {some element}
 });
 
 
@@ -188,7 +188,7 @@ deck.on("expanded", function() {
 
 deck.expand();
 deck.collapse();
-deck.ad
+deck.applyFilter("Assets");
 
 
 
