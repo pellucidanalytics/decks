@@ -1,3 +1,5 @@
-# Project/build files
+# Node.js files
 node_modules/
+
+# Project/build files
 dist/
