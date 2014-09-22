@@ -1,6 +1,6 @@
-# Stacks
+# Decks
 
-Prototype UI gallery for dealing with the stacks of items.
+Prototype UI gallery for dealing with the collections of items.
 
 ## Inspirations
 
