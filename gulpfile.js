@@ -4,14 +4,14 @@ var nib = require("nib");
 
 var paths = {
     demo: {
-        html: "src-demo/index.html",
-        js: "src-demo/index.js",
-        styl: "src-demo/index.styl",
+        html: "example/index.html",
+        js: "example/index.js",
+        styl: "example/index.styl",
         out: "dist/demo"
     },
     src: {
-        js: "src/index.js",
-        styl: "src/index.styl",
+        js: "lib/index.js",
+        styl: "lib/index.styl",
         out: "dist"
     }
 };
