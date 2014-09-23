@@ -73,7 +73,14 @@ gulp.task("styl-example", function() {
 });
 
 gulp.task("js-example", function() {
-  // TODO
+  var b = browserify('./example/index.js', {
+    noparse: ['lodash', 'q'],
+    debug: true
+  });
+
+  return b.bundle()
+    .pipe(source('example.js'))
+    .pipe(gulp.dest(paths.example.out));
 });
 
 gulp.task("example", ["html-example", "styl-example", "js-example"]);

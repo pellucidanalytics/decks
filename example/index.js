@@ -1,31 +1,32 @@
-(function () {
+var _ = require('lodash');
+var Deck = require('../lib').Deck;
 
-// it's gross but easy; this comes from data.js
-var groups = window.groups;
-var foods = window.foods;
+// pull in our example data
+var groups = require('./data').groups;
+var foods = require('./data').foods;
 
 function getFoodsByTag(foods, tag) {
   // some magic to return an array of food objects that match the given tag
+  return _.filter(foods, function (food) {
+    return _.contains(food.tags, tag);
+  });
 }
 
-var stacks = [];
+var foodDeck = new Deck({
+  //...
+});
 
-// TODO: switch to lodash here
-groups.forEach(function (group) {
-  group.tags.forEach(function (tag) {
+_.each(groups, function (group) {
+  _.each(groups.tags, function (tag) {
     // get an array of all food items matching our tag
-    var matchingItems = getFoodsByTag(foods, tag);
+    var currentCollection = foodDeck.addCollection({
+      // ...
+    });
 
-    // we'll probably also want to includes some tag information
-    stacks.push(matchingItems);
+    _.each(getFoodsByTag(foods, tag), function (item) {
+      currentCollection.addItem({
+        // ,,,
+      });
+    });
   });
 });
-
-// now that we have a collection of lots of stacks, create a deck
-
-var deck = new Deck({
-  items: stacks
-});
-
-
-})();

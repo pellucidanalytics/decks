@@ -1,4 +1,4 @@
-var groups = [{
+module.exports.groups = [{
     name: "fruits",
     tags: ["berries", "melons", "citrus", "drupes"]
 }, {
@@ -195,4 +195,4 @@ var grains = [{
     tags: ["whole"]
 }];
 
-var foods = fruits.concat(vegetables).concat(grains);
+module.exports.foods = fruits.concat(vegetables).concat(grains);
