@@ -79,8 +79,26 @@ gulp.task("js-example", function() {
   });
 
   return b.bundle()
-    .pipe(source('example.js'))
+    .pipe(source('bundle.js'))
     .pipe(gulp.dest(paths.example.out));
+});
+
+gulp.task('watch-example', ['html-example', 'styl-example'], function () {
+  gulp.watch(paths.example.htmlAll, ['html-example']);
+  gulp.watch(paths.example.stylAll, ['styl-example']);
+
+  // javascript
+  var bundler = watchify(browserify(paths.example.jsMain, watchify.args));
+  bundler.on("update", rebundle);
+  function rebundle() {
+    return bundler.bundle()
+      .on("error", gutil.log.bind(gutil, "browserify error"))
+      .pipe(source("bundle.js"))
+      .pipe(gulp.dest(paths.example.out))
+      .on('end', gutil.log.bind(gutil, "finished bundling"));
+  }
+
+  return rebundle();
 });
 
 gulp.task("example", ["html-example", "styl-example", "js-example"]);
