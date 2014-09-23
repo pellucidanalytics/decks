@@ -1,6 +1,6 @@
 var browserify = require("browserify");
 var gulp = require("gulp");
-var gutil = require("gutil");
+var gutil = require("gulp-util");
 var mochaPhantomJS = require("gulp-mocha-phantomjs");
 var nib = require("nib");
 var path = require("path");
