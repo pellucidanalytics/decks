@@ -1,26 +1,43 @@
-var gulp = require("gulp");
-var stylus = require("gulp-stylus");
-var nib = require("nib");
 var browserify = require("browserify");
-var source = require("vinyl-source-stream");
+var gulp = require("gulp");
 var mochaPhantomJS = require("gulp-mocha-phantomjs");
+var nib = require("nib");
+var source = require("vinyl-source-stream");
+var stylus = require("gulp-stylus");
+var watchify = require("watchify");
 
 var paths = {
   src: {
-    js: "lib/index.js",
-    styl: "lib/index.styl",
-    out: "dist"
+    jsMain: "lib/index.js",
+    jsAll: "lib/**/*.js",
+
+    stylMain: "lib/index.styl",
+    stylAll: "lib/**/*.styl",
+
+    out: "dist",
   },
   test: {
-    html: "test/index.html",
-    js: "test/index.js",
-    styl: "test/index.styl",
+    htmlMain: "test/index.html",
+    htmlAll: "test/**/*.html",
+
+    jsMain: "test/index.js",
+    jsAll: "test/**/*.js",
+
+    stylMain: "test/index.styl",
+    stylAll: "test/**/*.styl",
+
     out: "dist/test"
   },
   example: {
-    html: "example/index.html",
-    js: "example/index.js",
-    styl: "example/index.styl",
+    htmlMain: "example/index.html",
+    htmlAll: "example/**/*.html",
+
+    jsMain: "example/index.js",
+    jsAll: "example/**/*.js",
+
+    stylMain: "example/index.styl",
+    stylAll: "example/**/*.styl",
+
     out: "dist/example"
   }
 };
@@ -30,7 +47,7 @@ var paths = {
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("styl-dist", function() {
-  gulp.src(paths.src.styl)
+  gulp.src(paths.src.stylMain)
     .pipe(stylus({ use: nib() }))
     .pipe(gulp.dest(paths.src.out));
 });
@@ -42,12 +59,12 @@ gulp.task("dist", ["styl-dist"]);
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("html-example", function() {
-  gulp.src(paths.example.html)
+  gulp.src(paths.example.htmlMain)
     .pipe(gulp.dest(paths.example.out));
 });
 
 gulp.task("styl-example", function() {
-  gulp.src(paths.example.styl)
+  gulp.src(paths.example.stylMain)
     .pipe(stylus({ use: nib() }))
     .pipe(gulp.dest(paths.example.out));
 });
@@ -63,12 +80,12 @@ gulp.task("example", ["html-example", "styl-example", "js-example"]);
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("html-test", function() {
-  gulp.src(paths.test.html)
+  gulp.src(paths.test.htmlMain)
     .pipe(gulp.dest(paths.test.out));
 });
 
 gulp.task("styl-test", function() {
-  gulp.src(paths.test.styl)
+  gulp.src(paths.test.stylMain)
     .pipe(stylus({ use: nib() }))
     .pipe(gulp.dest(paths.test.out));
 });
@@ -83,6 +100,17 @@ gulp.task("js-test", function() {
 gulp.task("mocha-test", function() {
   return gulp.src("dist/test/index.html")
     .pipe(mochaPhantomJS());
+});
+
+gulp.task("watch-html-test", function() {
+  gulp.watch(paths.test.htmlAll, ["html-test"]);
+});
+
+gulp.task("watch-styl-test", function() {
+  gulp.watch(paths.test.stylAll, ["styl-test"]);
+});
+
+gulp.task("watch-js-test", function() {
 });
 
 gulp.task("test", ["html-test", "styl-test", "js-test", "mocha-test"]);
