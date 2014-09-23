@@ -28,7 +28,8 @@
 # Notes
 
 class Item {
-  label: "",
+  name: "",
+  element: {}, // element that is not yet inserted into DOM
   tags: [ "tag1", "tag2", ... ],
   isLoaded: false,
   isVisible: true,

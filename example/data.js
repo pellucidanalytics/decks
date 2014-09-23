@@ -11,187 +11,187 @@ module.exports.groups = [{
 
 var fruits = [{
     name: "Strawberry",
-    imgUrl: "img/fruit/strawberry.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["berries"]
 }, {
     name: "Blueberry",
-    imgUrl: "img/fruit/blueberry.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["berries"]
 }, {
     name: "Raspberry",
-    imgUrl: "img/fruit/raspberry.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["berries"]
 }, {
     name: "Blackberry",
-    imgUrl: "img/fruit/blackberry.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["berries"]
 }, {
     name: "Huckleberry",
-    imgUrl: "img/fruit/huckleberry.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["berries"]
 }, {
     name: "Watermelon",
-    imgUrl: "img/fruit/watermelon.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["melons"]
 }, {
     name: "Cantaloupe",
-    imgUrl: "img/fruit/cantaloupe.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["melons"]
 }, {
     name: "Honeydew",
-    imgUrl: "img/fruit/honeydew.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["melons"]
 }, {
     name: "Orange",
-    imgUrl: "img/fruit/orange.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Mandarin Orange",
-    imgUrl: "img/fruit/mandarinorange.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Kumquat",
-    imgUrl: "img/fruit/kumquat.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Lemon",
-    imgUrl: "img/fruit/lemon.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Lime",
-    imgUrl: "img/fruit/lime.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Tangelo",
-    imgUrl: "img/fruit/tangelo.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Grapefruit",
-    imgUrl: "img/fruit/grapefruit.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Pomelo",
-    imgUrl: "img/fruit/pomelo.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["citrus"]
 }, {
     name: "Peach",
-    imgUrl: "img/fruit/peach.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["drupes"]
 }, {
     name: "Plum",
-    imgUrl: "img/fruit/plum.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["drupes"]
 }, {
     name: "Cherry",
-    imgUrl: "img/fruit/cherry.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["drupes"]
 }, {
     name: "Olive",
-    imgUrl: "img/fruit/olive.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["drupes"]
 }, {
     name: "Nectarine",
-    imgUrl: "img/fruit/nectarine.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["drupes"]
 }];
 
 var vegetables = [{
     name: "Carrot",
-    imgUrl: "img/vegetable/carrot.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Onion",
-    imgUrl: "img/vegetable/onion.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Garlic",
-    imgUrl: "img/vegetable/garlic.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Yam",
-    imgUrl: "img/vegetable/yam.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Ginger",
-    imgUrl: "img/vegetable/ginger.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Beet",
-    imgUrl: "img/vegetable/beet.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Rutabega",
-    imgUrl: "img/vegetable/rutabega.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Potato",
-    imgUrl: "img/vegetable/potato.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Yuca",
-    imgUrl: "img/vegetable/yuca.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots"]
 }, {
     name: "Fennel",
-    imgUrl: "img/vegetable/fennel.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["roots", "stalks"]
 }, {
     name: "Celery",
-    imgUrl: "img/vegetable/celery.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["stalks"]
 }, {
     name: "Asparagus",
-    imgUrl: "img/vegetable/asparagus.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["stalks"]
 }, {
     name: "Spinach",
-    imgUrl: "img/vegetable/spinach.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["leaves"]
 }, {
     name: "Kale",
-    imgUrl: "img/vegetable/kale.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["leaves"]
 }, {
     name: "Cilantro",
-    imgUrl: "img/vegetable/cilantro.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["leaves"]
 }, {
     name: "Chard",
-    imgUrl: "img/vegetable/chard.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["leaves"]
 }, {
     name: "Bok Choi",
-    imgUrl: "img/vegetable/bokchoi.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["leaves"]
 }, {
     name: "Cabbage",
-    imgUrl: "img/vegetable/cabbage.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["leaves"]
 }, {
     name: "Basil",
-    imgUrl: "img/vegetable/basil.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["leaves"]
 }];
 
 var grains = [{
     name: "White Rice",
-    imgUrl: "img/grain/whiterice.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["refined"]
 }, {
     name: "White Flour",
-    imgUrl: "img/grain/whiteflour.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["refined"]
 }, {
     name: "Whole Flour",
-    imgUrl: "img/grain/wholeflour.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["whole"]
 }, {
     name: "Brown Rice",
-    imgUrl: "img/grain/brownrice.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["whole"]
 }, {
     name: "Oatmeal",
-    imgUrl: "img/grain/oatmeal.png",
+    imgUrl: "http://placekitten.com/g/200/300",
     tags: ["whole"]
 }];
 

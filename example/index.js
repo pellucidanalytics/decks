@@ -17,16 +17,23 @@ var foodDeck = new Deck({
 });
 
 _.each(groups, function (group) {
-  _.each(groups.tags, function (tag) {
+  _.each(group.tags, function (tag) {
     // get an array of all food items matching our tag
     var currentCollection = foodDeck.addCollection({
       // ...
     });
 
     _.each(getFoodsByTag(foods, tag), function (item) {
+      var image = new Image();
+      image.src = item.imgUrl;
+
       currentCollection.addItem({
-        // ,,,
+        name: item.name,
+        element: image,
+        tags: item.tags
       });
     });
   });
 });
+
+document.body.appendChild(foodDeck.load());
