@@ -1,6 +1,23 @@
 # Decks
 
-Prototype UI gallery for dealing with the collections of items.
+UI components for dealing with the collections of items.
+
+## Getting started
+
+```sh
+git clone {clone URL}
+cd decks
+npm install
+
+# Default build for development (file watcher)
+gulp
+
+# Build and run the tests
+gulp test
+
+# Build and run the examples site
+gulp example
+```
 
 ## Inspirations
 
