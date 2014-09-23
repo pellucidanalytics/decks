@@ -150,5 +150,7 @@ gulp.task("watch-test", ["watch-html-test", "watch-styl-test", "watch-js-test", 
 gulp.task("default", function(cb) {
   runSequence(
     ['dist', 'example', 'test'],
-    'watch-test');
+    'watch-test',
+    cb
+  );
 });
