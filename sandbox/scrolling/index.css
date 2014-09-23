@@ -1,0 +1,21 @@
+body {
+  background-color: #ddd;
+  margin: 0;
+}
+
+#level1 {
+  background-color: #bbb;
+  overflow: hidden;
+  margin: 10px auto;
+}
+
+#level2 {
+  background-color: #999;
+  position: relative;
+}
+
+img {
+  position: absolute;
+  pointer-events: none;
+}
+
