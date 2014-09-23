@@ -4,6 +4,7 @@ var gutil = require("gutil");
 var mochaPhantomJS = require("gulp-mocha-phantomjs");
 var nib = require("nib");
 var path = require("path");
+var runSequence = require("run-sequence");
 var source = require("vinyl-source-stream");
 var stylus = require("gulp-stylus");
 var watchify = require("watchify");
@@ -128,12 +129,12 @@ gulp.task("watch-js-test", function() {
       .pipe(source("bundle.js"))
       .pipe(gulp.dest(paths.test.out));
   }
-  return rebundle();
+  //return rebundle();
 });
 
 // Watch built test .js file
 gulp.task("watch-mocha-test", function() {
-  gulp.watch(path.join(paths.test.out, "index.js"), ["mocha-test"]);
+  gulp.watch(path.join(paths.test.out, "bundle.js"), ["mocha-test"]);
 });
 
 // Run the test build
@@ -146,4 +147,8 @@ gulp.task("watch-test", ["watch-html-test", "watch-styl-test", "watch-js-test", 
 // Default task
 ////////////////////////////////////////////////////////////////////////////////
 
-gulp.task("default", ["dist", "test", "example"]);
+gulp.task("default", function(cb) {
+  runSequence(
+    ['dist', 'example', 'test'],
+    'watch-test');
+});

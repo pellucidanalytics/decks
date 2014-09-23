@@ -6,6 +6,8 @@ describe("sanity check for unit tests", function() {
   describe("expect tests", function() {
     it("should pass basic expect tests", function() {
       expect("hello").to.be.a("string");
+      expect(1).to.be.a("number");
+      expect(2).to.be.a("number");
     });
   });
 
