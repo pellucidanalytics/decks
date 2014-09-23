@@ -1,6 +1,7 @@
 var gulp = require("gulp");
 var stylus = require("gulp-stylus");
 var nib = require("nib");
+var mochaPhantomJS = require("gulp-mocha-phantomjs");
 
 var paths = {
     demo: {
@@ -33,6 +34,11 @@ gulp.task("stylus-demo", function() {
         .pipe(gulp.dest(paths.demo.out));
 });
 
-gulp.task("dist", ["stylus-dist"]);
-gulp.task("demo", ["html-demo", "stylus-demo"]);
+gulp.task("test", function() {
+  return gulp.src("test/index.html")
+    .pipe(mochaPhantomJS());
+});
+
+gulp.task("dist", ["stylus-dist", "test"]);
+gulp.task("demo", ["html-demo", "stylus-demo", "test"]);
 gulp.task("default", ["dist", "demo"]);
