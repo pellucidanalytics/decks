@@ -91,4 +91,4 @@ gulp.task("test", ["html-test", "styl-test", "js-test", "mocha-test"]);
 // Default task
 ////////////////////////////////////////////////////////////////////////////////
 
-gulp.task("default", ["dist", "test", "demo"]);
+gulp.task("default", ["dist", "test", "example"]);
