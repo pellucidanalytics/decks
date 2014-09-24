@@ -13,6 +13,10 @@ function getFoodsByTag(foods, tag) {
 }
 
 var foodDeck = new Deck({
+  width: 900,
+  height: 600,
+  itemWidth: 300,
+  itemHeight: 200
   //...
 });
 
