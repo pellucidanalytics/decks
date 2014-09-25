@@ -3,19 +3,17 @@ body {
   margin: 0;
 }
 
-#level1 {
+#root {
+  width: 100%;
+  height: 100%;
   background-color: #bbb;
-  overflow: hidden;
-  margin: 10px auto;
 }
 
-#level2 {
+.scroller-level1 {
   background-color: #999;
-  position: relative;
 }
 
-img {
-  position: absolute;
-  pointer-events: none;
+.scroller-level2 {
+  background-color: #777;
 }
 
