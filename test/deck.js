@@ -1,5 +1,4 @@
 var tools = require("./test-tools");
-var expect = tools.expect;
 var Deck = require("../lib/deck");
 var testDeck = new Deck({});
 
