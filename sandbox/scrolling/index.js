@@ -1,7 +1,7 @@
 (function() {
   var Scroller = function(options) {
     // Container
-    this.$container = $(options.container) || $("<div>");
+    this.$container = $(options.container);
 
     // Items
     this.items = options.items; // array of decks "Item" objects - so Scroller can control load/unload
@@ -25,7 +25,9 @@
     init: function() {
       var self = this;
 
-      // Scroller container with overflow hidden and width of container.
+      // Scroller container level 1
+      // Width should match container
+      // with overflow hidden and width of container.
       // The items scroll within this container, and touch gestures are bound to this container
       self.$scrollerLevel1 = $("<div>")
         .addClass("scroller-level1")
@@ -83,19 +85,28 @@
      */
     bind: function() {
       this.$scrollerLevel1.hammer();
-      this.$scrollerLevel1.on("pan", _.bind(this.onPan, this));
       this.$scrollerLevel1.on("tap press touchstart mousedown", _.bind(this.onTap, this));
-      this.$scrollerLevel1.on("swipe", _.bind(this.onSwipe, this));
+      this.$scrollerLevel1.on("panleft panright", _.bind(this.onPanX, this));
+      //this.$scrollerLevel1.on("panup pandown", _.bind(this.onPanY, this));
+      this.$scrollerLevel1.on("swipeleft swiperight", _.bind(this.onSwipeX, this));
+      //this.$scrollerLevel1.on("swipeup swipedown", _.bind(this.onSwipeY, this));
     },
 
     /**
      * Unbind events
      */
     unbind: function() {
-      this.$scrollerLevel1.off("pan tap press touchstart mousedown swipe");
+      // TODO
     },
 
-    onPan: function(e) {
+    onTap: function(e) {
+      var self = this;
+      console.log(e.type);
+      self.$scrollerLevel2.velocity("stop");
+    },
+
+
+    onPanX: function(e) {
       var self = this;
       console.log(e.type, e.gesture.deltaX, e.gesture.velocityX, e.gesture);
       if (self.isSwiping) {
@@ -108,13 +119,7 @@
       }
     },
 
-    onTap: function(e) {
-      var self = this;
-      console.log(e.type);
-      self.$scrollerLevel2.velocity("stop");
-    },
-
-    onSwipe: function(e) {
+    onSwipeX: function(e) {
       var self = this;
       console.log(e.type, e.gesture.deltaX, e.gesture.velocityX, e.gesture);
 
@@ -143,17 +148,15 @@
     var $body = $("body");
     var $root = $("#root");
 
+    var rowCount = 20;
     var itemCount = 10;
     var itemWidth = 300;
     var itemHeight = 200;
     var itemGutterSize = 10;
     var itemPaddingSize = 10;
 
-    var rowCount = 20;
-
     $root.width($window.width());
-    $root.height(rowCount * (itemHeight + 2 * itemPaddingSize));
-
+    $root.height($window.height());
 
     var horizontalScrollers = _.map(_.range(rowCount), function(rowIndex) {
       // Add the images to #root
@@ -192,7 +195,7 @@
           }
         };
       }),
-      itemWidth: horizontalScroller.getTotalItemWidth(),
+      itemWidth: $root.width(),
       itemHeight: itemHeight,
       itemGutterSize: itemGutterSize,
       itemPaddingSize: itemPaddingSize,
