@@ -160,7 +160,9 @@ function ifUndefined(val1, val2) {
  */
 function addEventListeners(target, types, handler) {
     each(splitStr(types), function(type) {
-        target.addEventListener(type, handler, false);
+        // awhite
+        //target.addEventListener(type, handler, false);
+        $(target).on(type, handler);
     });
 }
 
@@ -172,7 +174,9 @@ function addEventListeners(target, types, handler) {
  */
 function removeEventListeners(target, types, handler) {
     each(splitStr(types), function(type) {
-        target.removeEventListener(type, handler, false);
+        // awhite
+        //target.removeEventListener(type, handler, false);
+        $(target).off(type, handler);
     });
 }
 
@@ -315,8 +319,10 @@ function uniqueId() {
  * @returns {DocumentView|Window}
  */
 function getWindowForElement(element) {
-    var doc = element.ownerDocument;
-    return (doc.defaultView || doc.parentWindow);
+    //var doc = element.ownerDocument;
+    //return (doc.defaultView || doc.parentWindow);
+
+    return window.document.body;
 }
 
 var MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
@@ -739,7 +745,7 @@ inherit(MouseInput, Input, {
         var eventType = MOUSE_INPUT_MAP[ev.type];
 
         // on start we want to have the left mouse button down
-        if (eventType & INPUT_START && ev.button === 0) {
+        if (eventType & INPUT_START /*&& ev.button === 0*/) {
             this.pressed = true;
         }
 

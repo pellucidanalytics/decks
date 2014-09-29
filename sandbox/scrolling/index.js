@@ -87,9 +87,9 @@
       this.$scrollerLevel1.hammer();
       this.$scrollerLevel1.on("tap press touchstart mousedown", _.bind(this.onTap, this));
       this.$scrollerLevel1.on("panleft panright", _.bind(this.onPanX, this));
-      //this.$scrollerLevel1.on("panup pandown", _.bind(this.onPanY, this));
+      this.$scrollerLevel1.on("panup pandown", _.bind(this.onPanY, this));
       this.$scrollerLevel1.on("swipeleft swiperight", _.bind(this.onSwipeX, this));
-      //this.$scrollerLevel1.on("swipeup swipedown", _.bind(this.onSwipeY, this));
+      this.$scrollerLevel1.on("swipeup swipedown", _.bind(this.onSwipeY, this));
     },
 
     /**
@@ -119,6 +119,10 @@
       }
     },
 
+    onPanY: function(e) {
+      console.log(e.type);
+    },
+
     onSwipeX: function(e) {
       var self = this;
       console.log(e.type, e.gesture.deltaX, e.gesture.velocityX, e.gesture);
@@ -140,7 +144,11 @@
             self.isSwiping = false;
           }
         });
-    }
+    },
+
+    onSwipeY: function(e) {
+      console.log(e.type);
+    },
   });
 
   $(function() {
@@ -162,7 +170,7 @@
       // Add the images to #root
       var items = _.map(_.range(itemCount), function(i) {
         var image = new Image(itemWidth, itemHeight);
-        image.src = "http://lorempixel.com/" + itemWidth + "/" + itemHeight + "/";
+        image.src = "http://lorempixel.com/" + itemWidth + "/" + itemHeight + "/?" + Math.random();
 
         // simulate the "Item" class
         return {
@@ -202,6 +210,5 @@
       scrollDirection: "v",
       swipeEasing: "easeOutExpo"
     });
-
   });
 }());
