@@ -40,4 +40,11 @@ _.each(groups, function (group) {
   });
 });
 
+var btn = document.createElement('button');
+btn.appendChild(document.createTextNode('Expand All'));
+btn.onclick = function () {
+  foodDeck.expandAll();
+};
+
+document.body.appendChild(btn);
 document.body.appendChild(foodDeck.load());
