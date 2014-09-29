@@ -1,50 +1,21 @@
-var _ = require('lodash');
-var Deck = require('../lib').Deck;
+var Decks= require('..');
 
-// pull in our example data
-var groups = require('./data').groups;
-var foods = require('./data').foods;
+var myDeck = new Decks.Deck({
+  viewport: new Decks.Viewport({/* ... options, obviously */}),
+  layout: new Decks.Layout({
+    getItemtransforms: function (item) {
+      return {
 
-function getFoodsByTag(foods, tag) {
-  // some magic to return an array of food objects that match the given tag
-  return _.filter(foods, function (food) {
-    return _.contains(food.tags, tag);
-  });
-}
-
-var foodDeck = new Deck({
-  width: 1000,
-  height: 600,
-  itemWidth: 300,
-  itemHeight: 200
-  //...
+      };
+    }
+  })
 });
 
-_.each(groups, function (group) {
-  _.each(group.tags, function (tag) {
-    // get an array of all food items matching our tag
-    var currentCollection = foodDeck.addCollection({
-      // ...
-    });
+var items = [{
+  toHTML: function (size) {
+    return "<div>Some HTML</div>"
+  }
+}]
 
-    _.each(getFoodsByTag(foods, tag), function (item) {
-      var image = new Image();
-      image.src = item.imgUrl;
+myDeck.addItems(items)
 
-      currentCollection.addItem({
-        name: item.name,
-        element: image,
-        tags: item.tags
-      });
-    });
-  });
-});
-
-var btn = document.createElement('button');
-btn.appendChild(document.createTextNode('Expand All'));
-btn.onclick = function () {
-  foodDeck.expandAll();
-};
-
-document.body.appendChild(btn);
-document.body.appendChild(foodDeck.load());
