@@ -9,7 +9,6 @@ var foods = require('./data').foods;
 var getRenders = function (item, viewport) {
   // theoretically, maintain a separate list of where stacks of tags
   // should be positioned, given an viewport dimensions
-  console.log(viewport);
 
   return {
     "stack1": {
@@ -23,7 +22,7 @@ var getRenders = function (item, viewport) {
 
 var rendererLoadItem = function (options) {
   var imgUrl = options.item.get('imgUrl');
-  options.newRender.element.innerHTML = "<div>hi</div>";
+  options.newRender.element.innerHTML = "<div><img src='" + imgUrl + "' /></div>";
   options.item.isLoaded = true;
 };
 
@@ -50,4 +49,5 @@ var myDeck = new Decks.Deck({
   }
 });
 
-myDeck.addItems(foods);
+myDeck.addItems(foods, {silent: true});
+myDeck.layout.draw();
