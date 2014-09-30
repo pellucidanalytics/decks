@@ -39,8 +39,10 @@
     "watchify": "^1.0.3"
   },
   "dependencies": {
+    "events": "^1.0.2",
     "lodash": "^2.4.1",
     "q": "^1.0.1",
+    "util": "^0.10.3",
     "velocity-animate": "^1.1.0"
   }
 }
