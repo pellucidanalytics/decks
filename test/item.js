@@ -5,7 +5,7 @@ var decks = require("..");
 var Item = decks.Item;
 var EventEmitter = require("eventemitter2").EventEmitter2;
 
-describe("item", function() {
+describe("Item", function() {
   describe("constructor", function(){
     it("should setup sensible defaults", function() {
       var item = new Item();
@@ -16,7 +16,9 @@ describe("item", function() {
     it("should be an instance of EventEmitter", function() {
       var item = new Item();
       item.should.be.an.instanceof(EventEmitter);
-      item._events.should.eql({}); // make sure EventEmitter super ctor is called
+      item.on.should.be.a('function');
+      item.off.should.be.a('function');
+      item.emit.should.be.a('function');
     });
   });
 
