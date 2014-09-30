@@ -3,7 +3,7 @@ var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("..");
 var Item = decks.Item;
-var EventEmitter = require("events").EventEmitter;
+var EventEmitter = require("eventemitter2").EventEmitter2;
 
 describe("item", function() {
   describe("constructor", function(){
