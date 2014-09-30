@@ -1,2 +1,2 @@
 require("./sanity-check");
-require("./deck");
+require("./item");
