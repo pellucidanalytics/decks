@@ -40,7 +40,7 @@
     "watchify": "^1.0.3"
   },
   "dependencies": {
-    "events": "^1.0.2",
+    "eventemitter2": "^0.4.14",
     "inherits": "^2.0.1",
     "lodash": "^2.4.1"
   }
