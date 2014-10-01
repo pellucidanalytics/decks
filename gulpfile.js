@@ -176,6 +176,7 @@ gulp.task("default", function(cb) {
   runSequence(
     ['dist', 'example', 'test'],
     'watch-test',
+    'watch-example',
     cb
   );
 });
