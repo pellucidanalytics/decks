@@ -11,187 +11,187 @@ module.exports.groups = [{
 
 var fruits = [{
     name: "Strawberry",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["berries"]
 }, {
     name: "Blueberry",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["berries"]
 }, {
     name: "Raspberry",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["berries"]
 }, {
     name: "Blackberry",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["berries"]
 }, {
     name: "Huckleberry",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["berries"]
 }, {
     name: "Watermelon",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["melons"]
 }, {
     name: "Cantaloupe",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["melons"]
 }, {
     name: "Honeydew",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["melons"]
 }, {
     name: "Orange",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Mandarin Orange",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Kumquat",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Lemon",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Lime",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Tangelo",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Grapefruit",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Pomelo",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["citrus"]
 }, {
     name: "Peach",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["drupes"]
 }, {
     name: "Plum",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["drupes"]
 }, {
     name: "Cherry",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["drupes"]
 }, {
     name: "Olive",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["drupes"]
 }, {
     name: "Nectarine",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["drupes"]
 }];
 
 var vegetables = [{
     name: "Carrot",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Onion",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Garlic",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Yam",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Ginger",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Beet",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Rutabega",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Potato",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Yuca",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots"]
 }, {
     name: "Fennel",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["roots", "stalks"]
 }, {
     name: "Celery",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["stalks"]
 }, {
     name: "Asparagus",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["stalks"]
 }, {
     name: "Spinach",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["leaves"]
 }, {
     name: "Kale",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["leaves"]
 }, {
     name: "Cilantro",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["leaves"]
 }, {
     name: "Chard",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["leaves"]
 }, {
     name: "Bok Choi",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["leaves"]
 }, {
     name: "Cabbage",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["leaves"]
 }, {
     name: "Basil",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["leaves"]
 }];
 
 var grains = [{
     name: "White Rice",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["refined"]
 }, {
     name: "White Flour",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["refined"]
 }, {
     name: "Whole Flour",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["whole"]
 }, {
     name: "Brown Rice",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["whole"]
 }, {
     name: "Oatmeal",
-    imgUrl: "http://placekitten.com/g/300/200",
+    imgUrl: "http://lorempixel.com/",
     tags: ["whole"]
 }];
 
