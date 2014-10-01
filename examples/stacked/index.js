@@ -10,29 +10,32 @@ var getRenders = function (options) {
   // theoretically, maintain a separate list of where stacks of tags
   // should be positioned, given an viewport dimensions
 
+  var row = Math.floor(options.index / 4);
+  var column = options.index % 4;
+
   return {
     "stack1": {
       transform: {
-        top: 30,
-        left: 200,
+        top: row * 220,
+        left: column * 320,
         width: 300,
         height: 200
       },
       animateOptions: {
-        duration: 400,
+        duration: 400 + options.index * 20,
         easing: "ease-in"
       }
     }
   };
 };
 
-var rendererLoadItem = function (options) {
+var loadRender = function (options) {
   var imgUrl = options.item.get('imgUrl');
   options.newRender.element.innerHTML = "<div><img src='" + imgUrl + "' /></div>";
   options.item.isLoaded = true;
 };
 
-var renderUnloadItem = function (options) {
+var unloadRender = function (options) {
   options.newRender.element.innerHTML = "";
   options.item.isLoaded = false;
 };
@@ -50,8 +53,8 @@ var myDeck = new Decks.Deck({
     getRenders: getRenders
   },
   itemRenderer: {
-    loadItem: rendererLoadItem,
-    unloadItem: renderUnloadItem
+    loadRender: loadRender,
+    unloadRender: unloadRender
   }
 });
 
