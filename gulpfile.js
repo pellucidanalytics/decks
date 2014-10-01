@@ -84,8 +84,15 @@ gulp.task("js-example", function() {
 });
 
 gulp.task('watch-example', ['html-example', 'styl-example'], function () {
+  var lr = require('gulp-livereload')();
+
   gulp.watch(paths.example.htmlAll, ['html-example']);
   gulp.watch(paths.example.stylAll, ['styl-example']);
+
+  // reload if anything in the output folder changes
+  gulp.watch(paths.src.out + '/**/*').on('change', function (file) {
+    lr.changed(file.path);
+  });
 
   // javascript
   var bundler = watchify(browserify(paths.example.jsMain, {
@@ -174,12 +181,22 @@ gulp.task("test", ["html-test", "styl-test", "js-test", "mocha-test"]);
 gulp.task("watch-test", ["watch-html-test", "watch-styl-test", "watch-js-test", "watch-mocha-test"]);
 
 ////////////////////////////////////////////////////////////////////////////////
-// Default task
+// Default tasks
 ////////////////////////////////////////////////////////////////////////////////
+
+gulp.task("serve", function() {
+  var path = require('path'),
+      express = require('express'),
+      app = express();
+
+  app.use(require('connect-livereload')());
+  app.use(express.static(path.join(__dirname, paths.src.out)));
+  app.listen(3000);
+});
 
 gulp.task("default", function(cb) {
   runSequence(
-    ['dist', 'example', 'test'],
+    ['dist', 'example', 'test', 'serve'],
     'watch-test',
     'watch-example',
     cb
