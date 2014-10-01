@@ -14,7 +14,9 @@ var getRenders = function (options) {
     "stack1": {
       transform: {
         top: 30,
-        left: 200
+        left: 200,
+        width: 300,
+        height: 200
       },
       animateOptions: {
         duration: 400,
