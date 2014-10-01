@@ -32,16 +32,16 @@ var paths = {
     out: "./dist/test"
   },
   example: {
-    htmlMain: "./example/index.html",
-    htmlAll: "./example/**/*.html",
+    htmlMain: "./examples/stacked/index.html",
+    htmlAll: "./examples/**/*.html",
 
-    jsMain: "./example/index.js",
-    jsAll: "./example/**/*.js",
+    jsMain: "./examples/stacked/index.js",
+    jsAll: "./examples/**/*.js",
 
-    stylMain: "./example/index.styl",
-    stylAll: "./example/**/*.styl",
+    stylMain: "./examples/stacked/index.styl",
+    stylAll: "./examples/**/*.styl",
 
-    out: "./dist/example"
+    out: "./dist/examples/stacked"
   }
 };
 
@@ -73,7 +73,7 @@ gulp.task("styl-example", function() {
 });
 
 gulp.task("js-example", function() {
-  var b = browserify('./example/index.js', {
+  var b = browserify(paths.example.jsMain, {
     noparse: ['lodash', 'q'],
     debug: true
   });
@@ -88,7 +88,12 @@ gulp.task('watch-example', ['html-example', 'styl-example'], function () {
   gulp.watch(paths.example.stylAll, ['styl-example']);
 
   // javascript
-  var bundler = watchify(browserify(paths.example.jsMain, watchify.args));
+  var bundler = watchify(browserify(paths.example.jsMain, {
+    cache: {},
+    packageCache: {},
+    fullPaths: true,
+    debug: true
+  }));
   bundler.on("update", rebundle);
   function rebundle() {
     return bundler.bundle()
