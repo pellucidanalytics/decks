@@ -6,7 +6,7 @@ var foods = require('./data').foods;
 // Functions to be passed in when we create our deck
 ////////////////////////////////////////////////////////////////////////////////
 
-var getRenders = function (item, viewport) {
+var getRenders = function (options) {
   // theoretically, maintain a separate list of where stacks of tags
   // should be positioned, given an viewport dimensions
 
