@@ -15,6 +15,10 @@ var getRenders = function (item, viewport) {
       transform: {
         top: 30,
         left: 200
+      },
+      animateOptions: {
+        duration: 400,
+        easing: "ease-in"
       }
     }
   };

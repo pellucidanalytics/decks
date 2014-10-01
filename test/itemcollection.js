@@ -43,31 +43,67 @@ describe("ItemCollection", function() {
 
     it("should accept a Number index to get", function() {
       expect(itemCollection.getItem(-1)).to.be.undefined;
-      expect(itemCollection.getItem(0)).to.eql(items[0]);
-      expect(itemCollection.getItem(1)).to.eql(items[1]);
+      expect(itemCollection.getItem(0).getData()).to.eql(items[0]);
+      expect(itemCollection.getItem(1).getData()).to.eql(items[1]);
       expect(itemCollection.getItem(2)).to.be.undefined;
     });
 
-    it("should accept an object to use as a _.where style get", function(){
-      expect(itemCollection.getItem({ key1: "val1" })).to.eql(items[0]);
-      expect(itemCollection.getItem({ key1: "val2" })).to.eql(items[1]);
-      expect(itemCollection.getItem({ key1: "val3" })).to.be.undefined;
-    });
-
-    it("should accept a functioln to use as a _.find/_.filter style get", function() {
-      expect(itemCollection.getItem(function(item) { return item.key1 === "val1"; })).to.eql(items[0]);
-      expect(itemCollection.getItem(function(item) { return item.key1 === "val2"; })).to.eql(items[1]);
-      expect(itemCollection.getItem(function(item) { return item.key1 === "val3"; })).to.be.undefined;
+    it("should accept a function to use as a _.find/_.filter style get", function() {
+      expect(itemCollection.getItem(function(item) { return item.get("key1") === "val1"; }).getData()).to.eql(items[0]);
+      expect(itemCollection.getItem(function(item) { return item.get("key1") === "val2"; }).getData()).to.eql(items[1]);
+      expect(itemCollection.getItem(function(item) { return item.get("key1") === "val3"; })).to.be.undefined;
     });
   });
 
   describe("getItems", function() {
-    it("should...", function() {
+    var items;
+    var itemCollection;
+
+    beforeEach(function() {
+      items = [
+        {
+          key1: "val1",
+          key2: 1
+        },
+        {
+          key1: "val2",
+          key2: 2
+        },
+        {
+          key1: "val3",
+          key2: 3
+        }
+      ];
+      itemCollection = new ItemCollection(items);
+    });
+
+    it("should accept a filter function to get items", function() {
+      var filter = function(item) {
+        return item.get("key2") >= 2;
+      };
+      expect(itemCollection.getItems(filter).length).to.eql(2);
+    });
+
+    it("should return all items if no filter", function() {
+      expect(itemCollection.getItems().length).to.eql(3);
     });
   });
 
   describe("addItem", function() {
-    it("should...", function() {
+    var itemCollection;
+
+    beforeEach(function(){
+      itemCollection = new ItemCollection();
+    });
+
+    it("should add an plain object item and emit an event", function() {
+      var spy = sinon.spy();
+      var item = { key1: "val1" };
+      itemCollection.on("item:added", spy);
+
+      itemCollection.addItem(item);
+
+      //expect(itemCollection.getItems()).to.eql(
     });
   });
 

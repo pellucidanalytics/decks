@@ -111,6 +111,131 @@ describe("Item", function() {
     });
   });
 
+  describe("getData", function() {
+    it("should return an empty object if there is no data", function() {
+      var item = new Item();
+      expect(item.getData()).to.eql({});
+    });
+
+    it("should return the full data object", function() {
+      var data = {
+        key1: "val1",
+        key2: 2
+      };
+      var item = new Item(data);
+      expect(item.getData()).to.eql(data);
+    });
+  });
+
+  describe("setData", function() {
+    it("should clear the object if no data is passed", function() {
+      var data = {
+        key: "val"
+      };
+      var item = new Item(data);
+      var clearedSpy = sinon.spy();
+      var changedSpy = sinon.spy();
+      item.on("cleared", clearedSpy);
+      item.on("changed", clearedSpy);
+
+      item.setData();
+
+      expect(clearedSpy).to.have.been.called;
+      expect(changedSpy).to.have.callCount(0);
+    });
+
+    it("should set the data an emit events", function() {
+      var data = {
+        key1: "val1",
+        key2: 2
+      };
+
+      var item = new Item(data);
+      expect(item.getData()).to.eql(data);
+
+      var changedSpy = sinon.spy();
+      var clearedSpy = sinon.spy();
+
+      item.on("changed", changedSpy);
+      item.on("cleared", clearedSpy);
+
+      var data2 = {
+        key3: "val3",
+        key4: "val4",
+        key5: "val5"
+      };
+
+      item.setData(data2);
+      expect(item.getData()).to.eql(data2);
+      expect(clearedSpy).to.have.been.called;
+      expect(changedSpy).to.have.callCount(3);
+    });
+
+    it("should not clear the current data if options.noClear = true", function() {
+      var data = {
+        key1: "val1",
+        key2: 2
+      };
+
+      var item = new Item(data);
+      expect(item.getData()).to.eql(data);
+
+      var data2 = {
+        key2: 3,
+        key3: false
+      };
+
+      var clearedSpy = sinon.spy();
+      var changedSpy = sinon.spy();
+      item.on("cleared", clearedSpy);
+      item.on("changed", changedSpy);
+
+      item.setData(data2, { noClear: true });
+      expect(item.getData()).to.eql({
+        key1: "val1",
+        key2: 3,
+        key3: false
+      });
+
+      expect(clearedSpy).to.have.callCount(0);
+      expect(changedSpy).to.have.been.calledTwice;
+    });
+
+    it("should not emit events if options.silent = true", function() {
+      var data = {
+        key1: 1
+      };
+
+      var item = new Item(data);
+      expect(item.getData()).to.eql(data);
+
+      var clearedSpy = sinon.spy();
+      var changedSpy = sinon.spy();
+      item.on("cleared", clearedSpy);
+      item.on("changed", changedSpy);
+
+      var data2 = {
+        key2: 2
+      };
+
+      item.setData(data2, { silent: true });
+      expect(item.getData()).to.eql(data2);
+
+      expect(clearedSpy).to.have.callCount(0);
+      expect(changedSpy).to.have.callCount(0);
+    });
+  });
+
+  describe("clear", function() {
+    it("should clear the data", function() {
+      var data = { key: "val" };
+      var item = new Item(data);
+      expect(item.getData()).to.eql(data);
+      item.clear();
+      expect(item.getData()).to.eql({});
+    });
+  });
+
   describe("hasRender", function() {
     it("should return false for non-existent renders", function() {
       var item = new Item();
@@ -158,6 +283,29 @@ describe("Item", function() {
       var render = { element: "something", transforms: {}, animateOptions: {} };
       item.setRender("key1", render);
       item.getRender("key1").should.eql(render);
+    });
+  });
+
+  describe("getRenders", function() {
+    it("should return an empty object if there are no renders", function() {
+      var item = new Item();
+      expect(item.getRenders()).to.eql({});
+    });
+
+    it("should return the full renders object", function() {
+      var item = new Item();
+
+      item.setRender("key1", { element: "something" });
+      item.setRender("key2", { element: "something2" });
+
+      expect(item.getRenders()).to.eql({
+        key1: {
+          element: "something"
+        },
+        key2: {
+          element: "something2"
+        }
+      });
     });
   });
 
