@@ -1,6 +1,6 @@
 var Velocity = require('velocity-animate');
 var Decks = require('../..');
-var foods = require('./data').foods;
+var list = require('./data').list;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions to be passed in when we create our deck
@@ -21,7 +21,7 @@ var getRenders = function (options) {
   var column = index % cols;
 
   return {
-    "stack1": {
+    "0": {
       transform: {
         top: 250 + row * 200 + rand(20),
         left: 250 + column * 260 - rand(20),
@@ -39,9 +39,9 @@ var getRenders = function (options) {
 };
 
 var loadRender = function (options) {
-  var imgUrl = options.item.get('imgUrl');
+  var url = options.item.get('url');
   options.newRender.element.style.zIndex = options.index;
-  options.newRender.element.innerHTML = "<div><img width=200 height=140 src='" + imgUrl + "200/140/' style=\"padding:8px 8px 24px 8px;background-color:#fff\"/></div>";
+  options.newRender.element.innerHTML = "<img width=300 height=200 src='" + url + "'/>";
   options.item.isLoaded = true;
 };
 
@@ -68,5 +68,5 @@ var myDeck = new Decks.Deck({
   }
 });
 
-myDeck.addItems(foods, {silent: true});
+myDeck.addItems(list, {silent: true});
 myDeck.layout.draw();
