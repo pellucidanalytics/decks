@@ -5,10 +5,12 @@
 An Item represents some arbitrary data model, and emits events when the
 model data is changed.
 
+### Properties
 - is an EventEmitter
 - has a data object
 - emits event when data changes
 
+### Methods
 - get(key) - get data property by key
 - set(key, value, options) - set data property by key (emit)
 - getData() - get full data object
@@ -19,6 +21,7 @@ model data is changed.
 An ItemCollection represents a collection of Items, and emits events
 when the collection is changed, or any model is changed.
 
+### Properties
 - is an EventEmitter
 - has many Items
 - emits even when item added
@@ -26,6 +29,7 @@ when the collection is changed, or any model is changed.
 - emits even when item changed
 - emits even when items cleared
 
+### Methods
 - getItem(filter) - gets a single item (using filter/index/etc.)
 - getItems(filter) - gets multiple items (using filter)
 - addItem(item, options) - adds a single item
@@ -38,6 +42,7 @@ when the collection is changed, or any model is changed.
 A render contains the information about an element drawn on the screen
 (element, transform, animateOptions).
 
+### Properties
 - is a plain Object
 - has an element (DOM)
 - has a "transform" object (properties to animate)
@@ -48,6 +53,7 @@ A render contains the information about an element drawn on the screen
 A transform represents the DOM element properties that have been applied to an
 element.
 
+### Properties
 - is a plain object
 - has properties to apply in an animation
 
@@ -56,6 +62,7 @@ element.
 An animateOptions represents the options applied during an animation
 (duration, easing, etc.)
 
+### Properties
 - is a plain object
 - has options to apply in an animation
 
@@ -64,12 +71,14 @@ An animateOptions represents the options applied during an animation
 A Layout is a passive object that knows how to create elements, create
 transforms, etc.
 
+### Properties
 - is an Object
 - has an itemCollection
 - has a viewport
 - does not listen to itemCollection events (???)
 - does not listen to viewport events (???)
 
+### Methods
 - createRenderElements(item) - creates an element for a render
 - loadRenderElement(item, render) - loads the contents of an element
 - unloadRenderElement(item, render)  - unloads the contents of an element
@@ -85,6 +94,7 @@ to the Layout to determine how to create elements, and how to transform
 them.  The viewport also listens for DOM events, and delegates to the
 layout to determine how to handle them.
 
+### Properties
 - is an EventEmitter
 - has an ItemCollection
 - has a Layout
@@ -94,6 +104,7 @@ layout to determine how to handle them.
 - emits events
   - UI events (touch/gestures)
 
+### Methods
 - setItemCollection(itemCollection)
 - setLayout(layout)
 - draw() - draws all item render
@@ -105,11 +116,13 @@ layout to determine how to handle them.
 A Deck is the top-level object that the application will deal with.  It
 manages all the objects, and provides the top-level API.
 
+### Properties
 - is an Object
 - has an ItemCollection
 - has a Layout
 - has a Viewport
 
+### Methods
 - {wrappers for itemCollection methods - to modify collection}
 - setItemCollection
 - setLayout
