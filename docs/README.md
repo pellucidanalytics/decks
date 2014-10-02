@@ -24,10 +24,10 @@ when the collection is changed, or any model is changed.
 #### Properties
 - is an EventEmitter
 - has many Items
-- emits even when item added
-- emits even when item removed
-- emits even when item changed
-- emits even when items cleared
+- emits event when item added
+- emits event when item removed
+- emits event when item changed
+- emits event when items cleared
 
 #### Methods
 - getItem(filter) - gets a single item (using filter/index/etc.)
@@ -79,7 +79,7 @@ transforms, etc.
 - does not listen to viewport events (???)
 
 #### Methods
-- createRenderElements(item) - creates an element for a render
+- createRenderElements(item) - creates the elements needed
 - loadRenderElement(item, render) - loads the contents of an element
 - unloadRenderElement(item, render)  - unloads the contents of an element
 - createRenderAnimation(item, render) - creates the "transform" and
