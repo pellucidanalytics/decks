@@ -39,15 +39,21 @@ var getRenders = function (options) {
 };
 
 var loadRender = function (options) {
+  if (options.newRender.isLoaded) {
+    return;
+  }
   var imgUrl = options.item.get('imgUrl');
   options.newRender.element.style.zIndex = options.index;
   options.newRender.element.innerHTML = "<div><img width=200 height=140 src='" + imgUrl + "200/140/' style=\"padding:8px 8px 24px 8px;background-color:#fff\"/></div>";
-  options.item.isLoaded = true;
+  options.newRender.isLoaded = true;
 };
 
 var unloadRender = function (options) {
+  if (!options.newRender.isLoaded) {
+    return;
+  }
   options.newRender.element.innerHTML = "";
-  options.item.isLoaded = false;
+  options.newRender.isLoaded = false;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

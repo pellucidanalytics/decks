@@ -32,16 +32,16 @@ var paths = {
     out: "./dist/test"
   },
   example: {
-    htmlMain: "./examples/stacked/index.html",
+    htmlMain: "./examples/basicgridlayout/index.html",
     htmlAll: "./examples/**/*.html",
 
-    jsMain: "./examples/stacked/index.js",
+    jsMain: "./examples/basicgridlayout/index.js",
     jsAll: "./examples/**/*.js",
 
-    stylMain: "./examples/stacked/index.styl",
+    stylMain: "./examples/basicgridlayout/index.styl",
     stylAll: "./examples/**/*.styl",
 
-    out: "./dist/examples/stacked"
+    out: "./dist/examples/basicgridlayout"
   }
 };
 
