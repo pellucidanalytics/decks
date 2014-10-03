@@ -1,70 +1,114 @@
 var _ = require("lodash");
+var $ = require("jquery");
 var Velocity = require('velocity-animate');
 var decks = require('../..');
+var Deck = decks.Deck;
 var BasicGridLayout = decks.layouts.BasicGridLayout;
 var BasicStackLayout = decks.layouts.BasicStackLayout;
 
-var items = _.map(_.range(100), function(i) {
+var items = _.map(_.range(20), function(i) {
   return {
     index: i,
-    imgUrl: "http://lorempixel.com/"
+    imgUrl: "http://lorempixel.com",
+    label: "Image " + i
   };
 });
 
+var loadRender = function (options) {
+  var item = options.item;
+  var render = options.render;
+
+  if (render.isLoading || render.isLoaded) {
+    return;
+  }
+
+  render.isLoading = true;
+  render.isLoaded = false;
+
+  var imgUrl = item.get('imgUrl') + "/" + this.itemWidth + "/" + this.itemHeight + "/"; //"/?" + Math.random();
+
+  var img = new Image(this.itemWidth, this.itemHeight);
+  img.onload = _.bind(function() {
+    console.log("render loaded");
+
+    render.isLoading = false;
+    render.isLoaded = true;
+  }, this);
+  img.src = imgUrl;
+
+  render.element.innerHTML = "";
+  render.element.appendChild(img);
+};
+
+var unloadRender = function (options) {
+  console.log("unloadRender");
+  options.newRender.element.innerHTML = "";
+  options.item.isLoaded = false;
+};
+
 var layouts = {
-  grid: new BasicGridLayout({
+  grid1: new BasicGridLayout({
     itemWidth: 100,
     itemHeight: 80,
     itemPadding: 10,
-    itemsPerRow: 10
+    itemsPerRow: 9,
+    loadRender: loadRender,
+    unloadRender: unloadRender
+  }),
+  grid2: new BasicGridLayout({
+    itemWidth: 150,
+    itemHeight: 120,
+    itemPadding: 15,
+    itemsPerRow: 6,
+    loadRender: loadRender,
+    unloadRender: unloadRender
   }),
   stack: new BasicStackLayout({
     itemWidth: 100,
     itemHeight: 80,
     itemPadding: 40,
-    itemsPerRow: 10
+    itemsPerRow: 9,
+    loadRender: loadRender,
+    unloadRender: unloadRender
   })
 };
 
-var loadRender = function (options) {
-  var imgUrl = options.item.get('imgUrl') + "/" + options.layout.itemWidth + "/" + options.layout.itemHeight + "/"; //"/?" + Math.random();
-  options.newRender.element.innerHTML = "<div><img src='" + imgUrl + "' /></div>";
-  options.item.isLoaded = true;
-};
-
-var unloadRender = function (options) {
-  options.newRender.element.innerHTML = "";
-  options.item.isLoaded = false;
-};
-
-
 $(function() {
-  var $layoutSelect = $(".select-layout");
+  var $root = $("#root");
 
-  var layout = layouts[$layoutSelect.val()];
+  var $layoutSelect = $(".layout-select");
 
-  var myDeck = new decks.Deck({
-    viewport: {
-      animate: Velocity,
-      frame: document.body
-    },
-    layout: layout,
-    itemRenderer: {
-      loadRender: loadRender,
-      unloadRender: unloadRender
-    }
+  _.each(layouts, function(layout, key) {
+    var $option = $("<option>").text(key);
+    $layoutSelect.append($option);
   });
-
-  myDeck.addItems(items, {silent: true});
-
-  myDeck.layout.draw();
 
   $layoutSelect.on("change", function(e) {
     var val = $layoutSelect.val();
-    console.log(val);
-
     var layout = layouts[val];
-    myDeck.setLayout(layout);
+    deck.setLayout(layout);
   });
-});
 
+  var layout = layouts[$layoutSelect.val()];
+
+  var frameElement = $root[0];
+
+  var deck = new Deck({
+    items: items,
+    viewport: {
+      animator: {
+        animate: Velocity
+      },
+      frame: {
+        element: frameElement
+      },
+      canvas: {
+        width: "1024px",
+        height: "3000px"
+      }
+    },
+    layout: layout
+  });
+
+  //deck.viewport.drawItems();
+});

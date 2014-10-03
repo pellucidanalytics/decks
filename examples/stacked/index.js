@@ -2,26 +2,19 @@ var Velocity = require('velocity-animate');
 var Decks = require('../..');
 var foods = require('./data').foods;
 
-////////////////////////////////////////////////////////////////////////////////
-// Functions to be passed in when we create our deck
-////////////////////////////////////////////////////////////////////////////////
-
 function rand(max) {
   return - max / 2 + Math.random() * max;
 }
 
 var getRenders = function (options) {
-  // theoretically, maintain a separate list of where stacks of tags
-  // should be positioned, given an viewport dimensions
-
   var index = options.index;
   var rows = 3;
   var cols = 3;
   var row = Math.floor(index / rows) % rows;
   var column = index % cols;
 
-  return {
-    "stack1": {
+  return [
+    {
       transform: {
         top: 250 + row * 200 + rand(20),
         left: 250 + column * 260 - rand(20),
@@ -35,17 +28,17 @@ var getRenders = function (options) {
         easing: [250,15]// "ease"
       }
     }
-  };
+  ];
 };
 
 var loadRender = function (options) {
-  if (options.newRender.isLoaded) {
+  if (options.render.isLoaded) {
     return;
   }
   var imgUrl = options.item.get('imgUrl');
-  options.newRender.element.style.zIndex = options.index;
-  options.newRender.element.innerHTML = "<div><img width=200 height=140 src='" + imgUrl + "200/140/' style=\"padding:8px 8px 24px 8px;background-color:#fff\"/></div>";
-  options.newRender.isLoaded = true;
+  options.render.element.style.zIndex = options.index;
+  options.render.element.innerHTML = "<div><img width=200 height=140 src='" + imgUrl + "200/140/' style=\"padding:8px 8px 24px 8px;background-color:#fff\"/></div>";
+  options.render.isLoaded = true;
 };
 
 var unloadRender = function (options) {
@@ -61,18 +54,18 @@ var unloadRender = function (options) {
 ////////////////////////////////////////////////////////////////////////////////
 
 var myDeck = new Decks.Deck({
+  items: foods,
   viewport: {
-    animate: Velocity,
-    frame: document.body
+    animator: {
+      animate: Velocity
+    },
+    frame: {
+      element: document.body
+    }
   },
   layout: {
-    getRenders: getRenders
-  },
-  itemRenderer: {
+    getRenders: getRenders,
     loadRender: loadRender,
     unloadRender: unloadRender
   }
 });
-
-myDeck.addItems(foods, {silent: true});
-myDeck.layout.draw();

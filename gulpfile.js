@@ -1,7 +1,10 @@
 var browserify = require("browserify");
+var connectLiveReload = require("connect-livereload");
 var eventStream = require("event-stream");
+var express = require("express");
 var fs = require("fs");
 var gulp = require("gulp");
+var gulpLiveReload = require("gulp-livereload");
 var gutil = require("gulp-util");
 var mochaPhantomJS = require("gulp-mocha-phantomjs");
 var nib = require("nib");
@@ -120,7 +123,7 @@ gulp.task("js-examples", function() {
 gulp.task("examples", ["html-examples", "styl-examples", "js-examples"]);
 
 gulp.task('watch-examples', ['examples'], function () {
-  var liveReload = require('gulp-livereload')();
+  var liveReload = gulpLiveReload();
 
   gulp.watch(path.join(paths.examples.baseDir, paths.examples.htmlAll), ['html-examples']);
 
@@ -203,11 +206,8 @@ gulp.task("watch-test", ["test"], function() {
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("serve", function() {
-  var path = require('path'),
-      express = require('express'),
-      app = express();
-
-  app.use(require('connect-livereload')());
+  var app = express();
+  app.use(connectLiveReload());
   app.use(express.static(path.join(__dirname, paths.dist.baseDir)));
   app.listen(3000);
 });

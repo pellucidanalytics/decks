@@ -1,19 +1,36 @@
-gray-5 = #555
-gray-7 = #777
-gray-a = #aaa
-gray-c = #ccc
-gray-e = #eee
+grey-5 = #555
+grey-7 = #777
+grey-a = #aaa
+grey-c = #ccc
+grey-e = #eee
 
 html
 body
-    width 100%
-    height 100%
+  width 100%
+  height 100%
 
 body
-    background-color gray-5
-    position relative
+  margin 0
+  padding 0
+  background-color grey-5
 
-select
+#root
+  margin 40px auto
+  width 1024px
+  height 768px
+  background-color grey-7
+
+.decks-frame
+  background-color grey-a
+
+.decks-canvas
+  background-color grey-c
+
+.decks-item
+  background-color grey-e
+  box-shadow 0px 0px 10px 2px rgba(0,0,0,0.75)
+
+.layout-select
   position absolute
   top 10px
   right 10px
