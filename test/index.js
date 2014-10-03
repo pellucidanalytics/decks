@@ -1,3 +1,3 @@
-require("./sanity-check");
+require("./sanitycheck");
 require("./item");
 require("./itemcollection");

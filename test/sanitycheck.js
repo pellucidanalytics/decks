@@ -1,4 +1,4 @@
-var tools = require("./test-tools");
+var tools = require("./testtools");
 var expect = tools.expect;
 var assert = tools.assert;
 

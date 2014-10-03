@@ -1,4 +1,4 @@
-var tools = require("./test-tools");
+var tools = require("./testtools");
 var Deck = require("../lib/deck");
 
 describe("deck", function () {
