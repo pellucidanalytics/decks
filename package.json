@@ -27,6 +27,7 @@
     "browserify": "^5.12.0",
     "chai": "^1.9.1",
     "connect-livereload": "^0.4.0",
+    "event-stream": "^3.1.7",
     "express": "^4.9.5",
     "gulp": "^3.8.8",
     "gulp-livereload": "^2.1.1",

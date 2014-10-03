@@ -1,4 +1,6 @@
 var browserify = require("browserify");
+var eventStream = require("event-stream");
+var fs = require("fs");
 var gulp = require("gulp");
 var gutil = require("gulp-util");
 var mochaPhantomJS = require("gulp-mocha-phantomjs");
@@ -10,49 +12,73 @@ var stylus = require("gulp-stylus");
 var watchify = require("watchify");
 
 var paths = {
-  src: {
+  lib: {
+    baseDir: "./lib",
     jsMain: "./lib/index.js",
     jsAll: "./lib/**/*.js",
-
     stylMain: "./lib/index.styl",
-    stylAll: "./lib/**/*.styl",
-
-    out: "./dist",
+    stylAll: "./lib/**/*.styl"
   },
   test: {
+    baseDir: "./test",
     htmlMain: "./test/index.html",
     htmlAll: "./test/**/*.html",
-
     jsMain: "./test/index.js",
     jsAll: "./test/**/*.js",
-
     stylMain: "./test/index.styl",
-    stylAll: "./test/**/*.styl",
-
-    out: "./dist/test"
+    stylAll: "./test/**/*.styl"
   },
-  example: {
-    htmlMain: "./examples/basicgridlayout/index.html",
-    htmlAll: "./examples/**/*.html",
-
-    jsMain: "./examples/basicgridlayout/index.js",
-    jsAll: "./examples/**/*.js",
-
-    stylMain: "./examples/basicgridlayout/index.styl",
-    stylAll: "./examples/**/*.styl",
-
-    out: "./dist/examples/basicgridlayout"
+  examples: {
+    baseDir: "./examples",
+    htmlMain: "index.html",
+    htmlAll: "**/*.html",
+    jsMain: "index.js",
+    jsAll: "**/*.js",
+    stylMain: "index.styl",
+    stylAll: "**/*.styl"
+  },
+  dist: {
+    baseDir: "./dist",
+    testDir: "./dist/test",
+    examplesDir: "./dist/examples"
   }
 };
+
+// Gets the 1st-level subdirectories of baseDir
+function getSubDirs(baseDir) {
+  return fs.readdirSync(baseDir)
+    .filter(function(file) {
+      return fs.statSync(path.join(baseDir, file)).isDirectory();
+    });
+}
+
+// Maps a callback for every subdirectory of baseDir
+function mapSubDir(baseDir, callback) {
+  return getSubDirs(baseDir).map(callback);
+}
+
+// Runs a callback for every subdirectory of baseDir
+function forEachSubDir(baseDir, callback) {
+  getSubDirs(baseDir).forEach(callback);
+}
+
+// Maps a create stream function over each subdirectory, and returns a concatenation
+// of the streams
+function concatSubDirStreams(baseDir, createStream) {
+  var streams = mapSubDir(baseDir, createStream);
+  return eventStream.concat.apply(null, streams);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // lib tasks
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO: need more tasks here
+
 gulp.task("styl-dist", function() {
-  gulp.src(paths.src.stylMain)
+  gulp.src(paths.lib.stylMain)
     .pipe(stylus({ use: nib() }))
-    .pipe(gulp.dest(paths.src.out));
+    .pipe(gulp.dest(paths.dist.baseDir));
 });
 
 gulp.task("dist", ["styl-dist"]);
@@ -61,127 +87,120 @@ gulp.task("dist", ["styl-dist"]);
 // example tasks
 ////////////////////////////////////////////////////////////////////////////////
 
-gulp.task("html-example", function() {
-  gulp.src(paths.example.htmlMain)
-    .pipe(gulp.dest(paths.example.out));
-});
-
-gulp.task("styl-example", function() {
-  gulp.src(paths.example.stylMain)
-    .pipe(stylus({ use: nib() }))
-    .pipe(gulp.dest(paths.example.out));
-});
-
-gulp.task("js-example", function() {
-  var b = browserify(paths.example.jsMain, {
-    noparse: ['lodash', 'q'],
-    debug: true
+gulp.task("html-examples", function() {
+  return concatSubDirStreams(paths.examples.baseDir, function(dir) {
+    return gulp.src(path.join(paths.examples.baseDir, dir, paths.examples.htmlMain))
+      .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
   });
-
-  return b.bundle()
-    .pipe(source('bundle.js'))
-    .pipe(gulp.dest(paths.example.out));
 });
 
-gulp.task('watch-example', ['html-example', 'styl-example'], function () {
-  var lr = require('gulp-livereload')();
-
-  gulp.watch(paths.example.htmlAll, ['html-example']);
-  gulp.watch(paths.example.stylAll, ['styl-example']);
-
-  // reload if anything in the output folder changes
-  gulp.watch(paths.src.out + '/**/*').on('change', function (file) {
-    lr.changed(file.path);
+gulp.task("styl-examples", function() {
+  return concatSubDirStreams(paths.examples.baseDir, function(dir) {
+    return gulp.src(path.join(paths.examples.baseDir, dir, paths.examples.stylMain))
+      .pipe(stylus({ use: nib() }))
+      .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
   });
+});
 
-  // javascript
-  var bundler = watchify(browserify(paths.example.jsMain, {
-    cache: {},
-    packageCache: {},
-    fullPaths: true,
-    debug: true
-  }));
-  bundler.on("update", rebundle);
-  function rebundle() {
+gulp.task("js-examples", function() {
+  return concatSubDirStreams(paths.examples.baseDir, function(dir) {
+    var indexjsPath = "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain);
+    var bundler = browserify(indexjsPath, {
+      noparse: ['lodash', 'q'],
+      debug: true
+    });
     return bundler.bundle()
-      .on("error", gutil.log.bind(gutil, "browserify error"))
-      .pipe(source("bundle.js"))
-      .pipe(gulp.dest(paths.example.out))
-      .on('end', gutil.log.bind(gutil, "finished bundling"));
-  }
-
-  return rebundle();
+      .pipe(source('bundle.js'))
+      .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
+  });
 });
 
-gulp.task("example", ["html-example", "styl-example", "js-example"]);
+gulp.task("examples", ["html-examples", "styl-examples", "js-examples"]);
+
+gulp.task('watch-examples', ['examples'], function () {
+  var liveReload = require('gulp-livereload')();
+
+  var baseDir = paths.examples.baseDir;
+
+  gulp.watch(path.join(baseDir, paths.examples.htmlAll), ['html-examples']);
+
+  gulp.watch(path.join(baseDir, paths.examples.stylAll), ['styl-examples']);
+
+  gulp.watch(paths.dist.baseDir + '/**/*').on('change', function (file) {
+    liveReload.changed(file.path);
+  });
+
+  forEachSubDir(paths.examples.baseDir, function(dir) {
+
+    var indexjsPath = "./" + path.join(baseDir, dir, paths.examples.jsMain);
+
+    var bundler = watchify(browserify(indexjsPath, {
+      cache: {},
+      packageCache: {},
+      fullPaths: true,
+      debug: true
+    }));
+
+    bundler.on("update", rebundle);
+
+    function rebundle() {
+      return bundler.bundle()
+        .on("error", gutil.log.bind(gutil, "browserify error"))
+        .pipe(source("bundle.js"))
+        .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)))
+        .on('end', gutil.log.bind(gutil, "finished bundling"));
+    }
+    //return rebundle();
+  });
+});
 
 ////////////////////////////////////////////////////////////////////////////////
 // test tasks
 ////////////////////////////////////////////////////////////////////////////////
 
-// Copy .html files to test output folder
 gulp.task("html-test", function() {
   gulp.src(paths.test.htmlMain)
-    .pipe(gulp.dest(paths.test.out));
+    .pipe(gulp.dest(paths.dist.testDir));
 });
 
-// Compile .styl files to .css files in test output folder
 gulp.task("styl-test", function() {
   gulp.src(paths.test.stylMain)
     .pipe(stylus({ use: nib() }))
-    .pipe(gulp.dest(paths.test.out));
+    .pipe(gulp.dest(paths.dist.testDir));
 });
 
-// Bundle .js files into test output folder
 gulp.task("js-test", function() {
   return browserify(paths.test.jsMain)
     .bundle()
     .pipe(source("bundle.js"))
-    .pipe(gulp.dest(paths.test.out));
+    .pipe(gulp.dest(paths.dist.testDir));
 });
 
-// Run mocha PhantomJS tests in test output folder
-gulp.task("mocha-test", function() {
-  return gulp.src(path.join(paths.test.out, "index.html"))
+gulp.task("test", ["html-test", "styl-test", "js-test"], function() {
+  return gulp.src(path.join(paths.dist.testDir, "index.html"))
     .pipe(mochaPhantomJS());
 });
 
-// Watch test .html files
-gulp.task("watch-html-test", function() {
+gulp.task("watch-test", ["test"], function() {
   gulp.watch(paths.test.htmlAll, ["html-test"]);
-});
-
-// Watch test .styl files
-gulp.task("watch-styl-test", function() {
   gulp.watch(paths.test.stylAll, ["styl-test"]);
-});
 
-// Watch test .js files
-gulp.task("watch-js-test", function() {
   var bundler = watchify(browserify(paths.test.jsMain, watchify.args));
+
   bundler.on("update", rebundle);
+
   function rebundle() {
     return bundler.bundle()
       .on("error", gutil.log.bind(gutil, "browserify error"))
       .pipe(source("bundle.js"))
-      .pipe(gulp.dest(paths.test.out));
+      .pipe(gulp.dest(paths.dist.testDir));
   }
-  //return rebundle();
+
+  gulp.watch(path.join(paths.dist.testDir, "bundle.js"), ["test"]);
 });
-
-// Watch built test .js file
-gulp.task("watch-mocha-test", function() {
-  gulp.watch(path.join(paths.test.out, "bundle.js"), ["mocha-test"]);
-});
-
-// Run the test build
-gulp.task("test", ["html-test", "styl-test", "js-test", "mocha-test"]);
-
-// Start the watchers for test files
-gulp.task("watch-test", ["watch-html-test", "watch-styl-test", "watch-js-test", "watch-mocha-test"]);
 
 ////////////////////////////////////////////////////////////////////////////////
-// Default tasks
+// Live reload server
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("serve", function() {
@@ -190,15 +209,19 @@ gulp.task("serve", function() {
       app = express();
 
   app.use(require('connect-livereload')());
-  app.use(express.static(path.join(__dirname, paths.src.out)));
+  app.use(express.static(path.join(__dirname, paths.dist.baseDir)));
   app.listen(3000);
 });
 
+////////////////////////////////////////////////////////////////////////////////
+// Default task
+////////////////////////////////////////////////////////////////////////////////
+
 gulp.task("default", function(cb) {
   runSequence(
-    ['dist', 'example', 'test', 'serve'],
     'watch-test',
-    'watch-example',
+    'watch-examples',
+    'serve',
     cb
   );
 });
