@@ -105,10 +105,12 @@ gulp.task("styl-examples", function() {
 gulp.task("js-examples", function() {
   return concatSubDirStreams(paths.examples.baseDir, function(dir) {
     var indexjsPath = "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain);
+
     var bundler = browserify(indexjsPath, {
       noparse: ['lodash', 'q'],
       debug: true
     });
+
     return bundler.bundle()
       .pipe(source('bundle.js'))
       .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
@@ -120,19 +122,16 @@ gulp.task("examples", ["html-examples", "styl-examples", "js-examples"]);
 gulp.task('watch-examples', ['examples'], function () {
   var liveReload = require('gulp-livereload')();
 
-  var baseDir = paths.examples.baseDir;
+  gulp.watch(path.join(paths.examples.baseDir, paths.examples.htmlAll), ['html-examples']);
 
-  gulp.watch(path.join(baseDir, paths.examples.htmlAll), ['html-examples']);
-
-  gulp.watch(path.join(baseDir, paths.examples.stylAll), ['styl-examples']);
+  gulp.watch(path.join(paths.examples.baseDir, paths.examples.stylAll), ['styl-examples']);
 
   gulp.watch(paths.dist.baseDir + '/**/*').on('change', function (file) {
     liveReload.changed(file.path);
   });
 
   forEachSubDir(paths.examples.baseDir, function(dir) {
-
-    var indexjsPath = "./" + path.join(baseDir, dir, paths.examples.jsMain);
+    var indexjsPath = "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain);
 
     var bundler = watchify(browserify(indexjsPath, {
       cache: {},
@@ -150,7 +149,6 @@ gulp.task('watch-examples', ['examples'], function () {
         .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)))
         .on('end', gutil.log.bind(gutil, "finished bundling"));
     }
-    //return rebundle();
   });
 });
 
@@ -183,6 +181,7 @@ gulp.task("test", ["html-test", "styl-test", "js-test"], function() {
 
 gulp.task("watch-test", ["test"], function() {
   gulp.watch(paths.test.htmlAll, ["html-test"]);
+
   gulp.watch(paths.test.stylAll, ["styl-test"]);
 
   var bundler = watchify(browserify(paths.test.jsMain, watchify.args));
@@ -219,8 +218,7 @@ gulp.task("serve", function() {
 
 gulp.task("default", function(cb) {
   runSequence(
-    'watch-test',
-    'watch-examples',
+    ['watch-test', 'watch-examples'],
     'serve',
     cb
   );
