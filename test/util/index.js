@@ -1,0 +1,2 @@
+require("./eventbinder");
+require("./rectangles");
