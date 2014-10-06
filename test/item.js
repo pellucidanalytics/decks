@@ -49,7 +49,7 @@ describe("Item", function() {
       var item = new Item({ key1: "val1" });
       var spy = sinon.spy();
 
-      item.on("changed", spy);
+      item.on("item:changed", spy);
 
       item.set("key1", "val2");
       spy.should.have.been.calledWith({ item: item, key: "key1", oldValue: "val1", value: "val2" });
@@ -68,7 +68,7 @@ describe("Item", function() {
       var item = new Item({ key1: "val1" });
       var spy = sinon.spy();
 
-      item.on("changed", spy);
+      item.on("item:changed", spy);
 
       item.set("key1", "val1");
       spy.should.have.callCount(0);
@@ -84,7 +84,7 @@ describe("Item", function() {
     it("should force the set if using options.force = true", function() {
       var item = new Item({ key1: "val1" });
       var spy = sinon.spy();
-      item.on("changed", spy);
+      item.on("item:changed", spy);
 
       item.set("key1", "val1", { force: true, silent: false });
       spy.should.have.been.called;
@@ -101,7 +101,7 @@ describe("Item", function() {
       var item = new Item({ key1: "val1" });
       var spy = sinon.spy();
 
-      item.on("changed", spy);
+      item.on("item:changed", spy);
 
       item.set("key1", "val2", { silent: true });
       spy.should.have.callCount(0);
@@ -134,8 +134,8 @@ describe("Item", function() {
       var item = new Item(data);
       var clearedSpy = sinon.spy();
       var changedSpy = sinon.spy();
-      item.on("cleared", clearedSpy);
-      item.on("changed", clearedSpy);
+      item.on("item:cleared", clearedSpy);
+      item.on("item:changed", changedSpy);
 
       item.setData();
 
@@ -155,8 +155,8 @@ describe("Item", function() {
       var changedSpy = sinon.spy();
       var clearedSpy = sinon.spy();
 
-      item.on("changed", changedSpy);
-      item.on("cleared", clearedSpy);
+      item.on("item:changed", changedSpy);
+      item.on("item:cleared", clearedSpy);
 
       var data2 = {
         key3: "val3",
@@ -186,8 +186,8 @@ describe("Item", function() {
 
       var clearedSpy = sinon.spy();
       var changedSpy = sinon.spy();
-      item.on("cleared", clearedSpy);
-      item.on("changed", changedSpy);
+      item.on("item:cleared", clearedSpy);
+      item.on("item:changed", changedSpy);
 
       item.setData(data2, { noClear: true });
       expect(item.getData()).to.eql({
@@ -210,8 +210,8 @@ describe("Item", function() {
 
       var clearedSpy = sinon.spy();
       var changedSpy = sinon.spy();
-      item.on("cleared", clearedSpy);
-      item.on("changed", changedSpy);
+      item.on("item:cleared", clearedSpy);
+      item.on("item:changed", changedSpy);
 
       var data2 = {
         key2: 2

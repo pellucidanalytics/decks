@@ -6,6 +6,7 @@ var fs = require("fs");
 var gulp = require("gulp");
 var gulpLiveReload = require("gulp-livereload");
 var gutil = require("gulp-util");
+var jsdoc = require("gulp-jsdoc");
 var mochaPhantomJS = require("gulp-mocha-phantomjs");
 var nib = require("nib");
 var path = require("path");
@@ -43,7 +44,8 @@ var paths = {
   dist: {
     baseDir: "./dist",
     testDir: "./dist/test",
-    examplesDir: "./dist/examples"
+    examplesDir: "./dist/examples",
+    jsdocDir: "./dist/jsdoc"
   }
 };
 
@@ -78,13 +80,23 @@ function concatSubDirStreams(baseDir, createStream) {
 
 // TODO: need more tasks here
 
-gulp.task("styl-dist", function() {
+gulp.task("styl-lib", function() {
   gulp.src(paths.lib.stylMain)
     .pipe(stylus({ use: nib() }))
     .pipe(gulp.dest(paths.dist.baseDir));
 });
 
-gulp.task("dist", ["styl-dist"]);
+gulp.task("jsdoc-lib", function() {
+  gulp.src([paths.lib.jsAll, "README.md"])
+    .pipe(jsdoc(paths.dist.jsdocDir));
+});
+
+gulp.task("lib", ["styl-lib", "jsdoc-lib"]);
+
+gulp.task("watch-lib", ["lib"], function() {
+  gulp.watch(paths.lib.stylAll, ["styl-lib"]);
+  gulp.watch(paths.lib.jsAll, ["jsdoc-lib"]);
+});
 
 ////////////////////////////////////////////////////////////////////////////////
 // example tasks
@@ -110,26 +122,26 @@ gulp.task("js-examples", function() {
     var indexjsPath = "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain);
 
     var bundler = browserify(indexjsPath, {
-      noparse: ['lodash', 'q'],
+      noparse: ["lodash", "q"],
       debug: true
     });
 
     return bundler.bundle()
-      .pipe(source('bundle.js'))
+      .pipe(source("bundle.js"))
       .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
   });
 });
 
 gulp.task("examples", ["html-examples", "styl-examples", "js-examples"]);
 
-gulp.task('watch-examples', ['examples'], function () {
+gulp.task("watch-examples", ["examples"], function () {
   var liveReload = gulpLiveReload();
 
-  gulp.watch(path.join(paths.examples.baseDir, paths.examples.htmlAll), ['html-examples']);
+  gulp.watch(path.join(paths.examples.baseDir, paths.examples.htmlAll), ["html-examples"]);
 
-  gulp.watch(path.join(paths.examples.baseDir, paths.examples.stylAll), ['styl-examples']);
+  gulp.watch(path.join(paths.examples.baseDir, paths.examples.stylAll), ["styl-examples"]);
 
-  gulp.watch(paths.dist.baseDir + '/**/*').on('change', function (file) {
+  gulp.watch(paths.dist.baseDir + "/**/*").on("change", function (file) {
     liveReload.changed(file.path);
   });
 
@@ -150,7 +162,7 @@ gulp.task('watch-examples', ['examples'], function () {
         .on("error", gutil.log.bind(gutil, "browserify error"))
         .pipe(source("bundle.js"))
         .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)))
-        .on('end', gutil.log.bind(gutil, "finished bundling"));
+        .on("end", gutil.log.bind(gutil, "finished bundling"));
     }
   });
 });
@@ -218,8 +230,8 @@ gulp.task("serve", function() {
 
 gulp.task("default", function(cb) {
   runSequence(
-    ['watch-test', 'watch-examples'],
-    'serve',
+    ["watch-lib", "watch-test", "watch-examples"],
+    "serve",
     cb
   );
 });

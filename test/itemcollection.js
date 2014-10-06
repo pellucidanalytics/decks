@@ -99,7 +99,7 @@ describe("ItemCollection", function() {
     it("should add an plain object item and emit an event", function() {
       var spy = sinon.spy();
       var item = { key1: "val1" };
-      itemCollection.on("item:added", spy);
+      itemCollection.on("item:collection:item:added", spy);
 
       itemCollection.addItem(item);
 
