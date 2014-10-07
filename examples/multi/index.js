@@ -11,6 +11,7 @@ var i = -1;
 function createItem() {
   i++;
   return {
+    id: i,
     width: 300,
     height: 200,
     imgUrl: "http://lorempixel.com",
@@ -20,9 +21,8 @@ function createItem() {
 
 var items = _.map(_.range(20), createItem);
 
-var loadRender = function (options) {
-  var item = options.item;
-  var render = options.render;
+var loadRender = function (render) {
+  var item = render.item;
 
   var shouldLoad = !render.isLoading &&
     (render.transform.width != render.lastWidth) &&
@@ -50,10 +50,12 @@ var loadRender = function (options) {
   img.src = imgUrl;
 };
 
-var unloadRender = function (options) {
+var unloadRender = function(render) {
+  var item = render.item;
+
   //console.log("unloadRender");
-  options.newRender.element.innerHTML = "";
-  options.item.isLoaded = false;
+  render.element.innerHTML = "";
+  item.isLoaded = false;
 };
 
 var layouts = {

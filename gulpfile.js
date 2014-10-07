@@ -220,7 +220,7 @@ gulp.task("watch-test", ["test"], function() {
 gulp.task("serve", function() {
   var app = express();
   app.use(connectLiveReload());
-  app.use(express.static(path.join(__dirname, paths.dist.baseDir)));
+  app.use(express.static(__dirname));
   app.listen(3000);
 });
 

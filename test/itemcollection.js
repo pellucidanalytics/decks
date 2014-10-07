@@ -10,7 +10,7 @@ describe("ItemCollection", function() {
   describe("constructor", function() {
     it("should set sensible defaults", function() {
       var itemCollection = new ItemCollection();
-      itemCollection._items.should.eql([]);
+      itemCollection._items.should.eql({});
     });
 
     it("should be an instance of EventEmitter", function() {
@@ -29,10 +29,12 @@ describe("ItemCollection", function() {
     beforeEach(function(){
       items = [
         {
+          id: 0,
           key1: "val1",
           key2: 1
         },
         {
+          id: 1,
           key1: "val2",
           key2: 2
         }
@@ -48,10 +50,11 @@ describe("ItemCollection", function() {
       expect(itemCollection.getItem(2)).to.be.undefined;
     });
 
-    it("should accept a function to use as a _.find/_.filter style get", function() {
-      expect(itemCollection.getItem(function(item) { return item.get("key1") === "val1"; }).getData()).to.eql(items[0]);
-      expect(itemCollection.getItem(function(item) { return item.get("key1") === "val2"; }).getData()).to.eql(items[1]);
-      expect(itemCollection.getItem(function(item) { return item.get("key1") === "val3"; })).to.be.undefined;
+    it("should accept a String index to get", function() {
+      expect(itemCollection.getItem("-1")).to.be.undefined;
+      expect(itemCollection.getItem("0").getData()).to.eql(items[0]);
+      expect(itemCollection.getItem("1").getData()).to.eql(items[1]);
+      expect(itemCollection.getItem("2")).to.be.undefined;
     });
   });
 
@@ -62,14 +65,17 @@ describe("ItemCollection", function() {
     beforeEach(function() {
       items = [
         {
+          id: 0,
           key1: "val1",
           key2: 1
         },
         {
+          id: 1,
           key1: "val2",
           key2: 2
         },
         {
+          id: 2,
           key1: "val3",
           key2: 3
         }
@@ -77,14 +83,7 @@ describe("ItemCollection", function() {
       itemCollection = new ItemCollection(items);
     });
 
-    it("should accept a filter function to get items", function() {
-      var filter = function(item) {
-        return item.get("key2") >= 2;
-      };
-      expect(itemCollection.getItems(filter).length).to.eql(2);
-    });
-
-    it("should return all items if no filter", function() {
+    it("should return all items", function() {
       expect(itemCollection.getItems().length).to.eql(3);
     });
   });
