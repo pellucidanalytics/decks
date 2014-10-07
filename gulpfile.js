@@ -247,10 +247,7 @@ gulp.task("serve", function() {
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("notify", function() {
-  nodeNotifier.notify({
-    title: "Gulp",
-    message: "Decks build is complete!"
-  });
+  notify("Decks build complete!");
 });
 
 gulp.task("default", function(cb) {

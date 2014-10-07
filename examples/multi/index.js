@@ -126,6 +126,9 @@ $(function() {
     .on("click", function(e) {
       console.log("remove item");
       var items = deck.itemCollection.getItems();
+      if (_.isEmpty(items)) {
+        return;
+      }
       var index = Math.floor(Math.random() * (items.length - 1));
       var item = items[index];
       deck.removeItem(item);

@@ -1,0 +1,63 @@
+var _ = require("lodash");
+var tools = require("./testtools");
+var expect = tools.expect;
+var decks = require("..");
+var EventEmitter = require("eventemitter2").EventEmitter2;
+var Layout = decks.Layout;
+
+describe("Layout", function() {
+  describe("constructor", function() {
+    it("should be an instance of EventEmitter", function() {
+      var layout = new Layout();
+      layout.should.be.an.instanceof(EventEmitter);
+      layout.on.should.be.a('function');
+      layout.off.should.be.a('function');
+      layout.emit.should.be.a('function');
+    });
+
+    it("should copy properties from options onto this, if specified", function() {
+      var options = {
+        getRenders: function() {},
+        loadRender: function() {},
+        unloadRender: function() {},
+        setRemoveAnimation: function() {}
+      };
+
+      var layout = new Layout(options);
+
+      _.each(options, function(val, key) {
+        expect(layout[key]).to.eql(options[key]);
+        expect(Layout.prototype[key]).not.to.eql(layout[key]);
+      });
+    });
+  });
+
+  describe("getRenders", function() {
+    it("should throw a not implemented error by default", function() {
+      var layout = new Layout();
+      expect(function() { layout.getRenders(); }).to.throw(Error);
+    });
+  });
+
+  describe("loadRender", function() {
+    it("should throw a not implemented error by default", function() {
+      var layout = new Layout();
+      expect(function() { layout.loadRender(); }).to.throw(Error);
+    });
+  });
+
+  describe("unloadRender", function() {
+    it("should throw a not implemented error by default", function() {
+      var layout = new Layout();
+      expect(function() { layout.unloadRender(); }).to.throw(Error);
+    });
+  });
+
+  describe("setRemoveAnimation", function() {
+    it("should throw a not implemented error by default", function() {
+      var layout = new Layout();
+      expect(function() { layout.setRemoveAnimation(); }).to.throw(Error);
+    });
+  });
+});
+

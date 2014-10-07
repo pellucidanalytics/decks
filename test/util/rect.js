@@ -3,7 +3,7 @@ var expect = tools.expect;
 var decks = require("../..");
 var rect = decks.util.rect;
 
-describe("rect", function() {
+describe("util/rect", function() {
   describe("normalize", function(){
     it("should calculate rectangle width and height if not specified", function() {
       var input = {

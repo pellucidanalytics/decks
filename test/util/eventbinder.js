@@ -29,7 +29,7 @@ _.extend(TestEventTarget.prototype, eventBinder, {
   }
 });
 
-describe("eventbinder", function() {
+describe("util/eventBinder", function() {
   var source;
   var target;
   var map = { "test:event": "onTestEvent" };
