@@ -31,4 +31,3 @@ gulp example
 - [Loading Effects for Grid Items](http://tympanus.net/Development/GridLoadingEffects/index.html)
 - [Magnet](http://codecanyon.net/item/magnet-jquery-plugin-for-filterable-layouts/full_screen_preview/7550966?ref=jqueryrain)
 - [jQuery Gridly](http://ksylvest.github.io/jquery-gridly/)
-

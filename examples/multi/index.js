@@ -19,7 +19,9 @@ function createItem() {
   };
 }
 
-var items = _.map(_.range(20), createItem);
+function createItems(count) {
+  return _.map(_.range(20), createItem);
+}
 
 var loadRender = function (render) {
   var item = render.item;
@@ -98,6 +100,7 @@ var layouts = {
 $(function() {
   var $root = $("#root");
 
+  // Layout select box
   var $layoutSelect = $(".layout-select");
 
   _.each(layouts, function(layout, key) {
@@ -111,12 +114,14 @@ $(function() {
     deck.setLayout(layout);
   });
 
+  // Add item button
   var $addItemButton = $(".add-item-button")
     .on("click", function(e) {
       console.log("add item");
-      deck.addItem(createItem(items.length));
+      deck.addItem(createItem());
     });
 
+  // Remove item button
   var $removeItemButton = $(".remove-item-button")
     .on("click", function(e) {
       console.log("remove item");
@@ -126,34 +131,35 @@ $(function() {
       deck.removeItem(item);
     });
 
+  // Clear items button
   var $clearItemsButton = $(".clear-items-button")
     .on("click", function(e) {
       console.log("clear");
       deck.clear();
     });
 
+  // add items button
   var $addItemsButton = $(".add-items-button")
     .on("click", function(e) {
       console.log("add items");
-      deck.addItems(items);
+      deck.addItems(createItems());
     });
 
+  // set the initial layout (from the select box)
   var layout = layouts[$layoutSelect.val()];
 
+  // Get the frame element (from the page)
   var frameElement = $root[0];
 
+  // Create the Deck
   var deck = new Deck({
-    items: items,
+    items: createItems(),
     viewport: {
       animator: {
         animate: Velocity
       },
       frame: {
         element: frameElement
-      },
-      canvas: {
-        width: "1024px",
-        height: "3000px"
       }
     },
     layout: layout
