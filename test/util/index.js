@@ -1,2 +1,2 @@
 require("./eventbinder");
-require("./rectangles");
+require("./rect");

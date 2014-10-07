@@ -19,6 +19,26 @@ describe("Item", function() {
       item.off.should.be.a('function');
       item.emit.should.be.a('function');
     });
+
+    it("should set an id property, if provided in data", function() {
+      var item;
+
+      item = new Item();
+      expect(item.id).to.be.a("string");
+      expect(parseInt(item.id)).to.be.a("number");
+
+      item = new Item(10);
+      expect(item.id).to.eql("10");
+
+      item = new Item("10")
+      expect(item.id).to.eql("10");
+
+      item = new Item({ id: 10 });
+      expect(item.id).to.eql("10");
+
+      item = new Item({ id: "10" });
+      expect(item.id).to.eql("10");
+    });
   });
 
   describe("get", function() {

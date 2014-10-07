@@ -9,6 +9,7 @@ var gutil = require("gulp-util");
 var jsdoc = require("gulp-jsdoc");
 var mochaPhantomJS = require("gulp-mocha-phantomjs");
 var nib = require("nib");
+var nodeNotifier = require("node-notifier");
 var path = require("path");
 var runSequence = require("run-sequence");
 var source = require("vinyl-source-stream");
@@ -72,6 +73,13 @@ function forEachSubDir(baseDir, callback) {
 function concatSubDirStreams(baseDir, createStream) {
   var streams = mapSubDir(baseDir, createStream);
   return eventStream.concat.apply(null, streams);
+}
+
+function notify(message) {
+  nodeNotifier.notify({
+    title: "gulp - decks",
+    message: message
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,8 +198,18 @@ gulp.task("js-test", function() {
 });
 
 gulp.task("test", ["html-test", "styl-test", "js-test"], function() {
+  var isFailed = false;
   return gulp.src(path.join(paths.dist.testDir, "index.html"))
-    .pipe(mochaPhantomJS());
+    .pipe(mochaPhantomJS())
+    .on("error", function() {
+      isFailed = true;
+      notify("Tests failed!");
+    })
+    .on("end", function() {
+      if (!isFailed) {
+        notify("Tests passed!");
+      }
+    });
 });
 
 gulp.task("watch-test", ["test"], function() {
@@ -228,10 +246,18 @@ gulp.task("serve", function() {
 // Default task
 ////////////////////////////////////////////////////////////////////////////////
 
+gulp.task("notify", function() {
+  nodeNotifier.notify({
+    title: "Gulp",
+    message: "Decks build is complete!"
+  });
+});
+
 gulp.task("default", function(cb) {
   runSequence(
     ["watch-lib", "watch-test", "watch-examples"],
     "serve",
+    "notify",
     cb
   );
 });
