@@ -182,10 +182,10 @@ $(function() {
   // Create the Deck
   var deck = new Deck({
     items: createItems(),
+    animator: {
+      animate: Velocity
+    },
     viewport: {
-      animator: {
-        animate: Velocity
-      },
       frame: {
         element: frameElement
       }
