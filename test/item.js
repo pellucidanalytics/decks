@@ -147,23 +147,7 @@ describe("Item", function() {
   });
 
   describe("setData", function() {
-    it("should clear the object if no data is passed", function() {
-      var data = {
-        key: "val"
-      };
-      var item = new Item(data);
-      var clearedSpy = sinon.spy();
-      var changedSpy = sinon.spy();
-      item.on("item:cleared", clearedSpy);
-      item.on("item:changed", changedSpy);
-
-      item.setData();
-
-      expect(clearedSpy).to.have.been.called;
-      expect(changedSpy).to.have.callCount(0);
-    });
-
-    it("should set the data an emit events", function() {
+    it("should set the data and emit events", function() {
       var data = {
         key1: "val1",
         key2: 2
@@ -173,10 +157,8 @@ describe("Item", function() {
       expect(item.getData()).to.eql(data);
 
       var changedSpy = sinon.spy();
-      var clearedSpy = sinon.spy();
 
       item.on("item:changed", changedSpy);
-      item.on("item:cleared", clearedSpy);
 
       var data2 = {
         key3: "val3",
@@ -186,38 +168,7 @@ describe("Item", function() {
 
       item.setData(data2);
       expect(item.getData()).to.eql(data2);
-      expect(clearedSpy).to.have.been.called;
-      expect(changedSpy).to.have.callCount(3);
-    });
-
-    it("should not clear the current data if options.noClear = true", function() {
-      var data = {
-        key1: "val1",
-        key2: 2
-      };
-
-      var item = new Item(data);
-      expect(item.getData()).to.eql(data);
-
-      var data2 = {
-        key2: 3,
-        key3: false
-      };
-
-      var clearedSpy = sinon.spy();
-      var changedSpy = sinon.spy();
-      item.on("item:cleared", clearedSpy);
-      item.on("item:changed", changedSpy);
-
-      item.setData(data2, { noClear: true });
-      expect(item.getData()).to.eql({
-        key1: "val1",
-        key2: 3,
-        key3: false
-      });
-
-      expect(clearedSpy).to.have.callCount(0);
-      expect(changedSpy).to.have.been.calledTwice;
+      expect(changedSpy).to.have.been.called;
     });
 
     it("should not emit events if options.silent = true", function() {
@@ -228,9 +179,7 @@ describe("Item", function() {
       var item = new Item(data);
       expect(item.getData()).to.eql(data);
 
-      var clearedSpy = sinon.spy();
       var changedSpy = sinon.spy();
-      item.on("item:cleared", clearedSpy);
       item.on("item:changed", changedSpy);
 
       var data2 = {
@@ -240,7 +189,6 @@ describe("Item", function() {
       item.setData(data2, { silent: true });
       expect(item.getData()).to.eql(data2);
 
-      expect(clearedSpy).to.have.callCount(0);
       expect(changedSpy).to.have.callCount(0);
     });
   });

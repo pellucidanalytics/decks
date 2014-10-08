@@ -6,8 +6,8 @@ function rand(max) {
   return - max / 2 + Math.random() * max;
 }
 
-var getRenders = function (options) {
-  var index = options.index;
+var getRenders = function (item) {
+  var index = item.index;
   var rows = 3;
   var cols = 3;
   var row = Math.floor(index / rows) % rows;
@@ -31,16 +31,22 @@ var getRenders = function (options) {
   ];
 };
 
-var loadRender = function (options) {
-  var url = options.item.get('url');
-  options.render.element.style.zIndex = options.index;
-  options.render.element.innerHTML = "<img width=300 height=200 src='" + url + "'/>";
-  options.item.isLoaded = true;
+var loadRender = function (render) {
+  if (render.isLoaded) {
+    return;
+  }
+  var url = render.item.get('url');
+  render.element.style.zIndex = render.item.index;
+  render.element.innerHTML = "<img width=300 height=200 src='" + url + "'/>";
+  render.isLoaded = true;
 };
 
-var unloadRender = function (options) {
-  options.render.element.innerHTML = "";
-  options.item.isLoaded = false;
+var unloadRender = function (render) {
+  if (!render.isLoaded) {
+    return;
+  }
+  render.element.innerHTML = "";
+  render.isLoaded = false;
 };
 
 new Decks.Deck({

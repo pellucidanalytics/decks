@@ -6,8 +6,8 @@ function rand(max) {
   return - max / 2 + Math.random() * max;
 }
 
-var getRenders = function (options) {
-  var index = options.index;
+var getRenders = function(item) {
+  var index = item.index;
   var rows = 3;
   var cols = 3;
   var row = Math.floor(index / rows) % rows;
@@ -31,22 +31,21 @@ var getRenders = function (options) {
   ];
 };
 
-var loadRender = function (options) {
-  if (options.render.isLoaded) {
+var loadRender = function(render) {
+  if (render.isLoaded) {
     return;
   }
-  var imgUrl = options.item.get('imgUrl');
-  options.render.element.style.zIndex = options.index;
-  options.render.element.innerHTML = "<div><img width=200 height=140 src='" + imgUrl + "200/140/' style=\"padding:8px 8px 24px 8px;background-color:#fff\"/></div>";
-  options.render.isLoaded = true;
+  var imgUrl = render.item.get('imgUrl');
+  render.element.innerHTML = "<div><img width=200 height=140 src='" + imgUrl + "200/140/' style=\"padding:8px 8px 24px 8px;background-color:#fff\"/></div>";
+  render.isLoaded = true;
 };
 
-var unloadRender = function (options) {
-  if (!options.newRender.isLoaded) {
+var unloadRender = function(render) {
+  if (!render.isLoaded) {
     return;
   }
-  options.newRender.element.innerHTML = "";
-  options.newRender.isLoaded = false;
+  render.element.innerHTML = "";
+  render.isLoaded = false;
 };
 
 new Decks.Deck({

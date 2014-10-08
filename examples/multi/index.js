@@ -6,16 +6,13 @@ var Deck = decks.Deck;
 var BasicGridLayout = decks.layouts.BasicGridLayout;
 var BasicStackLayout = decks.layouts.BasicStackLayout;
 
-var i = -1;
-
 function createItem() {
-  i++;
   return {
-    id: i,
     width: 300,
     height: 200,
+    random: Math.random(),
     imgUrl: "http://lorempixel.com",
-    label: "Image " + i
+    label: "Image"
   };
 }
 
@@ -116,38 +113,65 @@ $(function() {
   });
 
   // Add item button
-  $(".add-item-button")
-    .on("click", function() {
-      console.log("add item");
-      deck.addItem(createItem());
-    });
+  $(".add-item-button").on("click", function() {
+    console.log("add item");
+    deck.addItem(createItem());
+  });
 
   // Remove item button
-  $(".remove-item-button")
-    .on("click", function() {
-      console.log("remove item");
-      var items = deck.itemCollection.getItems();
-      if (_.isEmpty(items)) {
-        return;
-      }
-      var index = Math.floor(Math.random() * (items.length - 1));
-      var item = items[index];
-      deck.removeItem(item);
-    });
+  $(".remove-item-button").on("click", function() {
+    console.log("remove item");
+    var items = deck.itemCollection.getItems();
+    if (_.isEmpty(items)) {
+      return;
+    }
+    var index = Math.floor(Math.random() * (items.length - 1));
+    var item = items[index];
+    deck.removeItem(item);
+  });
 
   // Clear items button
-  $(".clear-items-button")
-    .on("click", function() {
-      console.log("clear");
-      deck.clear();
-    });
+  $(".clear-items-button").on("click", function() {
+    console.log("clear");
+    deck.clear();
+  });
 
   // add items button
-  $(".add-items-button")
-    .on("click", function() {
-      console.log("add items");
-      deck.addItems(createItems());
+  $(".add-items-button").on("click", function() {
+    console.log("add items");
+    deck.addItems(createItems());
+  });
+
+  $(".filter-evens-button").on("click", function() {
+    deck.setFilter(function(item) {
+      return parseInt(item.id) % 2 === 0;
     });
+  });
+
+  $(".filter-odds-button").on("click", function() {
+    deck.setFilter(function(item) {
+      return parseInt(item.id) % 2 !== 0;
+    });
+  });
+
+  $(".filter-clear-button").on("click", function() {
+    deck.setFilter(null);
+  });
+
+  var currentSortBy = null;
+  var sortBy = function(item) {
+    return item.get("random");
+  };
+  $(".toggle-sort-by-button").on("click", function() {
+    currentSortBy = currentSortBy ? null : sortBy;
+    deck.setSortBy(currentSortBy);
+  });
+
+  var isReversed = false;
+  $(".toggle-reverse-button").on("click", function() {
+    isReversed = !isReversed;
+    deck.setReversed(isReversed);
+  });
 
   // set the initial layout (from the select box)
   var layout = layouts[$layoutSelect.val()];

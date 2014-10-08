@@ -20,7 +20,10 @@ describe("Layout", function() {
         getRenders: function() {},
         loadRender: function() {},
         unloadRender: function() {},
-        setRemoveAnimation: function() {}
+        getShowAnimation: function() {},
+        getHideAnimation: function() {},
+        setShowAnimation: function() {},
+        setHideAnimation: function() {}
       };
 
       var layout = new Layout(options);
@@ -53,12 +56,12 @@ describe("Layout", function() {
     });
   });
 
-  describe("setRemoveAnimation", function() {
+  describe("setHideAnimation", function() {
     it("should set transform and animateOptions properties on the given render", function() {
       var layout = new Layout();
       var render = {};
 
-      layout.setRemoveAnimation(render);
+      layout.setHideAnimation(render);
       expect(render.transform).to.be.an("object");
       expect(render.animateOptions).to.be.an("object");
       expect(_.isEmpty(render.transform)).to.be.false;
