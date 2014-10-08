@@ -20,15 +20,16 @@ function createItem() {
 }
 
 function createItems(count) {
-  return _.map(_.range(20), createItem);
+  count = count || 20;
+  return _.map(_.range(count), createItem);
 }
 
 var loadRender = function (render) {
   var item = render.item;
 
   var shouldLoad = !render.isLoading &&
-    (render.transform.width != render.lastWidth) &&
-    (render.transform.height != render.lastHeight);
+    (render.transform.width !== render.lastWidth) &&
+    (render.transform.height !== render.lastHeight);
 
   if (!shouldLoad) {
     return;
@@ -108,22 +109,22 @@ $(function() {
     $layoutSelect.append($option);
   });
 
-  $layoutSelect.on("change", function(e) {
+  $layoutSelect.on("change", function() {
     var val = $layoutSelect.val();
     var layout = layouts[val];
     deck.setLayout(layout);
   });
 
   // Add item button
-  var $addItemButton = $(".add-item-button")
-    .on("click", function(e) {
+  $(".add-item-button")
+    .on("click", function() {
       console.log("add item");
       deck.addItem(createItem());
     });
 
   // Remove item button
-  var $removeItemButton = $(".remove-item-button")
-    .on("click", function(e) {
+  $(".remove-item-button")
+    .on("click", function() {
       console.log("remove item");
       var items = deck.itemCollection.getItems();
       if (_.isEmpty(items)) {
@@ -135,15 +136,15 @@ $(function() {
     });
 
   // Clear items button
-  var $clearItemsButton = $(".clear-items-button")
-    .on("click", function(e) {
+  $(".clear-items-button")
+    .on("click", function() {
       console.log("clear");
       deck.clear();
     });
 
   // add items button
-  var $addItemsButton = $(".add-items-button")
-    .on("click", function(e) {
+  $(".add-items-button")
+    .on("click", function() {
       console.log("add items");
       deck.addItems(createItems());
     });

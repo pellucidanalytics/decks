@@ -49,11 +49,7 @@ var unloadRender = function (options) {
   options.newRender.isLoaded = false;
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// Initialize the deck and populate it with items
-////////////////////////////////////////////////////////////////////////////////
-
-var myDeck = new Decks.Deck({
+new Decks.Deck({
   items: foods,
   viewport: {
     animator: {

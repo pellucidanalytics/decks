@@ -30,7 +30,7 @@ describe("Item", function() {
       item = new Item(10);
       expect(item.id).to.eql("10");
 
-      item = new Item("10")
+      item = new Item("10");
       expect(item.id).to.eql("10");
 
       item = new Item({ id: 10 });

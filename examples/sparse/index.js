@@ -43,7 +43,7 @@ var unloadRender = function (options) {
   options.item.isLoaded = false;
 };
 
-var myDeck = new Decks.Deck({
+new Decks.Deck({
   items: list,
   viewport: {
     animator: {

@@ -1,7 +1,6 @@
 var _ = require("lodash");
 var tools = require("../testtools");
 var expect = tools.expect;
-var sinon = tools.sinon;
 var EventEmitter = require("eventemitter2").EventEmitter2;
 var inherits = require("inherits");
 var decks = require("../..");

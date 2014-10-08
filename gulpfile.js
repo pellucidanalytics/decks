@@ -4,16 +4,17 @@ var eventStream = require("event-stream");
 var express = require("express");
 var fs = require("fs");
 var gulp = require("gulp");
+var gulpJSDoc = require("gulp-jsdoc");
+var gulpJSHint = require("gulp-jshint");
 var gulpLiveReload = require("gulp-livereload");
-var gutil = require("gulp-util");
-var jsdoc = require("gulp-jsdoc");
-var mochaPhantomJS = require("gulp-mocha-phantomjs");
+var gulpMochaPhantomJS = require("gulp-mocha-phantomjs");
+var gulpStylus = require("gulp-stylus");
+var gulpUtil = require("gulp-util");
 var nib = require("nib");
 var nodeNotifier = require("node-notifier");
 var path = require("path");
 var runSequence = require("run-sequence");
-var source = require("vinyl-source-stream");
-var stylus = require("gulp-stylus");
+var vinylSourceStream = require("vinyl-source-stream");
 var watchify = require("watchify");
 
 var paths = {
@@ -58,23 +59,24 @@ function getSubDirs(baseDir) {
     });
 }
 
-// Maps a callback for every subdirectory of baseDir
+// Maps a callback over every subdirectory of baseDir
 function mapSubDir(baseDir, callback) {
   return getSubDirs(baseDir).map(callback);
 }
 
-// Runs a callback for every subdirectory of baseDir
-function forEachSubDir(baseDir, callback) {
+// Runs a callback over every subdirectory of baseDir
+function eachSubDir(baseDir, callback) {
   getSubDirs(baseDir).forEach(callback);
 }
 
 // Maps a create stream function over each subdirectory, and returns a concatenation
-// of the streams
+// of the streams.
 function concatSubDirStreams(baseDir, createStream) {
   var streams = mapSubDir(baseDir, createStream);
   return eventStream.concat.apply(null, streams);
 }
 
+// Shows a Mac OSX notification with the given message
 function notify(message) {
   nodeNotifier.notify({
     title: "gulp - decks",
@@ -89,21 +91,28 @@ function notify(message) {
 // TODO: need more tasks here
 
 gulp.task("styl-lib", function() {
-  gulp.src(paths.lib.stylMain)
-    .pipe(stylus({ use: nib() }))
+  return gulp.src(paths.lib.stylMain)
+    .pipe(gulpStylus({ use: nib() }))
     .pipe(gulp.dest(paths.dist.baseDir));
 });
 
-gulp.task("jsdoc-lib", function() {
-  gulp.src([paths.lib.jsAll, "README.md"])
-    .pipe(jsdoc(paths.dist.jsdocDir));
+gulp.task("jshint-lib", function() {
+  return gulp.src(paths.lib.jsAll)
+    .pipe(gulpJSHint())
+    .pipe(gulpJSHint.reporter("jshint-stylish"))
+    .pipe(gulpJSHint.reporter("fail"));
 });
 
-gulp.task("lib", ["styl-lib", "jsdoc-lib"]);
+gulp.task("jsdoc-lib", function() {
+  return gulp.src([paths.lib.jsAll, "README.md"])
+    .pipe(gulpJSDoc(paths.dist.jsdocDir));
+});
+
+gulp.task("lib", ["styl-lib", "jshint-lib", "jsdoc-lib"]);
 
 gulp.task("watch-lib", ["lib"], function() {
   gulp.watch(paths.lib.stylAll, ["styl-lib"]);
-  gulp.watch(paths.lib.jsAll, ["jsdoc-lib"]);
+  gulp.watch(paths.lib.jsAll, ["jshint-lib", "jsdoc-lib"]);
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,8 +129,17 @@ gulp.task("html-examples", function() {
 gulp.task("styl-examples", function() {
   return concatSubDirStreams(paths.examples.baseDir, function(dir) {
     return gulp.src(path.join(paths.examples.baseDir, dir, paths.examples.stylMain))
-      .pipe(stylus({ use: nib() }))
+      .pipe(gulpStylus({ use: nib() }))
       .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
+  });
+});
+
+gulp.task("jshint-examples", function() {
+  return concatSubDirStreams(paths.examples.baseDir, function(dir) {
+    return gulp.src(path.join(paths.examples.baseDir, dir, paths.examples.jsAll))
+      .pipe(gulpJSHint())
+      .pipe(gulpJSHint.reporter("jshint-stylish"))
+      .pipe(gulpJSHint.reporter("fail"));
   });
 });
 
@@ -135,12 +153,12 @@ gulp.task("js-examples", function() {
     });
 
     return bundler.bundle()
-      .pipe(source("bundle.js"))
+      .pipe(vinylSourceStream("bundle.js"))
       .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
   });
 });
 
-gulp.task("examples", ["html-examples", "styl-examples", "js-examples"]);
+gulp.task("examples", ["html-examples", "styl-examples", "jshint-examples", "js-examples"]);
 
 gulp.task("watch-examples", ["examples"], function () {
   var liveReload = gulpLiveReload();
@@ -153,7 +171,7 @@ gulp.task("watch-examples", ["examples"], function () {
     liveReload.changed(file.path);
   });
 
-  forEachSubDir(paths.examples.baseDir, function(dir) {
+  eachSubDir(paths.examples.baseDir, function(dir) {
     var indexjsPath = "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain);
 
     var bundler = watchify(browserify(indexjsPath, {
@@ -167,11 +185,13 @@ gulp.task("watch-examples", ["examples"], function () {
 
     function rebundle() {
       return bundler.bundle()
-        .on("error", gutil.log.bind(gutil, "browserify error"))
-        .pipe(source("bundle.js"))
+        .on("error", gulpUtil.log.bind(gulpUtil, "browserify error"))
+        .pipe(vinylSourceStream("bundle.js"))
         .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)))
-        .on("end", gutil.log.bind(gutil, "finished bundling"));
+        .on("end", gulpUtil.log.bind(gulpUtil, "finished bundling"));
     }
+
+    gulp.watch(path.join(paths.examples.baseDir, dir, paths.examples.jsAll), ["jshint-examples"]);
   });
 });
 
@@ -180,27 +200,34 @@ gulp.task("watch-examples", ["examples"], function () {
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("html-test", function() {
-  gulp.src(paths.test.htmlMain)
+  return gulp.src(paths.test.htmlMain)
     .pipe(gulp.dest(paths.dist.testDir));
 });
 
 gulp.task("styl-test", function() {
-  gulp.src(paths.test.stylMain)
-    .pipe(stylus({ use: nib() }))
+  return gulp.src(paths.test.stylMain)
+    .pipe(gulpStylus({ use: nib() }))
     .pipe(gulp.dest(paths.dist.testDir));
+});
+
+gulp.task("jshint-test", function() {
+  return gulp.src(paths.test.jsAll)
+    .pipe(gulpJSHint())
+    .pipe(gulpJSHint.reporter("jshint-stylish"))
+    .pipe(gulpJSHint.reporter("fail"));
 });
 
 gulp.task("js-test", function() {
   return browserify(paths.test.jsMain)
     .bundle()
-    .pipe(source("bundle.js"))
+    .pipe(vinylSourceStream("bundle.js"))
     .pipe(gulp.dest(paths.dist.testDir));
 });
 
-gulp.task("test", ["html-test", "styl-test", "js-test"], function() {
+gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function() {
   var isFailed = false;
   return gulp.src(path.join(paths.dist.testDir, "index.html"))
-    .pipe(mochaPhantomJS())
+    .pipe(gulpMochaPhantomJS())
     .on("error", function() {
       isFailed = true;
       notify("Tests failed!");
@@ -214,17 +241,15 @@ gulp.task("test", ["html-test", "styl-test", "js-test"], function() {
 
 gulp.task("watch-test", ["test"], function() {
   gulp.watch(paths.test.htmlAll, ["html-test"]);
-
   gulp.watch(paths.test.stylAll, ["styl-test"]);
+  gulp.watch(paths.test.jsAll, ["jshint-test"]);
 
   var bundler = watchify(browserify(paths.test.jsMain, watchify.args));
-
   bundler.on("update", rebundle);
-
   function rebundle() {
     return bundler.bundle()
-      .on("error", gutil.log.bind(gutil, "browserify error"))
-      .pipe(source("bundle.js"))
+      .on("error", gulpUtil.log.bind(gulpUtil, "browserify error"))
+      .pipe(vinylSourceStream("bundle.js"))
       .pipe(gulp.dest(paths.dist.testDir));
   }
 
@@ -251,7 +276,7 @@ gulp.task("notify", function() {
 });
 
 gulp.task("default", function(cb) {
-  runSequence(
+  return runSequence(
     ["watch-lib", "watch-test", "watch-examples"],
     "serve",
     "notify",

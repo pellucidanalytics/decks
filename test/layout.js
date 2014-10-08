@@ -54,9 +54,15 @@ describe("Layout", function() {
   });
 
   describe("setRemoveAnimation", function() {
-    it("should throw a not implemented error by default", function() {
+    it("should set transform and animateOptions properties on the given render", function() {
       var layout = new Layout();
-      expect(function() { layout.setRemoveAnimation(); }).to.throw(Error);
+      var render = {};
+
+      layout.setRemoveAnimation(render);
+      expect(render.transform).to.be.an("object");
+      expect(render.animateOptions).to.be.an("object");
+      expect(_.isEmpty(render.transform)).to.be.false;
+      expect(_.isEmpty(render.animateOptions)).to.be.false;
     });
   });
 });
