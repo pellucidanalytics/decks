@@ -34,12 +34,13 @@ var loadRender = function (render) {
 
   render.isLoading = true;
 
-  var imgUrl = item.get('imgUrl') + "/" + item.get("width") + "/" + item.get("height") + "/"; //"/?" + Math.random();
+  var imgUrl = item.get('imgUrl') + "/" + item.get("width") + "/" + item.get("height") +
+    //"/";
+    "/?" + Math.random();
 
   var img = new Image(this.itemWidth, this.itemHeight);
 
   img.onload = _.bind(function() {
-    //console.log("render loaded");
     render.isLoading = false;
     render.lastWidth = render.transform.width;
     render.lastHeight = render.transform.height;
@@ -182,7 +183,8 @@ $(function() {
   // Create the Deck
   var deck = new Deck({
     config: {
-      debugEvents: true
+      debugEvents: false,
+      debugDrawing: true
     },
     animator: {
       animate: Velocity
