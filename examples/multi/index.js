@@ -181,6 +181,9 @@ $(function() {
 
   // Create the Deck
   var deck = new Deck({
+    config: {
+      debugEvents: true
+    },
     animator: {
       animate: Velocity
     },
