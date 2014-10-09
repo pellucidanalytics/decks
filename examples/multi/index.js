@@ -121,7 +121,7 @@ $(function() {
   // Remove item button
   $(".remove-item-button").on("click", function() {
     console.log("remove item");
-    var items = deck.itemCollection.getItems();
+    var items = deck.getItems();
     if (_.isEmpty(items)) {
       return;
     }

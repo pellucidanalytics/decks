@@ -152,7 +152,8 @@ gulp.task("js-examples", function() {
       debug: true
     });
 
-    return bundler.bundle()
+    return bundler
+      .bundle()
       .pipe(vinylSourceStream("bundle.js"))
       .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)));
   });
@@ -184,7 +185,9 @@ gulp.task("watch-examples", ["examples"], function () {
     bundler.on("update", rebundle);
 
     function rebundle() {
-      return bundler.bundle()
+      console.log("-- rebundling for example " + dir + " --");
+      return bundler
+        .bundle()
         .on("error", gulpUtil.log.bind(gulpUtil, "browserify error"))
         .pipe(vinylSourceStream("bundle.js"))
         .pipe(gulp.dest(path.join(paths.dist.examplesDir, dir)))
@@ -247,6 +250,7 @@ gulp.task("watch-test", ["test"], function() {
   var bundler = watchify(browserify(paths.test.jsMain, watchify.args));
   bundler.on("update", rebundle);
   function rebundle() {
+    console.log("-- rebundling for test --");
     return bundler.bundle()
       .on("error", gulpUtil.log.bind(gulpUtil, "browserify error"))
       .pipe(vinylSourceStream("bundle.js"))
