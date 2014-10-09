@@ -1,6 +1,9 @@
 require("./sanitycheck");
 
-require("./util");
+require("./events");
+require("./layouts");
+require("./ui");
+require("./utils");
 
 require("./canvas");
 require("./deck");

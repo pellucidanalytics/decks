@@ -181,17 +181,13 @@ $(function() {
 
   // Create the Deck
   var deck = new Deck({
-    items: createItems(),
     animator: {
       animate: Velocity
     },
-    viewport: {
-      frame: {
-        element: frameElement
-      }
+    items: createItems(),
+    frame: {
+      element: frameElement
     },
     layout: layout
   });
-
-  //deck.viewport.drawItems();
 });

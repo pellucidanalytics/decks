@@ -1,7 +1,7 @@
 var tools = require("../testtools");
 var expect = tools.expect;
 var decks = require("../..");
-var rect = decks.util.rect;
+var rect = decks.utils.rect;
 
 describe("util/rect", function() {
   describe("normalize", function(){

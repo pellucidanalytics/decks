@@ -2,23 +2,19 @@ var tools = require("./testtools");
 var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("..");
+var services = decks.services;
+var Emitter = decks.events.Emitter;
 var ItemCollection = decks.ItemCollection;
-//var Item = decks.Item;
-var EventEmitter = require("eventemitter2").EventEmitter2;
 
 describe("ItemCollection", function() {
+  beforeEach(function() {
+    services.emitter = new Emitter();
+  });
+
   describe("constructor", function() {
     it("should set sensible defaults", function() {
       var itemCollection = new ItemCollection();
       itemCollection._items.should.eql({});
-    });
-
-    it("should be an instance of EventEmitter", function() {
-      var itemCollection = new ItemCollection();
-      itemCollection.should.be.an.instanceof(EventEmitter);
-      itemCollection.on.should.be.a('function');
-      itemCollection.off.should.be.a('function');
-      itemCollection.emit.should.be.a('function');
     });
   });
 
@@ -98,10 +94,9 @@ describe("ItemCollection", function() {
     it("should add an plain object item and emit an event", function() {
       var spy = sinon.spy();
       var item = { key1: "val1" };
-      itemCollection.on("item:collection:item:added", spy);
+      services.emitter.on("item:collection:item:added", spy);
 
       itemCollection.addItem(item);
-
       //expect(itemCollection.getItems()).to.eql(
     });
   });

@@ -2,19 +2,10 @@ var _ = require("lodash");
 var tools = require("./testtools");
 var expect = tools.expect;
 var decks = require("..");
-var EventEmitter = require("eventemitter2").EventEmitter2;
 var Layout = decks.Layout;
 
 describe("Layout", function() {
   describe("constructor", function() {
-    it("should be an instance of EventEmitter", function() {
-      var layout = new Layout();
-      layout.should.be.an.instanceof(EventEmitter);
-      layout.on.should.be.a('function');
-      layout.off.should.be.a('function');
-      layout.emit.should.be.a('function');
-    });
-
     it("should copy properties from options onto this, if specified", function() {
       var options = {
         getRenders: function() {},
