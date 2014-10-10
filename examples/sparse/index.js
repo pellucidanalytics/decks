@@ -1,6 +1,7 @@
 var Velocity = require('velocity-animate');
 var Decks = require('../..');
 var list = require('./data').list;
+require("../../vendor/polyfills");
 
 function rand(max) {
   return - max / 2 + Math.random() * max;
