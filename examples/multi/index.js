@@ -184,7 +184,8 @@ $(function() {
   var deck = new Deck({
     config: {
       debugEvents: false,
-      debugDrawing: false
+      debugDrawing: false,
+      debugGestures: true
     },
     animator: {
       animate: Velocity
