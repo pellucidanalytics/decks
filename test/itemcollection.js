@@ -6,7 +6,7 @@ var services = decks.services;
 var Emitter = decks.events.Emitter;
 var ItemCollection = decks.ItemCollection;
 
-describe("ItemCollection", function() {
+describe("decks.ItemCollection", function() {
   beforeEach(function() {
     services.emitter = new Emitter();
   });

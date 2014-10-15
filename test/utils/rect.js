@@ -3,7 +3,7 @@ var expect = tools.expect;
 var decks = require("../..");
 var rect = decks.utils.rect;
 
-describe("util/rect", function() {
+describe("decks.utils.rect", function() {
   describe("normalize", function(){
     it("should calculate rectangle width and height if not specified", function() {
       var input = {
@@ -24,6 +24,37 @@ describe("util/rect", function() {
 
       expect(rect.normalize(input)).to.eql(expected);
     });
+  });
+
+  describe("subtract", function() {
+    /*
+    it("should subtract the parameters of two rects", function() {
+      var r1 = {
+        top: 20,
+        bottom: 80,
+        left: 30,
+        right: 130
+      };
+
+      var r2 = {
+        top: 30,
+        bottom: 70,
+        left: 40,
+        right: 120
+      };
+
+      var result = rect.subtract(r2, r1);
+
+      expect(result).to.eql({
+        top: 10,
+        bottom: 10,
+        left: 10,
+        right: 10,
+
+
+      });
+    });
+    */
   });
 
   describe("intersects", function() {

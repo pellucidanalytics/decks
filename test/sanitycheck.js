@@ -2,7 +2,7 @@ var tools = require("./testtools");
 var expect = tools.expect;
 var assert = tools.assert;
 
-describe("sanity check for unit tests", function() {
+describe("sanity check", function() {
   describe("expect tests", function() {
     it("should pass basic expect tests", function() {
       expect("hello").to.be.a("string");

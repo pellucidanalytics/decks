@@ -3,7 +3,7 @@ var expect = tools.expect;
 var decks = require("../..");
 var DecksEvent = decks.events.DecksEvent;
 
-describe("DecksEvent", function() {
+describe("decks.events.DecksEvent", function() {
   describe("constructor", function() {
     it("should set properties", function() {
       var type = "test:type";

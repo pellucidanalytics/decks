@@ -4,7 +4,7 @@ var expect = tools.expect;
 var decks = require("..");
 var Layout = decks.Layout;
 
-describe("Layout", function() {
+describe("decks.Layout", function() {
   describe("constructor", function() {
     it("should copy properties from options onto this, if specified", function() {
       var options = {

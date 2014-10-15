@@ -3,5 +3,7 @@
 //var decks = require("..");
 //var Viewport = decks.Viewport;
 
-describe("Viewport", function() {
+describe("decks.Viewport", function() {
+  describe("constructor", function() {
+  });
 });

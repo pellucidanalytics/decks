@@ -31,7 +31,7 @@ _.extend(TestEventTarget.prototype, binder, {
   }
 });
 
-describe("binder", function() {
+describe("decks.events.binder", function() {
   var source;
   var target;
   var eventMap = {
