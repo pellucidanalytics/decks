@@ -185,7 +185,7 @@ $(function() {
     config: {
       debugEvents: false,
       debugDrawing: false,
-      debugGestures: true
+      debugGestures: false
     },
     animator: {
       animate: Velocity

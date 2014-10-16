@@ -52,7 +52,13 @@ describe("decks.Deck", function () {
     it("should create the core services", function() {
       new Deck(options);
 
-      expect(services.config).to.eql({ debugEvents: false, debugDrawing: false });
+      var defaultConfig = {
+        debugEvents: false,
+        debugDrawing: false,
+        debugGestures: false
+      };
+
+      expect(services.config).to.eql(defaultConfig);
       expect(services.emitter).to.be.an.instanceof(Emitter);
       expect(services.animator).to.eql(animator);
       expect(services.itemCollection).to.be.an.instanceof(ItemCollection);

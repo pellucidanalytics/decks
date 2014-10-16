@@ -40,4 +40,59 @@ describe("decks.events.Emitter", function() {
       expect(spy).to.have.been.calledWith(sender, data);
     });
   });
+
+  describe("wildcards", function() {
+    it("should allow subscription with wildcards", function() {
+      var emitter = new Emitter();
+
+      var spy1 = sinon.spy();
+      var spy2 = sinon.spy();
+
+      emitter.on("test:event", spy1);
+      emitter.on("test:*", spy2);
+
+      var data = {};
+      emitter.emit("test:event", data);
+
+      expect(spy1).to.have.been.calledWith(data);
+      expect(spy2).to.have.been.calledWith(data);
+    });
+
+    it("should allow subscription with wildcards using DecksEvent", function() {
+      var emitter = new Emitter();
+
+      var spy1 = sinon.spy();
+      var spy2 = sinon.spy();
+
+      emitter.on("test:event", spy1);
+      emitter.on("test:*", spy2);
+
+      var sender = {};
+      var data = {};
+      emitter.emit(DecksEvent("test:event", sender, data));
+
+      expect(spy1).to.have.been.calledWithMatch(function(e) {
+        return e instanceof DecksEvent &&
+          e.type === "test:event" &&
+          e.sender === sender &&
+          e.data === data;
+      });
+
+      expect(spy2).to.have.been.calledWithMatch(function(e) {
+        return e instanceof DecksEvent &&
+          e.type === "test:event" &&
+          e.sender === sender &&
+          e.data === data;
+      });
+    });
+
+    it("should allow wildcards for long event names", function() {
+      var emitter = new Emitter();
+      var spy = sinon.spy();
+      emitter.on("test:**", spy);
+      var data = {};
+      emitter.emit("test:long:name:here", data);
+      expect(spy).to.have.been.calledWith(data);
+    });
+  });
 });
