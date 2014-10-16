@@ -287,3 +287,7 @@ gulp.task("default", function(cb) {
     cb
   );
 });
+
+gulp.task("publish", ["lib", "examples", "test"], function() {
+  console.log("publishing to npm...");
+});
