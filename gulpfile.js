@@ -14,6 +14,7 @@ var nib = require("nib");
 var nodeNotifier = require("node-notifier");
 var path = require("path");
 var runSequence = require("run-sequence");
+var shell = require("shelljs");
 var vinylSourceStream = require("vinyl-source-stream");
 var watchify = require("watchify");
 
@@ -290,4 +291,32 @@ gulp.task("default", function(cb) {
 
 gulp.task("publish", ["lib", "examples", "test"], function() {
   console.log("publishing to npm...");
+
+  // TODO: allow passing a command line argument like "gulp publish --major|minor|patch|etc"
+  var versionString = "prerelease";
+
+  if (!shell.which("git") || !shell.which("npm")) {
+    console.error("publish failed - git and/or npm not found");
+    shell.exit(1);
+  }
+
+  if (shell.exec("git add --force ./dist").code !== 0) {
+    console.error("publish failed - git add --force ./dist failed");
+    shell.exit(1);
+  }
+
+  if (shell.exec("git commit -m 'release dist'").code !== 0) {
+    console.error("publish failed - git commit failed");
+    shell.exit(1);
+  }
+
+  if (shell.exec("npm version " + versionString).code !== 0){
+    console.error("publish failed - npm version failed");
+    shell.exit(1);
+  }
+
+  if (shell.exec("npm publish .").code !== 0) {
+    console.error("publish failed - npm publish failed");
+    shell.exit(1);
+  }
 });
