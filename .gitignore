@@ -1,5 +1,6 @@
 # Node.js files
 node_modules/
+npm-debug.log
 
 # Project/build files
 dist/

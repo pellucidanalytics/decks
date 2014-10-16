@@ -305,12 +305,10 @@ gulp.task("publish", ["lib", "examples", "test"], function() {
     shell.exit(1);
   }
 
-  /* npm version will commit the files with the version number change
-  if (shell.exec("git commit -m 'release dist'").code !== 0) {
+  if (shell.exec("git commit -m 'release ./dist files'").code !== 0) {
     console.error("publish failed - git commit failed");
     shell.exit(1);
   }
-  */
 
   if (shell.exec("npm version " + versionString).code !== 0){
     console.error("publish failed - npm version failed");
