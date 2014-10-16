@@ -300,6 +300,7 @@ gulp.task("publish", ["lib", "examples", "test"], function() {
     shell.exit(1);
   }
 
+  /* Don't add the dist files for now
   if (shell.exec("git add --force ./dist").code !== 0) {
     console.error("publish failed - git add --force ./dist failed");
     shell.exit(1);
@@ -309,6 +310,7 @@ gulp.task("publish", ["lib", "examples", "test"], function() {
     console.error("publish failed - git commit failed");
     shell.exit(1);
   }
+  */
 
   if (shell.exec("npm version " + versionString).code !== 0){
     console.error("publish failed - npm version failed");
