@@ -11,14 +11,27 @@ function createItem() {
     width: 300,
     height: 200,
     random: Math.random(),
+    groups: getRandomGroups(),
     imgUrl: "http://lorempixel.com",
     label: "Image"
   };
 }
 
+function getRandomGroups(count) {
+  count = count || 5;
+  return _.reduce(_.range(count), function(acc, i) {
+    if (Math.random() >= 0.5) {
+      acc.push("group-" + i);
+    }
+    return acc;
+  }, []);
+}
+
 function createItems(count) {
   count = count || 20;
-  return _.map(_.range(count), createItem);
+  var items = _.map(_.range(count), createItem);
+  console.log("items", items);
+  return items;
 }
 
 var loadRender = function (render) {
@@ -87,7 +100,7 @@ var layouts = {
     }
   }),
   stack: new BasicStackLayout({
-    itemWidth: 200,
+    itemWidth: 400,
     itemHeight: 160,
     itemPadding: 40,
     itemsPerRow: 4,
