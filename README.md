@@ -1,23 +1,47 @@
-# Decks
+# decks
 
-UI components for dealing with the collections of items.
+A flexible layout library for rendering collections of items in the DOM.
 
 ## Getting started
 
 ```sh
-git clone {clone URL}
+git clone https://github.com/pellucidanalytics/decks.git
 cd decks
 npm install
 
 # Default build for development (file watcher)
+# This builds the lib code, tests, and examples, and sets up file
+# watchers and LiveReload for development.
 gulp
 
-# Build and run the tests
+# Build the distributable library code (built to ./dist)
+gulp lib
+
+# Build and run the tests (built to ./dist/test)
 gulp test
 
-# Build and run the examples site
-gulp example
+# Build the examples (built to ./dist/examples)
+gulp examples
+
+# Publish the repository to npm (maintainers only)
+gulp publish
 ```
+
+## Features
+
+TODO
+
+## Overview
+
+TODO
+
+## API Documentation (JSDoc)
+
+TODO
+
+## Tools/Dependencies
+
+TODO
 
 ## Inspirations
 
