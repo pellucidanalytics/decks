@@ -1,7 +1,6 @@
 var _ = require("lodash");
 var tools = require("../testtools");
 var expect = tools.expect;
-var inherits = require("inherits");
 var decks = require("../..");
 var Emitter = decks.events.Emitter;
 var binder = decks.events.binder;
@@ -11,7 +10,9 @@ var DecksEvent = decks.events.DecksEvent;
 function TestEventSource() {
   Emitter.call(this);
 }
-inherits(TestEventSource, Emitter);
+TestEventSource.prototype = _.create(Emitter.prototype, {
+  constructor: TestEventSource
+});
 
 // Test object that listens to events on a source object
 function TestEventTarget() {
