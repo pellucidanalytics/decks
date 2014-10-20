@@ -5,6 +5,7 @@ var decks = require('../..');
 var Deck = decks.Deck;
 var BasicGridLayout = decks.layouts.BasicGridLayout;
 var BasicStackLayout = decks.layouts.BasicStackLayout;
+var ZoomLayout = decks.layouts.ZoomLayout;
 
 function createItem() {
   return {
@@ -17,6 +18,13 @@ function createItem() {
   };
 }
 
+function createItems(count) {
+  count = count || 20;
+  var items = _.map(_.range(count), createItem);
+  console.log("items", items);
+  return items;
+}
+
 function getRandomGroups(count) {
   count = count || 5;
   return _.reduce(_.range(count), function(acc, i) {
@@ -27,19 +35,14 @@ function getRandomGroups(count) {
   }, []);
 }
 
-function createItems(count) {
-  count = count || 20;
-  var items = _.map(_.range(count), createItem);
-  console.log("items", items);
-  return items;
-}
-
-var loadRender = function (render) {
+function loadRender(render) {
   var item = render.item;
+  var width = render.transform.width;
+  var height = render.transform.height;
 
   var shouldLoad = !render.isLoading &&
-    (render.transform.width !== render.lastWidth) &&
-    (render.transform.height !== render.lastHeight);
+    (width !== render.lastWidth) &&
+    (height !== render.lastHeight);
 
   if (!shouldLoad) {
     return;
@@ -47,30 +50,30 @@ var loadRender = function (render) {
 
   render.isLoading = true;
 
-  var imgUrl = item.get('imgUrl') + "/" + item.get("width") + "/" + item.get("height") +
-    //"/";
-    "/?" + Math.random();
+  var imgUrl = item.get('imgUrl') + "/" + width + "/" + height +
+    "/";
+    //"/?" + Math.random();
 
-  var img = new Image(this.itemWidth, this.itemHeight);
+  var img = new Image(width, height);
 
   img.onload = _.bind(function() {
     render.isLoading = false;
-    render.lastWidth = render.transform.width;
-    render.lastHeight = render.transform.height;
+    render.lastWidth = width;
+    render.lastHeight = height;
     render.element.innerHTML = "";
     render.element.appendChild(img);
   }, this);
 
   img.src = imgUrl;
-};
+}
 
-var unloadRender = function(render) {
+function unloadRender(render) {
   var item = render.item;
 
   //console.log("unloadRender");
   render.element.innerHTML = "";
   item.isLoaded = false;
-};
+}
 
 var layouts = {
   grid1: new BasicGridLayout({
@@ -104,6 +107,11 @@ var layouts = {
     itemHeight: 160,
     itemPadding: 40,
     itemsPerRow: 4,
+    loadRender: loadRender,
+    unloadRender: unloadRender
+  }),
+  zoom: new ZoomLayout({
+    padding: 10,
     loadRender: loadRender,
     unloadRender: unloadRender
   })

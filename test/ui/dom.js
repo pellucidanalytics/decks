@@ -12,12 +12,40 @@ describe("decks.ui.dom", function() {
   });
 
   describe("html", function() {
+    it("should get inner HTML", function() {
+      var element = dom.create("div");
+      var html = "<span>Hello World</span>";
+      element.innerHTML = html;
+      var result = dom.html(element);
+      expect(result).to.eql(html);
+    });
+
+    it("should set inner HTML", function() {
+      var element = dom.create("div");
+      var html = "<span>Hello world</span>";
+      dom.html(element, html);
+      expect(element.innerHTML).to.eql(html);
+    });
+
+    it("should set inner HTML from an element", function() {
+      var parent = dom.create("div");
+      var child = dom.create("span");
+      dom.html(child, "Hello world");
+      dom.html(parent, child);
+      expect(dom.html(parent)).to.eql("<span>Hello world</span>");
+    });
   });
 
   describe("empty", function() {
   });
 
   describe("append", function() {
+    var ul = dom.create("ul");
+    dom.html(ul, "<li>one</li><li>two</li>");
+    var li = dom.create("li");
+    dom.html(li, "three");
+    dom.append(ul, li);
+    expect(dom.html(ul)).to.eql("<li>one</li><li>two</li><li>three</li>");
   });
 
   describe("prepend", function() {
