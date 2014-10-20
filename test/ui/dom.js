@@ -114,4 +114,24 @@ describe("decks.ui.dom", function() {
       expect(element.className).to.eql("one two");
     });
   });
+
+  describe("getStyle", function() {
+  });
+
+  describe("setStyle", function() {
+  });
+
+  describe("setStyles", function() {
+    it("should set multiple styles at once", function() {
+      var element = dom.create("div");
+      dom.setStyles(element, {
+        position: "absolute",
+        top: 0,
+        left: "10%"
+      });
+      expect(element.style.position).to.eql("absolute");
+      expect(element.style.top).to.eql("0px");
+      expect(element.style.left).to.eql("10%");
+    });
+  });
 });

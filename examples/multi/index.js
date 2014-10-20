@@ -56,6 +56,8 @@ function loadRender(render) {
 
   var img = new Image(width, height);
 
+  img.ondragstart = function() { return false; };
+
   img.onload = _.bind(function() {
     render.isLoading = false;
     render.lastWidth = width;
