@@ -2,27 +2,29 @@ var tools = require("./testtools");
 var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("..");
-var services = decks.services;
 var Item = decks.Item;
 var Emitter = decks.events.Emitter;
 var DecksEvent = decks.events.DecksEvent;
 
 describe("decks.Item", function() {
+  var emitter;
+  var itemOptions;
+  var item;
 
   beforeEach(function(){
-    services.emitter = new Emitter();
+    emitter = new Emitter();
+    itemOptions = {
+      emitter: emitter
+    };
+    item = new Item(null, itemOptions);
   });
 
   describe("constructor", function(){
     it("should setup sensible defaults", function() {
-      var item = new Item();
-      item._data.should.eql({});
+      item.data.should.eql({});
     });
 
     it("should set an id property, if provided in data", function() {
-      var item;
-
-      item = new Item();
       expect(item.id).to.be.a("string");
       expect(parseInt(item.id)).to.be.a("number");
 
@@ -42,7 +44,7 @@ describe("decks.Item", function() {
 
   describe("get", function() {
     it("should get data values", function() {
-      var item = new Item({ key1: "val1" });
+      item = new Item({ key1: "val1" }, itemOptions);
       expect(item.get("key1")).to.eql("val1");
       expect(item.get("key2")).to.be.undefined;
     });
@@ -50,7 +52,7 @@ describe("decks.Item", function() {
 
   describe("set", function() {
     it("should set data values", function() {
-      var item = new Item({ key1: "val1" });
+      var item = new Item({ key1: "val1" }, itemOptions);
 
       expect(item.get("key1")).to.eql("val1");
       expect(item.get("key2")).to.be.undefined;
@@ -65,10 +67,10 @@ describe("decks.Item", function() {
     });
 
     it("should emit changed events when setting new or changed values", function() {
-      var item = new Item({ key1: "val1" });
+      var item = new Item({ key1: "val1" }, itemOptions);
       var spy = sinon.spy();
 
-      services.emitter.on("item:changed", spy);
+      emitter.on("item:changed", spy);
 
       item.set("key1", "val2");
       spy.should.have.been.calledWith(DecksEvent("item:changed", item, { key: "key1", oldValue: "val1", value: "val2" }));
@@ -84,10 +86,10 @@ describe("decks.Item", function() {
     });
 
     it("should do nothing if the value is not changing", function() {
-      var item = new Item({ key1: "val1" });
+      var item = new Item({ key1: "val1" }, itemOptions);
       var spy = sinon.spy();
 
-      services.emitter.on("item:changed", spy);
+      emitter.on("item:changed", spy);
 
       item.set("key1", "val1");
       spy.should.have.callCount(0);
@@ -98,7 +100,6 @@ describe("decks.Item", function() {
 
   describe("getData", function() {
     it("should return an empty object if there is no data", function() {
-      var item = new Item();
       expect(item.getData()).to.eql({});
     });
 
@@ -107,7 +108,7 @@ describe("decks.Item", function() {
         key1: "val1",
         key2: 2
       };
-      var item = new Item(data);
+      var item = new Item(data, itemOptions);
       expect(item.getData()).to.eql(data);
     });
   });
@@ -119,12 +120,12 @@ describe("decks.Item", function() {
         key2: 2
       };
 
-      var item = new Item(data);
+      var item = new Item(data, itemOptions);
       expect(item.getData()).to.eql(data);
 
       var spy = sinon.spy();
 
-      services.emitter.on("item:changed", spy);
+      emitter.on("item:changed", spy);
 
       var data2 = {
         key3: "val3",
@@ -141,7 +142,7 @@ describe("decks.Item", function() {
   describe("clear", function() {
     it("should clear the data", function() {
       var data = { key: "val" };
-      var item = new Item(data);
+      var item = new Item(data, itemOptions);
       expect(item.getData()).to.eql(data);
       item.clear();
       expect(item.getData()).to.eql({});

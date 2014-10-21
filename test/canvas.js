@@ -2,75 +2,87 @@ var tools = require("./testtools");
 var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("..");
+var Deck = decks.Deck;
 var dom = decks.ui.dom;
-var services = decks.services;
+var DecksEvent = decks.events.DecksEvent;
 var Emitter = decks.events.Emitter;
 var Canvas = decks.Canvas;
+var Layout = decks.Layout;
 
 describe("decks.Canvas", function() {
-  beforeEach(function(){
-    services.emitter = new Emitter();
+  var element;
+  var animator;
+  var config;
+  var emitter;
+  var layout;
+  var canvasOptions;
+  var canvas;
+
+  beforeEach(function() {
+    element = dom.create("div");
+    animator = {
+      animate: function() { }
+    };
+    config = Deck.prototype.defaultOptions.config;
+    emitter = new Emitter();
+    layout = new Layout();
+    canvasOptions = {
+      element: element,
+      animator: animator,
+      config: config,
+      emitter: emitter,
+      layout: layout
+    };
+    canvas = new Canvas(canvasOptions);
   });
 
   describe("constructor", function() {
     it("should work with new", function() {
-      var canvas = new Canvas();
       expect(canvas).to.be.an.instanceof(Canvas);
     });
 
     it("should work without new", function(){
-      var canvas = Canvas();
+      canvas = Canvas(canvasOptions);
       expect(canvas).to.be.an.instanceof(Canvas);
     });
 
     it("should set the element from options", function(){
-      var element = dom.create("div");
-      var canvas = new Canvas({ element: element });
       expect(canvas.element).to.eql(element);
     });
 
     it("should create an element if not provided in options", function() {
-      var canvas = new Canvas();
+      delete canvasOptions.element;
+      canvas = new Canvas(canvasOptions);
       expect(canvas.element).to.be.an.instanceof(HTMLElement);
     });
 
-    it("should bind emitter events", function() {
+    xit("should bind emitter events", function() {
       var spy = sinon.spy(Canvas.prototype, "bindEvents");
-      new Canvas();
-      expect(spy).to.have.been.calledWith(services.emitter, Canvas.emitterEvents);
-      expect(spy).to.have.been.calledWith(window, Canvas.windowEvents);
+      new Canvas(canvasOptions);
+      expect(spy).to.have.been.calledWith(canvasOptions.emitter, Canvas.prototype.emitterEvents);
+      expect(spy).to.have.been.calledWith(window, Canvas.prototype.windowEvents);
       Canvas.prototype.bindEvents.restore();
     });
   });
 
   describe("setElement", function() {
     it("should set class/style/etc. properties on the element", function(){
-      var element = dom.create("div");
-      var canvas = new Canvas();
-      canvas.setElement(element);
-      expect(dom.hasClass(canvas.element, services.constants.canvasClassName)).to.be.true;
+      expect(dom.hasClass(canvas.element, canvas.config.canvasClassName)).to.be.true;
       expect(canvas.element.style.position).to.eql("absolute");
       expect(canvas.element.style.top).to.eql("0px");
       expect(canvas.element.style.left).to.eql("0px");
     });
 
     it("should emit an event", function() {
-      var element = dom.create("div");
-      var canvas = new Canvas();
       var spy = sinon.spy();
-      services.emitter.on("canvas:element:set", spy);
-      canvas.setElement(element);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e.type === "canvas:element:set" &&
-          e.sender === canvas &&
-          e.data === element;
-      });
+      canvasOptions.emitter.on("canvas:element:set", spy);
+      canvas = new Canvas(canvasOptions);
+      expect(spy).to.have.been.calledWith(DecksEvent("canvas:element:set", canvas, element));
     });
   });
 
   describe("setBounds", function() {
     it("should set an instance bounds property and element size", function() {
-      var canvas = new Canvas();
       var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
       canvas.setBounds(bounds);
       expect(canvas.bounds).to.eql(bounds);
@@ -79,16 +91,13 @@ describe("decks.Canvas", function() {
     });
 
     it("should emit an event", function() {
-      var canvas = new Canvas();
-      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
       var spy = sinon.spy();
-      services.emitter.on("canvas:bounds:set", spy);
+      canvasOptions.emitter.on("canvas:bounds:set", spy);
+
+      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
       canvas.setBounds(bounds);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e.type === "canvas:bounds:set" &&
-          e.sender === canvas &&
-          e.data === bounds;
-      });
+
+      expect(spy).to.have.been.calledWith(DecksEvent("canvas:bounds:set", canvas, bounds));
     });
   });
 

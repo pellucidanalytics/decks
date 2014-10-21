@@ -2,26 +2,30 @@ var tools = require("./testtools");
 var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("..");
-var services = decks.services;
 var Emitter = decks.events.Emitter;
 var ItemCollection = decks.ItemCollection;
 
 describe("decks.ItemCollection", function() {
+  var emitter;
+  var itemCollectionOptions;
+  var itemCollection;
+
   beforeEach(function() {
-    services.emitter = new Emitter();
+    emitter = new Emitter();
+    itemCollectionOptions = {
+      emitter: emitter
+    };
+    itemCollection = new ItemCollection([], itemCollectionOptions);
   });
 
   describe("constructor", function() {
     it("should set sensible defaults", function() {
-      var itemCollection = new ItemCollection();
-      itemCollection._items.should.eql({});
+      itemCollection.items.should.eql({});
     });
   });
 
   describe("getItem", function(){
     var items;
-    var itemCollection;
-
     beforeEach(function(){
       items = [
         {
@@ -36,7 +40,7 @@ describe("decks.ItemCollection", function() {
         }
       ];
 
-      itemCollection = new ItemCollection(items);
+      itemCollection = new ItemCollection(items, itemCollectionOptions);
     });
 
     it("should accept a Number index to get", function() {
@@ -56,7 +60,6 @@ describe("decks.ItemCollection", function() {
 
   describe("getItems", function() {
     var items;
-    var itemCollection;
 
     beforeEach(function() {
       items = [
@@ -76,7 +79,7 @@ describe("decks.ItemCollection", function() {
           key2: 3
         }
       ];
-      itemCollection = new ItemCollection(items);
+      itemCollection = new ItemCollection(items, itemCollectionOptions);
     });
 
     it("should return all items", function() {
@@ -85,16 +88,10 @@ describe("decks.ItemCollection", function() {
   });
 
   describe("addItem", function() {
-    var itemCollection;
-
-    beforeEach(function(){
-      itemCollection = new ItemCollection();
-    });
-
     it("should add an plain object item and emit an event", function() {
       var spy = sinon.spy();
       var item = { key1: "val1" };
-      services.emitter.on("item:collection:item:added", spy);
+      emitter.on("item:collection:item:added", spy);
 
       itemCollection.addItem(item);
       //expect(itemCollection.getItems()).to.eql(
@@ -102,32 +99,20 @@ describe("decks.ItemCollection", function() {
   });
 
   describe("addItems", function() {
-    it("should...", function() {
-    });
   });
 
   describe("removeItem", function() {
-    it("should...", function() {
-    });
   });
 
   describe("clear", function() {
-    it("should...", function() {
-    });
   });
 
   describe("bindItemEvents", function() {
-    it("should...", function() {
-    });
   });
 
   describe("unbindItemEvents", function() {
-    it("should...", function() {
-    });
   });
 
   describe("onItemChanged", function() {
-    it("should...", function() {
-    });
   });
 });

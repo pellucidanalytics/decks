@@ -3,7 +3,7 @@ var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("..");
 var dom = decks.ui.dom;
-var services = decks.services;
+var DecksEvent = decks.events.DecksEvent;
 var Emitter = decks.events.Emitter;
 var Deck = decks.Deck;
 var ItemCollection = decks.ItemCollection;
@@ -13,77 +13,61 @@ var Frame = decks.Frame;
 var Viewport = decks.Viewport;
 
 describe("decks.Deck", function () {
-  var animator;
-  var layout;
-  var frame;
-  var options;
+  var deckOptions;
+  var deck;
+
   beforeEach(function(){
-    animator = {
-      animate: function() {
-        throw new Error("not implemented");
-      }
+    deckOptions = {
+      animator: {
+        animate: function() { }
+      },
+      config: {},
+      emitter: new Emitter(),
+      layout: new Layout({}),
+      canvas: {},
+      frame: {
+        element: dom.create("div")
+      },
+      viewport: {}
     };
 
-    layout = {
-    };
-
-    frame = {
-      element: dom.create("div")
-    };
-
-    options = {
-      animator: animator,
-      layout: layout,
-      frame: frame
-    };
+    deck = new Deck(deckOptions);
   });
 
   describe("constructor", function() {
     it("should work with new", function() {
-      var deck = new Deck(options);
+      var deck = new Deck(deckOptions);
       expect(deck).to.be.an.instanceof(Deck);
     });
 
     it("should work without new", function() {
-      var deck = Deck(options);
+      var deck = Deck(deckOptions);
       expect(deck).to.be.an.instanceof(Deck);
     });
 
     it("should create the core services", function() {
-      new Deck(options);
-
-      var defaultConfig = {
-        debugEvents: false,
-        debugDrawing: false,
-        debugGestures: false
-      };
-
-      expect(services.config).to.eql(defaultConfig);
-      expect(services.emitter).to.be.an.instanceof(Emitter);
-      expect(services.animator).to.eql(animator);
-      expect(services.itemCollection).to.be.an.instanceof(ItemCollection);
-      expect(services.layout).to.be.an.instanceof(Layout);
-      expect(services.frame).to.be.an.instanceof(Frame);
-      expect(services.canvas).to.be.an.instanceof(Canvas);
-      expect(services.viewport).to.be.an.instanceof(Viewport);
+      expect(deck.config).to.eql(Deck.prototype.defaultOptions.config);
+      expect(deck.emitter).to.be.an.instanceof(Emitter);
+      expect(deck.animator).to.eql(deckOptions.animator);
+      expect(deck.itemCollection).to.be.an.instanceof(ItemCollection);
+      expect(deck.layout).to.be.an.instanceof(Layout);
+      expect(deck.frame).to.be.an.instanceof(Frame);
+      expect(deck.canvas).to.be.an.instanceof(Canvas);
+      expect(deck.viewport).to.be.an.instanceof(Viewport);
     });
 
-    it("should bind to emitter events", function() {
+    xit("should bind to emitter events", function() {
       var spy = sinon.spy(Deck.prototype, "bindEvents");
-      new Deck(options);
-      expect(spy).to.have.been.calledWith(services.emitter, Deck.emitterEvents);
+      new Deck(deckOptions);
+      expect(spy).to.have.been.calledWith(deckOptions.emitter, Deck.prototype.emitterEvents);
       Deck.prototype.bindEvents.restore();
     });
 
-    it("should emit an event", function(){
+    xit("should emit an event", function(){
       var spy = sinon.spy();
-      options.emitter = new Emitter();
-      options.emitter.on("deck:ready", spy);
-      var deck = new Deck(options);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e.type === "deck:ready" &&
-          e.sender === deck;
-      });
+      deckOptions.emitter.on("deck:ready", spy);
+      deck = new Deck(deckOptions);
+      expect(spy).to.have.been.calledWith(DecksEvent("deck:ready", deck));
     });
   });
 
@@ -136,37 +120,5 @@ describe("decks.Deck", function () {
   });
 
   describe("setViewport", function(){
-  });
-
-  describe("setService", function() {
-    it("should set a provided instance on the services object", function() {
-      var deck = new Deck(options);
-      var TestService = function(options) { this.options = options; };
-      var testService = new TestService({ key: "val" });
-      deck.setService("test", testService, TestService);
-      expect(services.test).to.eql(testService);
-    });
-
-    it("should create a service instance if provided with options", function(){
-      var deck = new Deck(options);
-      var TestService = function(options) { this.options = options; };
-      var testServiceOptions = { key: "val" };
-      deck.setService("test", testServiceOptions, TestService);
-      expect(services.test).to.eql(new TestService({ key: "val" }));
-    });
-
-    it("should emit an event", function() {
-      options.emitter = new Emitter();
-      var TestService = function(options) { this.options = options; };
-      var spy = sinon.spy();
-      options.emitter.on("deck:test:set", spy);
-      var deck = new Deck(options);
-      deck.setService("test", { key: "val" }, TestService);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e.type === "deck:test:set" &&
-          e.sender === deck &&
-          e.data instanceof TestService;
-      });
-    });
   });
 });

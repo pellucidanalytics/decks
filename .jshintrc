@@ -83,5 +83,8 @@
     "yui"           : false,    // Yahoo User Interface
 
     // Custom Globals
-    "globals"       : { }
+    "globals"       : {
+      "xit": true,
+      "xdescribe": true
+    }
 }
