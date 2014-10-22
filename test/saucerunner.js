@@ -7,7 +7,8 @@ var sauceRunner = {
       name: "decks",
       host: "localhost",
       port: 4445,
-      url: "http://decks:3000/dist/test/index.html",
+      //url: "http://decks:3000/dist/test/index.html",
+      url: "http://127.0.0.1:8080/dist/test/index.html",
       build: Date.now()
     });
 
