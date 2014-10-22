@@ -250,7 +250,7 @@ gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function
     });
 });
 
-gulp.task("test-sauce", ["test"], function(cb) {
+gulp.task("test-sauce", ["test", "serve"], function(cb) {
   sauceRunner.start(cb);
 });
 
