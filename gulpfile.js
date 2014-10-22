@@ -237,7 +237,6 @@ gulp.task("js-test", function() {
 
 gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function() {
   var isFailed = false;
-
   return gulp.src(path.join(paths.dist.testDir, "index.html"))
     .pipe(gulpMochaPhantomJS())
     .on("error", function() {
@@ -251,8 +250,8 @@ gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function
     });
 });
 
-gulp.task("test-sauce", ["test", "serve"], function() {
-  sauceRunner.start();
+gulp.task("test-sauce", ["test", "serve"], function(cb) {
+  sauceRunner.start(cb);
 });
 
 gulp.task("watch-test", ["test"], function() {

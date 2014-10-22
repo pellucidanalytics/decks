@@ -1,7 +1,7 @@
 var MochaSauce = require("mocha-sauce");
 
 var sauceRunner = {
-  start: function() {
+  start: function(done) {
     // configure cloud
     var sauce = new MochaSauce({
       name: "decks",
@@ -36,10 +36,12 @@ var sauceRunner = {
     sauce.start(function(err, res) {
       if(err) {
         console.log("error", err);
-        process.exit(1);
+        done(err);
       }
 
-      console.log("res", res);
+      if (res) {
+        console.log("res", res);
+      }
 
       /*
       // res is an array, iterate over it and .browser tells you which
@@ -52,6 +54,8 @@ var sauceRunner = {
       // A full report in Jasmine-style JSON syntax
       console.log(res[0].jsonReport);
       */
+
+      done();
     });
   }
 };
