@@ -17,6 +17,8 @@
     <script type="text/javascript">
       if (window.mochaPhantomJS) {
         mochaPhantomJS.run();
+      } else if (window.mochaSaucePlease) {
+        mochaSaucePlease();
       } else {
         mocha.run();
       }

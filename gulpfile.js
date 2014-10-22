@@ -14,6 +14,7 @@ var nib = require("nib");
 var nodeNotifier = require("node-notifier");
 var path = require("path");
 var runSequence = require("run-sequence");
+var sauceRunner = require("./test/saucerunner");
 var shell = require("shelljs");
 var vinylSourceStream = require("vinyl-source-stream");
 var watchify = require("watchify");
@@ -236,6 +237,9 @@ gulp.task("js-test", function() {
 
 gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function() {
   var isFailed = false;
+
+  sauceRunner.start();
+
   return gulp.src(path.join(paths.dist.testDir, "index.html"))
     .pipe(gulpMochaPhantomJS())
     .on("error", function() {
