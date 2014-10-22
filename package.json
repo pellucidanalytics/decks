@@ -4,8 +4,7 @@
   "description": "JavaScript UI library for viewing collections of items.",
   "main": "index.js",
   "scripts": {
-    "build": "npm install && gulp",
-    "test": "npm install && gulp test"
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",
