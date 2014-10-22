@@ -1,5 +1,7 @@
 # decks
 
+[![Build Status](https://travis-ci.org/pellucidanalytics/decks.svg?branch=master)](https://travis-ci.org/pellucidanalytics/decks)
+
 A flexible layout library for rendering collections of items in the DOM.
 
 ## Getting started
