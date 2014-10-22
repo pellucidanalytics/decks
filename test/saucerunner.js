@@ -38,6 +38,7 @@ var sauceRunner = {
       if(err) {
         console.log("error", err);
         done(err);
+        process.exit(1);
         return;
       }
 
@@ -58,6 +59,7 @@ var sauceRunner = {
       */
 
       done();
+      process.exit(res.failures);
     });
   }
 };
