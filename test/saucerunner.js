@@ -7,9 +7,11 @@ var sauceRunner = {
       name: "decks",
       host: "localhost",
       port: 4445,
-      url: "http://localhost:3000/dist/test/index.html",
+      url: "http://decks:3000/dist/test/index.html",
       build: Date.now()
     });
+
+    console.log(process.env.SAUCE_USER_NAME);
 
     //sauce.record(true);
 
