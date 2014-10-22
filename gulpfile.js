@@ -1,5 +1,5 @@
 var browserify = require("browserify");
-var connectLiveReload = require("connect-livereload");
+//var connectLiveReload = require("connect-livereload");
 var eventStream = require("event-stream");
 var express = require("express");
 var fs = require("fs");
@@ -250,7 +250,7 @@ gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function
     });
 });
 
-gulp.task("test-sauce", ["test", "serve"], function(cb) {
+gulp.task("test-sauce", ["test"], function(cb) {
   sauceRunner.start(cb);
 });
 
@@ -278,7 +278,7 @@ gulp.task("watch-test", ["test"], function() {
 
 gulp.task("serve", function() {
   var app = express();
-  app.use(connectLiveReload());
+  //app.use(connectLiveReload());
   app.use(express.static(__dirname));
   app.listen(3000);
 });

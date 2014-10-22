@@ -5,13 +5,14 @@ var sauceRunner = {
     // configure cloud
     var sauce = new MochaSauce({
       name: "decks",
-      //username: "pbakaus",
-      //accessKey: "00000000-0000-0000-0000-000000000000",
       host: "localhost",
       port: 4445,
 
       // the test url
-      url: "http://localhost:3000/dist/test/index.html"
+      url: "http://127.0.0.1:8080/dist/test/index.html",
+      //url: "http://google.com"
+      //
+      build: Date.now()
     });
 
     //sauce.record(true);
@@ -33,10 +34,12 @@ var sauceRunner = {
       console.log("sauce end: %s %s: %d failures", browser.browserName, browser.platform, res.failures);
     });
 
+    console.log("sauce.start");
     sauce.start(function(err, res) {
       if(err) {
         console.log("error", err);
         done(err);
+        return;
       }
 
       if (res) {

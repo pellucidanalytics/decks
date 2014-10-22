@@ -17,10 +17,13 @@
     <script type="text/javascript" src="bundle.js"></script>
     <script type="text/javascript">
       if (window.mochaPhantomJS) {
+        console.log("mocha - PhantomJS");
         mochaPhantomJS.run();
       } else if (window.mochaSaucePlease) {
+        console.log("mocha - Sauce Labs");
         mochaSaucePlease();
       } else {
+        console.log("mocha - Plain");
         mocha.run();
       }
     </script>
