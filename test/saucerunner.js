@@ -36,6 +36,7 @@ var sauceRunner = {
     sauce.start(function(err, res) {
       if(err) {
         console.log("error", err);
+        process.exit(1);
       }
 
       console.log("res", res);
