@@ -81,9 +81,9 @@ describe("decks.Viewport", function() {
       expect(viewport).to.be.an.instanceof(Viewport);
     });
 
-    xit("should bind emitter events", function() {
+    it("should bind emitter events", function() {
       var spy = sinon.spy(Viewport.prototype, "bindEvents");
-      new Viewport();
+      viewport = new Viewport(viewportOptions);
       expect(spy).to.have.been.calledWith(emitter, Viewport.prototype.emitterEvents);
       Viewport.prototype.bindEvents.restore();
     });
@@ -238,23 +238,19 @@ describe("decks.Viewport", function() {
   });
 
   describe("drawRender", function() {
-    xit("should call the animate function for the given render", function() {
+    it("should call the animate function for the given render", function() {
       var render = {
         element: {},
         transform: {},
         animateOptions: {}
       };
-
-      var mockAnimator = sinon.mock(animator);
-
-      mockAnimator.expects("animate").once().withArgs(sinon.match(function(value) {
-        return value.elements === render.element &&
-          value.properties === render.transform &&
-          value.animateOptions;
+      var mockAnimator = sinon.mock(viewport.animator);
+      mockAnimator.expects("animate").once().withArgs(sinon.match(function(arg) {
+        return arg.elements === render.element &&
+          arg.properties === render.transform &&
+          arg.options;
       }));
-
       viewport.drawRender(render);
-
       mockAnimator.verify();
     });
   });

@@ -149,7 +149,7 @@ gulp.task("js-examples", function() {
     var indexjsPath = "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain);
 
     var bundler = browserify(indexjsPath, {
-      noparse: ["lodash", "q"],
+      noparse: ["lodash"],
       debug: true
     });
 
@@ -180,6 +180,7 @@ gulp.task("watch-examples", ["examples"], function () {
       cache: {},
       packageCache: {},
       fullPaths: true,
+      noparse: ["lodash"],
       debug: true
     }));
 
@@ -222,7 +223,12 @@ gulp.task("jshint-test", function() {
 });
 
 gulp.task("js-test", function() {
-  return browserify(paths.test.jsMain)
+  var bundler = browserify(paths.test.jsMain, {
+    noparse: ["lodash"],
+    debug: true
+  });
+
+  return bundler
     .bundle()
     .pipe(vinylSourceStream("bundle.js"))
     .pipe(gulp.dest(paths.dist.testDir));

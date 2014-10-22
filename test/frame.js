@@ -17,9 +17,9 @@ describe("decks.Frame", function() {
   var frame;
 
   beforeEach(function(){
-    element = dom.create("div");
     config = Deck.prototype.defaultOptions.config;
     emitter = new Emitter();
+    element = dom.create("div");
     frameOptions = {
       element: element,
       config: config,
@@ -46,16 +46,16 @@ describe("decks.Frame", function() {
       expect(frame.element).to.eql(element);
     });
 
-    xit("should bind emitter events", function() {
+    it("should bind emitter events", function() {
       var spy = sinon.spy(Frame.prototype, "bindEvents");
-      new Frame(frameOptions);
-      expect(spy).to.have.been.calledWith(frameOptions.emitter, Frame.prototype.emitterEvents);
+      frame = new Frame(frameOptions);
+      expect(spy).to.have.been.calledWith(emitter, Frame.prototype.emitterEvents);
       Frame.prototype.bindEvents.restore();
     });
 
-    xit("should bind window events", function() {
+    it("should bind window events", function() {
       var spy = sinon.spy(Frame.prototype, "bindEvents");
-      new Frame(frameOptions);
+      frame = new Frame(frameOptions);
       expect(spy).to.have.been.calledWith(window, Frame.prototype.windowEvents);
       Frame.prototype.bindEvents.restore();
     });

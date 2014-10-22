@@ -56,10 +56,10 @@ describe("decks.Canvas", function() {
       expect(canvas.element).to.be.an.instanceof(HTMLElement);
     });
 
-    xit("should bind emitter events", function() {
+    it("should bind emitter events", function() {
       var spy = sinon.spy(Canvas.prototype, "bindEvents");
-      new Canvas(canvasOptions);
-      expect(spy).to.have.been.calledWith(canvasOptions.emitter, Canvas.prototype.emitterEvents);
+      canvas = new Canvas(canvasOptions);
+      expect(spy).to.have.been.calledWith(emitter, Canvas.prototype.emitterEvents);
       expect(spy).to.have.been.calledWith(window, Canvas.prototype.windowEvents);
       Canvas.prototype.bindEvents.restore();
     });
