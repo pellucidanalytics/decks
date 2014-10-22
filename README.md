@@ -1,6 +1,8 @@
 # decks
 
 [![Build Status](https://travis-ci.org/pellucidanalytics/decks.svg?branch=master)](https://travis-ci.org/pellucidanalytics/decks)
+[![Dependency Status](https://david-dm.org/pellucidanalytics/decks.png)](https://david-dm.org/pellucidanalytics/decks)
+[![devDependency Status](https://david-dm.org/pellucidanalytics/decks/dev-status.png)](https://david-dm.org/pellucidanalytics/decks#info=devDependencies)
 
 A flexible layout library for rendering collections of items in the DOM.
 
