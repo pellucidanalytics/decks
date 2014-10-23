@@ -1,9 +1,7 @@
 # decks
 
 [![Build Status](https://travis-ci.org/pellucidanalytics/decks.svg?branch=master)](https://travis-ci.org/pellucidanalytics/decks)
-
 [![Dependency Status](https://david-dm.org/pellucidanalytics/decks.png)](https://david-dm.org/pellucidanalytics/decks)
-
 [![devDependency Status](https://david-dm.org/pellucidanalytics/decks/dev-status.png)](https://david-dm.org/pellucidanalytics/decks#info=devDependencies)
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/pelluciddecks.svg)](https://saucelabs.com/u/pelluciddecks)
