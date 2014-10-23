@@ -4,7 +4,7 @@
 [![Dependency Status](https://david-dm.org/pellucidanalytics/decks.png)](https://david-dm.org/pellucidanalytics/decks)
 [![devDependency Status](https://david-dm.org/pellucidanalytics/decks/dev-status.png)](https://david-dm.org/pellucidanalytics/decks#info=devDependencies)
 
-[![Sauce Test Status](https://saucelabs.com/browser-matrix/pelluciddecks.svg)](https://saucelabs.com/u/pelluciddecks)
+[![Sauce Test Status](https://saucelabs.com/browser-matrix/pelluciddecks.svg?auth=ece3dc76af60a49515da2a7b0bbfa51c)](https://saucelabs.com/u/pelluciddecks?auth=ece3dc76af60a49515da2a7b0bbfa51c)
 
 A flexible layout library for rendering collections of items in the DOM.
 
