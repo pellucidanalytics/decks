@@ -1,7 +1,5 @@
 # decks
 
-[![GitHub Issues](http://img.shields.io/github/issues/pellucidanalytics/decks.svg)](https://github.com/pellucidanalytics/decks/issues)
-
 [![Build Status](http://img.shields.io/travis/pellucidanalytics/decks.svg)](https://travis-ci.org/pellucidanalytics/decks)
 
 [![npm version](http://img.shields.io/npm/v/decks.svg)](https://www.npmjs.org/package/decks)
