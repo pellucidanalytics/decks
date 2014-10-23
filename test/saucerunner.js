@@ -8,17 +8,21 @@ var sauceRunner = {
       name: "decks",
       host: "localhost",
       port: 4445,
-      // The app needs to be served at this URL (e.g. using node-static)
+      // The app needs to be served at this URL before this runs (e.g. using node-static)
+      // We tried serving the app using express from the gulp file, but that seemed to create problems.
       url: "http://127.0.0.1:8080/dist/test/index.html",
       build: Date.now()
     });
 
     //sauce.record(true);
 
-    // setup what browsers to test with
-    sauce.browser({ browserName: "chrome", platform: "Windows 7" });
-    //sauce.browser({ browserName: "ipad", platform: "OS X 10.8", version: "6" });
-    //sauce.browser({ browserName: "internet explorer", platform: "Windows 8", version: "10" });
+    sauce.browser({ platform: "Windows XP", browserName: "internet explorer", version: "8" });
+
+    sauce.browser({ platform: "Windows 7", browserName: "chrome" });
+    sauce.browser({ platform: "Windows 7", browserName: "internet explorer", version: "8" });
+    sauce.browser({ platform: "Windows 7", browserName: "internet explorer", version: "9" });
+    sauce.browser({ platform: "Windows 7", browserName: "internet explorer", version: "10" });
+    sauce.browser({ platform: "Windows 7", browserName: "internet explorer", version: "11" });
 
     sauce.on("init", function(browser) {
       debug("sauce init: %s %s", browser.browserName, browser.platform);
@@ -48,7 +52,6 @@ var sauceRunner = {
 
       var failures = 1;
       if (res) {
-        //debug("MochaSauce response: ", res);
         if (_.isArray(res) && res.length > 0) {
           failures = res[0].failures;
         } else {
