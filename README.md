@@ -1,10 +1,17 @@
 # decks
 
-[![Build Status](https://travis-ci.org/pellucidanalytics/decks.svg?branch=master)](https://travis-ci.org/pellucidanalytics/decks)
-[![Dependency Status](https://david-dm.org/pellucidanalytics/decks.png)](https://david-dm.org/pellucidanalytics/decks)
-[![devDependency Status](https://david-dm.org/pellucidanalytics/decks/dev-status.png)](https://david-dm.org/pellucidanalytics/decks#info=devDependencies)
+[![GitHub Issues](http://img.shields.io/github/issues/pellucidanalytics/decks.svg)](https://github.com/pellucidanalytics/decks/issues)
+
+[![Build Status](http://img.shields.io/travis/pellucidanalytics/decks.svg](https://travis-ci.org/pellucidanalytics/decks)
+
+[![npm version](http://img.shields.io/npm/v/decks.svg)](https://www.npmjs.org/package/decks)
+[![Dependency Status](http://img.shields.io/david/pellucidanalytics/decks.svg)](https://david-dm.org/pellucidanalytics/decks)
+[![devDependency Status](http://img.shields.io/david/dev/pellucidanalytics/decks.svg)](https://david-dm.org/pellucidanalytics/decks#info=devDependencies)
+[![npm license](http://img.shields.io/npm/l/decks.svg)](https://www.npmjs.org/package/decks)
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/pelluciddecks.svg?auth=ece3dc76af60a49515da2a7b0bbfa51c)](https://saucelabs.com/u/pelluciddecks?auth=ece3dc76af60a49515da2a7b0bbfa51c)
+
+## Overview
 
 A flexible layout library for rendering collections of items in the DOM.
 
@@ -34,10 +41,6 @@ gulp publish
 ```
 
 ## Features
-
-TODO
-
-## Overview
 
 TODO
 
