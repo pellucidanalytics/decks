@@ -1,5 +1,5 @@
 var browserify = require("browserify");
-//var connectLiveReload = require("connect-livereload");
+var connectLiveReload = require("connect-livereload");
 var debug = require("debug")("gulp-decks");
 var eventStream = require("event-stream");
 var express = require("express");
@@ -251,7 +251,7 @@ gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function
     });
 });
 
-gulp.task("test-sauce", ["test", "serve"], function(cb) {
+gulp.task("test-sauce", ["test"], function(cb) {
   sauceRunner.start(cb);
 });
 
@@ -274,12 +274,12 @@ gulp.task("watch-test", ["test"], function() {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
-// Live reload server
+// Live reload server (localhost:3000)
 ////////////////////////////////////////////////////////////////////////////////
 
 gulp.task("serve", function() {
   var app = express();
-  //app.use(connectLiveReload());
+  app.use(connectLiveReload());
   app.use(express.static(__dirname));
   app.listen(3000);
 });
