@@ -1,5 +1,6 @@
 var browserify = require("browserify");
 //var connectLiveReload = require("connect-livereload");
+var debug = require("debug")("gulp-decks");
 var eventStream = require("event-stream");
 var express = require("express");
 var fs = require("fs");
@@ -188,7 +189,7 @@ gulp.task("watch-examples", ["examples"], function () {
     bundler.on("update", rebundle);
 
     function rebundle() {
-      console.log("-- rebundling for example " + dir + " --");
+      debug("-- rebundling for example " + dir + " --");
       return bundler
         .bundle()
         .on("error", gulpUtil.log.bind(gulpUtil, "browserify error"))
@@ -262,7 +263,7 @@ gulp.task("watch-test", ["test"], function() {
   var bundler = watchify(browserify(paths.test.jsMain, watchify.args));
   bundler.on("update", rebundle);
   function rebundle() {
-    console.log("-- rebundling for test --");
+    debug("-- rebundling for test --");
     return bundler.bundle()
       .on("error", gulpUtil.log.bind(gulpUtil, "browserify error"))
       .pipe(vinylSourceStream("bundle.js"))
@@ -301,40 +302,40 @@ gulp.task("default", function(cb) {
 });
 
 gulp.task("publish", ["lib", "examples", "test"], function() {
-  console.log("publishing to npm...");
+  debug("publishing to npm...");
 
   // TODO: allow passing a command line argument like "gulp publish --major|minor|patch|etc"
   var versionString = "prerelease";
 
   if (!shell.which("git") || !shell.which("npm")) {
-    console.error("publish failed - git and/or npm not found");
+    debug("publish failed - git and/or npm not found");
     shell.exit(1);
   }
 
   /* Don't add the dist files for now
   if (shell.exec("git add --force ./dist").code !== 0) {
-    console.error("publish failed - git add --force ./dist failed");
+    debug("publish failed - git add --force ./dist failed");
     shell.exit(1);
   }
 
   if (shell.exec("git commit -m 'release ./dist files'").code !== 0) {
-    console.error("publish failed - git commit failed");
+    debug("publish failed - git commit failed");
     shell.exit(1);
   }
   */
 
   if (shell.exec("npm version " + versionString).code !== 0){
-    console.error("publish failed - npm version failed");
+    debug("publish failed - npm version failed");
     shell.exit(1);
   }
 
   if (shell.exec("npm publish .").code !== 0) {
-    console.error("publish failed - npm publish failed");
+    debug("publish failed - npm publish failed");
     shell.exit(1);
   }
 
   if (shell.exec("git push --tags origin master").code !== 0) {
-    console.error("publish failed - git push failed");
+    debug("publish failed - git push failed");
     shell.exit(1);
   }
 });

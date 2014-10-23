@@ -1,18 +1,17 @@
+var _ = require("lodash");
 var MochaSauce = require("mocha-sauce");
+var debug = require("debug")("sauce-runner");
 
 var sauceRunner = {
   start: function(done) {
-    // configure cloud
     var sauce = new MochaSauce({
       name: "decks",
       host: "localhost",
       port: 4445,
-      //url: "http://decks:3000/dist/test/index.html",
+      // The app needs to be served at this URL (e.g. using node-static)
       url: "http://127.0.0.1:8080/dist/test/index.html",
       build: Date.now()
     });
-
-    console.log(process.env.SAUCE_USER_NAME);
 
     //sauce.record(true);
 
@@ -22,44 +21,47 @@ var sauceRunner = {
     //sauce.browser({ browserName: "internet explorer", platform: "Windows 8", version: "10" });
 
     sauce.on("init", function(browser) {
-      console.log("sauce init: %s %s", browser.browserName, browser.platform);
+      debug("sauce init: %s %s", browser.browserName, browser.platform);
     });
 
     sauce.on("start", function(browser) {
-      console.log("sauce start: %s %s", browser.browserName, browser.platform);
+      debug("sauce start: %s %s", browser.browserName, browser.platform);
     });
 
     sauce.on("end", function(browser, res) {
-      console.log("sauce end: %s %s: %d failures", browser.browserName, browser.platform, res.failures);
+      debug("sauce end: %s %s: %d failures", browser.browserName, browser.platform, res.failures);
     });
 
-    console.log("sauce.start");
+    debug("sauce.start");
     sauce.start(function(err, res) {
+
+      debug("MochaSauce complete!");
+
       if(err) {
-        console.log("error", err);
+        debug("Failure in MochaSauce: ", err);
         done(err);
+
+        debug("Exiting with status code 1");
         process.exit(1);
         return;
       }
 
+      var failures = 1;
       if (res) {
-        console.log("res", res);
+        //debug("MochaSauce response: ", res);
+        if (_.isArray(res) && res.length > 0) {
+          failures = res[0].failures;
+        } else {
+          debug("Failed to get failures from response");
+        }
       }
 
-      /*
-      // res is an array, iterate over it and .browser tells you which
-      // browser the results are for.
-      console.log(res[0].browser);
-
-      // A full report in xUnit syntax (useful for CI integration)
-      console.log(res[0].xUnitReport);
-
-      // A full report in Jasmine-style JSON syntax
-      console.log(res[0].jsonReport);
-      */
+      debug("MochaSauce failures: " + failures);
 
       done();
-      process.exit(res.failures);
+
+      debug("Exiting with status code (failure count): " + failures);
+      process.exit(failures);
     });
   }
 };
