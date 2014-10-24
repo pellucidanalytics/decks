@@ -1,5 +1,5 @@
 var browserify = require("browserify");
-var connectLiveReload = require("connect-livereload");
+//var connectLiveReload = require("connect-livereload");
 var debug = require("debug")("gulp-decks");
 var eventStream = require("event-stream");
 var express = require("express");
@@ -7,7 +7,7 @@ var fs = require("fs");
 var gulp = require("gulp");
 var gulpJSDoc = require("gulp-jsdoc");
 var gulpJSHint = require("gulp-jshint");
-var gulpLiveReload = require("gulp-livereload");
+//var gulpLiveReload = require("gulp-livereload");
 var gulpMochaPhantomJS = require("gulp-mocha-phantomjs");
 var gulpStylus = require("gulp-stylus");
 var gulpUtil = require("gulp-util");
@@ -165,15 +165,15 @@ gulp.task("js-examples", function() {
 gulp.task("examples", ["html-examples", "styl-examples", "jshint-examples", "js-examples"]);
 
 gulp.task("watch-examples", ["examples"], function () {
-  var liveReload = gulpLiveReload();
+  //var liveReload = gulpLiveReload();
 
   gulp.watch(path.join(paths.examples.baseDir, paths.examples.htmlAll), ["html-examples"]);
 
   gulp.watch(path.join(paths.examples.baseDir, paths.examples.stylAll), ["styl-examples"]);
 
-  gulp.watch(paths.dist.baseDir + "/**/*").on("change", function (file) {
-    liveReload.changed(file.path);
-  });
+  //gulp.watch(paths.dist.baseDir + "/**/*").on("change", function (file) {
+  //  liveReload.changed(file.path);
+  //});
 
   eachSubDir(paths.examples.baseDir, function(dir) {
     var indexjsPath = "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain);
@@ -279,9 +279,9 @@ gulp.task("watch-test", ["test"], function() {
 
 gulp.task("serve", function() {
   var app = express();
-  app.use(connectLiveReload());
+  //app.use(connectLiveReload());
   app.use(express.static(__dirname));
-  app.listen(3000);
+  app.listen(3001);
 });
 
 ////////////////////////////////////////////////////////////////////////////////

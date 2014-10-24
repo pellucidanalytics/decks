@@ -40,7 +40,8 @@ function loadRender(render) {
   var width = render.transform.width;
   var height = render.transform.height;
 
-  var shouldLoad = !render.isLoading &&
+  var shouldLoad =
+    !render.isLoading &&
     (width !== render.lastWidth) &&
     (height !== render.lastHeight);
 
@@ -59,22 +60,19 @@ function loadRender(render) {
   img.ondragstart = function() { return false; };
 
   img.onload = _.bind(function() {
-    render.isLoading = false;
     render.lastWidth = width;
     render.lastHeight = height;
     render.element.innerHTML = "";
     render.element.appendChild(img);
+    render.isLoading = false;
   }, this);
 
   img.src = imgUrl;
 }
 
 function unloadRender(render) {
-  var item = render.item;
-
   //console.log("unloadRender");
   render.element.innerHTML = "";
-  item.isLoaded = false;
 }
 
 var layouts = {
@@ -206,9 +204,9 @@ $(function() {
   // Create the Deck
   var deck = new Deck({
     config: {
-      debugEvents: false,
+      debugEvents: true,
       debugDrawing: false,
-      debugGestures: false
+      debugGestures: true
     },
     animator: {
       animate: Velocity
