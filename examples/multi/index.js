@@ -51,8 +51,8 @@ function loadRender(render) {
   render.isLoading = true;
 
   var imgUrl = item.get('imgUrl') + "/" + width + "/" + height +
-    "/";
-    //"/?" + Math.random();
+    //"/";
+    "/?" + Math.random();
 
   var img = new Image(width, height);
 
@@ -105,7 +105,7 @@ var layouts = {
     }
   }),
   stack: new BasicStackLayout({
-    itemWidth: 400,
+    itemWidth: 200,
     itemHeight: 160,
     itemPadding: 40,
     itemsPerRow: 4,
