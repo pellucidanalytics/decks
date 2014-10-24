@@ -69,6 +69,7 @@ describe("decks.Viewport", function() {
       canvas: canvas
     };
     viewport = new Viewport(viewportOptions);
+    viewport.isDeckReady = true;
   });
 
   describe("constructor", function() {

@@ -7,13 +7,19 @@ var BasicGridLayout = decks.layouts.BasicGridLayout;
 var BasicStackLayout = decks.layouts.BasicStackLayout;
 var ZoomLayout = decks.layouts.ZoomLayout;
 
+var id = 0;
+var imageWidth = 800;
+var imageHeight = 600;
+
 function createItem() {
+  id++;
   return {
+    id: id,
     width: 300,
     height: 200,
     random: Math.random(),
     groups: getRandomGroups(),
-    imgUrl: "http://lorempixel.com",
+    imgUrl: "http://lorempixel.com/" + imageWidth + "/" + imageHeight + "/",
     label: "Image"
   };
 }
@@ -21,7 +27,6 @@ function createItem() {
 function createItems(count) {
   count = count || 20;
   var items = _.map(_.range(count), createItem);
-  console.log("items", items);
   return items;
 }
 
@@ -37,42 +42,19 @@ function getRandomGroups(count) {
 
 function loadRender(render) {
   var item = render.item;
-  var width = render.transform.width;
-  var height = render.transform.height;
 
-  var shouldLoad =
-    !render.isLoading &&
-    (width !== render.lastWidth) &&
-    (height !== render.lastHeight);
+  //console.log("loadRender item %s, render %s", render.item.id, render.id, render.image);
 
-  if (!shouldLoad) {
-    return;
+  if (!render.image) {
+    render.image = new Image(imageWidth, imageHeight);
+    render.image.src = item.get("imgUrl");
+    render.image.ondragstart = function() { return false; };
+    render.element.appendChild(render.image);
   }
-
-  render.isLoading = true;
-
-  var imgUrl = item.get('imgUrl') + "/" + width + "/" + height +
-    //"/";
-    "/?" + Math.random();
-
-  var img = new Image(width, height);
-
-  img.ondragstart = function() { return false; };
-
-  img.onload = _.bind(function() {
-    render.lastWidth = width;
-    render.lastHeight = height;
-    render.element.innerHTML = "";
-    render.element.appendChild(img);
-    render.isLoading = false;
-  }, this);
-
-  img.src = imgUrl;
 }
 
-function unloadRender(render) {
-  //console.log("unloadRender");
-  render.element.innerHTML = "";
+function unloadRender(/*render*/) {
+  //render.element.innerHTML = "";
 }
 
 var layouts = {
@@ -136,13 +118,11 @@ $(function() {
 
   // Add item button
   $(".add-item-button").on("click", function() {
-    console.log("add item");
     deck.addItem(createItem());
   });
 
   // Remove item button
   $(".remove-item-button").on("click", function() {
-    console.log("remove item");
     var items = deck.getItems();
     if (_.isEmpty(items)) {
       return;
@@ -154,13 +134,11 @@ $(function() {
 
   // Clear items button
   $(".clear-items-button").on("click", function() {
-    console.log("clear");
     deck.clear();
   });
 
   // add items button
   $(".add-items-button").on("click", function() {
-    console.log("add items");
     deck.addItems(createItems());
   });
 
@@ -180,19 +158,16 @@ $(function() {
     deck.setFilter(null);
   });
 
-  var currentSortBy = null;
   var sortBy = function(item) {
     return item.get("random");
   };
+
   $(".toggle-sort-by-button").on("click", function() {
-    currentSortBy = currentSortBy ? null : sortBy;
-    deck.setSortBy(currentSortBy);
+    deck.setSortBy(deck.itemCollection.sortBy ? null : sortBy);
   });
 
-  var isReversed = false;
   $(".toggle-reverse-button").on("click", function() {
-    isReversed = !isReversed;
-    deck.setReversed(isReversed);
+    deck.setReversed(!deck.itemCollection.isReversed);
   });
 
   // set the initial layout (from the select box)
@@ -204,9 +179,9 @@ $(function() {
   // Create the Deck
   var deck = new Deck({
     config: {
-      debugEvents: true,
+      debugEvents: false,
       debugDrawing: false,
-      debugGestures: true
+      debugGestures: false
     },
     animator: {
       animate: Velocity
