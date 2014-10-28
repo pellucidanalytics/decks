@@ -46,6 +46,7 @@ function loadRender(render) {
   //console.log("loadRender item %s, render %s", render.item.id, render.id, render.image);
 
   if (!render.image) {
+    render.element.innerHTML = "";
     render.image = new Image(imageWidth, imageHeight);
     render.image.src = item.get("imgUrl");
     render.image.ondragstart = function() { return false; };
@@ -53,8 +54,9 @@ function loadRender(render) {
   }
 }
 
-function unloadRender(/*render*/) {
-  //render.element.innerHTML = "";
+function unloadRender(render) {
+  render.element.innerHTML = "<span>Hello world</span>";
+  render.image = null;
 }
 
 var layouts = {
