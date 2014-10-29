@@ -13,7 +13,8 @@ describe("sanity check", function() {
 
   describe("should tests", function() {
     it("should pass basic should tests", function() {
-      "hello".should.be.a("string");
+      var hello = "hello";
+      hello.should.be.a("string");
     });
   });
 
