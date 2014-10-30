@@ -29,7 +29,7 @@ describe("decks.Deck", function () {
     animator = {
       animate: function() { }
     };
-    config = {};
+    config = Deck.prototype.defaultOptions.config,
     emitter = new Emitter();
     itemCollection = [];
     layout = new Layout();
@@ -280,8 +280,17 @@ describe("decks.Deck", function () {
         emitter: emitter,
         itemCollection: new ItemCollection(),
         layout: layout,
-        canvas: canvas,
-        frame: frame
+        canvas: new Canvas(_.merge(canvas, {
+          animator: animator,
+          config: config,
+          emitter: emitter,
+          layout: layout
+        })),
+        frame: new Frame(_.merge(frame, {
+          animator: animator,
+          config: config,
+          emitter: emitter
+        }))
       });
       deckOptions.viewport = viewport;
       var deck = new Deck(deckOptions);

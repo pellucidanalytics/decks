@@ -156,7 +156,7 @@ describe("decks.Viewport", function() {
   describe("removeItem", function() {
     it("should remove the item from the internal data structure", function() {
       viewport.renders["0"] = {};
-      viewport.removeItem({ id: "0" });
+      viewport.removeItem(new Item({ id: "0" }));
       expect(viewport.renders["0"]).to.be.undefined;
     });
 
