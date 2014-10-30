@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "eventemitter2": "^0.4.14",
+    "hammerjs": "pellucidanalytics/hammer.js",
     "lodash": "^2.4.1"
   }
 }
