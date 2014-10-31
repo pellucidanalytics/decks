@@ -164,6 +164,9 @@ function runWatch() {
   watcher.on("change", function(e) {
     gulpUtil.log(gulpUtil.colors.yellow("File " + e.path + " was " + e.type + ", re-running tasks."));
   });
+  watcher.on("end", function() {
+    gulpUtil.log(gulpUtil.colors.red("Watcher ended: " + arguments[0]));
+  });
 }
 
 function runWatchLiveReload(sourcePath) {
@@ -203,31 +206,31 @@ function runShell(command, errorMessage) {
 
 // TODO: need a task to bundle a standalone module for browser use
 
-gulp.task("styl-lib", function() {
+gulp.task("lib-styl", function() {
   return runStylus(paths.lib.stylMain, paths.dist.baseDir);
 });
 
-gulp.task("jshint-lib", function() {
+gulp.task("lib-jshint", function() {
   return runJSHint(paths.lib.jsAll);
 });
 
-gulp.task("jsdoc-lib", function() {
+gulp.task("lib-jsdoc", function() {
   return gulp.src([paths.lib.jsAll, "README.md"])
     .pipe(gulpJSDoc(paths.dist.jsdocDir));
 });
 
-gulp.task("lib", ["styl-lib", "jshint-lib", "jsdoc-lib"]);
+gulp.task("lib", ["lib-styl", "lib-jshint", "lib-jsdoc"]);
 
-gulp.task("watch-lib", ["lib"], function() {
-  runWatch(paths.lib.stylAll, ["styl-lib"]);
-  runWatch(paths.lib.jsAll, ["jshint-lib", "jsdoc-lib"]);
+gulp.task("lib-watch", ["lib"], function() {
+  runWatch(paths.lib.stylAll, ["lib-styl"]);
+  runWatch(paths.lib.jsAll, ["lib-jshint", "lib-jsdoc"]);
 });
 
 ////////////////////////////////////////////////////////////////////////////////
 // example tasks
 ////////////////////////////////////////////////////////////////////////////////
 
-gulp.task("html-examples", function() {
+gulp.task("examples-html", function() {
   return concatSubDirStreams(paths.examples.baseDir, function(dir) {
     return runCopy(
       path.join(paths.examples.baseDir, dir, paths.examples.htmlMain),
@@ -236,7 +239,7 @@ gulp.task("html-examples", function() {
   });
 });
 
-gulp.task("styl-examples", function() {
+gulp.task("examples-styl", function() {
   return concatSubDirStreams(paths.examples.baseDir, function(dir) {
     return runStylus(
       path.join(paths.examples.baseDir, dir, paths.examples.stylMain),
@@ -245,7 +248,7 @@ gulp.task("styl-examples", function() {
   });
 });
 
-gulp.task("jshint-examples", function() {
+gulp.task("examples-jshint", function() {
   return concatSubDirStreams(paths.examples.baseDir, function(dir) {
     return runJSHint(
       path.join(paths.examples.baseDir, dir, paths.examples.jsAll)
@@ -253,7 +256,7 @@ gulp.task("jshint-examples", function() {
   });
 });
 
-gulp.task("js-examples", function() {
+gulp.task("examples-js", function() {
   return concatSubDirStreams(paths.examples.baseDir, function(dir) {
     return runBrowserify(
       "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain),
@@ -262,15 +265,15 @@ gulp.task("js-examples", function() {
   });
 });
 
-gulp.task("examples", ["html-examples", "styl-examples", "jshint-examples", "js-examples"]);
+gulp.task("examples", ["examples-html", "examples-styl", "examples-jshint", "examples-js"]);
 
-gulp.task("watch-examples", ["examples"], function () {
-  runWatch(path.join(paths.examples.baseDir, paths.examples.htmlAll), ["html-examples"]);
+gulp.task("examples-watch", ["examples"], function () {
+  runWatch(path.join(paths.examples.baseDir, paths.examples.htmlAll), ["examples-html"]);
 
-  runWatch(path.join(paths.examples.baseDir, paths.examples.stylAll), ["styl-examples"]);
+  runWatch(path.join(paths.examples.baseDir, paths.examples.stylAll), ["examples-styl"]);
 
   eachSubDir(paths.examples.baseDir, function(dir) {
-    runWatch(path.join(paths.examples.baseDir, dir, paths.examples.jsAll), ["jshint-examples"]);
+    runWatch(path.join(paths.examples.baseDir, dir, paths.examples.jsAll), ["examples-jshint"]);
 
     runWatchify(
       "./" + path.join(paths.examples.baseDir, dir, paths.examples.jsMain),
@@ -286,27 +289,27 @@ gulp.task("watch-examples", ["examples"], function () {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Copy .html files to dist/test dir
-gulp.task("html-test", function() {
+gulp.task("test-html", function() {
   return runCopy(paths.test.htmlMain, paths.dist.testDir);
 });
 
 // Compile .styl files to .css files in dist/test dir
-gulp.task("styl-test", function() {
+gulp.task("test-styl", function() {
   return runStylus(paths.test.stylMain, paths.dist.testDir);
 });
 
 // JSHint all the test .js files
-gulp.task("jshint-test", function() {
+gulp.task("test-jshint", function() {
   return runJSHint(paths.test.jsAll);
 });
 
 // Browserify the test .js files into dist/test
-gulp.task("js-test", function() {
+gulp.task("test-js", function() {
   return runBrowserify(paths.test.jsMain, paths.dist.testDir);
 });
 
 // Compile all the test files and run the phantom testss
-gulp.task("test", ["html-test", "styl-test", "jshint-test", "js-test"], function() {
+gulp.task("test", ["test-html", "test-styl", "test-jshint", "test-js"], function() {
   return runPhantomTests();
 });
 
@@ -321,16 +324,14 @@ gulp.task("test-sauce", ["test"], function(cb) {
 });
 
 // Watches all the test files and re-runs tasks
-gulp.task("watch-test", ["test"], function() {
-  runWatch(paths.test.htmlAll, ["html-test"]);
+gulp.task("test-watch", ["test"], function() {
+  runWatch(paths.test.htmlAll, ["test-html"]);
 
-  runWatch(paths.test.stylAll, ["styl-test"]);
+  runWatch(paths.test.stylAll, ["test-styl"]);
 
-  runWatch(paths.test.jsAll, ["jshint-test"]);
+  runWatch(paths.test.jsAll, ["test-jshint"]);
 
   runWatchify(paths.test.jsMain, paths.dist.testDir, runPhantomTests);
-
-  //runWatch(path.join(paths.dist.testDir, "bundle.js"), ["test-phantom"]);
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -358,7 +359,7 @@ gulp.task("notify", function() {
 
 gulp.task("default", function(cb) {
   return runSequence(
-    ["watch-lib", "watch-test", "watch-examples"],
+    ["lib-watch", "test-watch", "examples-watch"],
     "serve",
     "notify",
     cb
