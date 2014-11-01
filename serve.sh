@@ -12,4 +12,3 @@
 # 4. Run the command below:
 
 bundle exec jekyll serve
-open http://localhost:4000
