@@ -10,9 +10,17 @@ in the DOM.  decks allows you to define "Layouts" for rendering your items,
 and provides all the rendering, animation, and touch/gesture support for seamlessly
 transitioning between layouts, and interacting with your content.
 
+### Examples
+
+*TODO*
+
+- [Multi-function test/demo]({{ site.baseurl }}/dist/examples/multi)
+- [Layout test]({{ site.baseurl }}/dist/examples/sparse)
+- [Another layout test]({{ site.baseurl }}/dist/examples/stacked)
+
 ### Documentation
 
-- [JSDoc API documentation]({{ site.path}}/dist/jsdoc) is generated from the source code.
+- [JSDoc API documentation]({{ site.baseurl}}/dist/jsdoc) is generated from the source code.
 
 The decks system defines the following concepts:
 
@@ -33,15 +41,7 @@ snapping-to-bounds.
 Viewport manages the Frame and Canvas elements, and delegates to a Layout instance to determine
 where item elements are drawn, and for transitioning between different visual states or Layouts.
 
-### Examples
-
-- [Multi-function test/demo]({{ site.path }}/dist/examples/multi)
-- [Layout test]({{ site.path }}/dist/examples/sparse)
-- [Another layout test]({{ site.path }}/dist/examples/stacked)
-
-### Developers
-
-View the [README](https://github.com/pellucidanalytics/decks) for development/contribution
+View the [GitHub Project/README](https://github.com/pellucidanalytics/decks) for development/contribution
 information.
 
 ### Current Build Status
@@ -55,7 +55,7 @@ information.
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/pelluciddecks.svg?auth=ece3dc76af60a49515da2a7b0bbfa51c)](https://saucelabs.com/u/pelluciddecks?auth=ece3dc76af60a49515da2a7b0bbfa51c)
 
-## Inspirations
+### Inspirations
 
 - [Tremula](https://github.com/garris/TremulaJS)
 - [Stapel](http://tympanus.net/Development/Stapel/)
