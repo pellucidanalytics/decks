@@ -20,7 +20,7 @@ transitioning between layouts, and interacting with your content.
 
 ### Documentation
 
-- [JSDoc API documentation]({{ site.baseurl}}/dist/jsdoc) is generated from the source code.
+- [JSDoc API documentation]({{ site.baseurl}}/dist/jsdoc)
 
 The decks system defines the following concepts:
 
