@@ -1,6 +1,7 @@
+require("es5-shim-sham");
+var $ = window.jQuery = window.$ = require("jquery");
+var Velocity = require("velocity-animate");
 var _ = require("lodash");
-var $ = require("jquery");
-var Velocity = require('velocity-animate');
 var decks = require('../..');
 var Deck = decks.Deck;
 var BasicGridLayout = decks.layouts.BasicGridLayout;
@@ -146,13 +147,13 @@ $(function() {
 
   $(".filter-evens-button").on("click", function() {
     deck.setFilter(function(item) {
-      return parseInt(item.id) % 2 === 0;
+      return _.parseInt(item.id) % 2 === 0;
     });
   });
 
   $(".filter-odds-button").on("click", function() {
     deck.setFilter(function(item) {
-      return parseInt(item.id) % 2 !== 0;
+      return _.parseInt(item.id) % 2 !== 0;
     });
   });
 

@@ -30,16 +30,16 @@ describe("decks.Frame", function() {
 
   describe("constructor", function() {
     it("should work with new", function() {
-      expect(frame).to.be.an.instanceof(Frame);
+      expect(frame).to.be.an.instanceOf(Frame);
     });
 
     it("should work without new", function() {
       var frame = Frame(frameOptions);
-      expect(frame).to.be.an.instanceof(Frame);
+      expect(frame).to.be.an.instanceOf(Frame);
     });
 
     it("should throw if no options specified", function() {
-      expect(function() { new Frame(); }).to.throw(Error);
+      expect(function() { new Frame(); }).to.Throw(Error);
     });
 
     it("should set an element", function() {
@@ -63,7 +63,7 @@ describe("decks.Frame", function() {
 
   describe("setElement", function() {
     it("should require an element", function() {
-      expect(function() { new Frame(); }).to.throw(Error);
+      expect(function() { new Frame(); }).to.Throw(Error);
     });
 
     it("should set the element property", function() {
@@ -92,7 +92,7 @@ describe("decks.Frame", function() {
         height: "80%"
       });
       var frame = new Frame(frameOptions);
-      expect(frame.bounds).not.to.be.undefined;
+      expect(frame.bounds).not.to.be.Undefined;
       _.each(["top", "bottom", "left", "right", "width", "height"], function(key) {
         expect(frame.bounds[key]).to.be.a("number");
       });
@@ -143,7 +143,7 @@ describe("decks.Frame", function() {
         width: 50,
         height: 50
       });
-      expect(frame.isElementVisible(itemElement)).to.be.true;
+      expect(frame.isElementVisible(itemElement)).to.be.True;
 
       dom.setStyles(itemElement, {
         position: "absolute",
@@ -152,7 +152,7 @@ describe("decks.Frame", function() {
         width: 50,
         height: 50
       });
-      expect(frame.isElementVisible(itemElement)).to.be.false;
+      expect(frame.isElementVisible(itemElement)).to.be.False;
     });
   });
 

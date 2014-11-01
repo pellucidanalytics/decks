@@ -4,3 +4,6 @@ npm-debug.log
 
 # Project/build files
 dist/
+
+# GitHub Pages files
+_site/

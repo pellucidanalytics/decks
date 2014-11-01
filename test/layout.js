@@ -29,21 +29,21 @@ describe("decks.Layout", function() {
   describe("getRenders", function() {
     it("should throw a not implemented error by default", function() {
       var layout = new Layout();
-      expect(function() { layout.getRenders(); }).to.throw(Error);
+      expect(function() { layout.getRenders(); }).to.Throw(Error);
     });
   });
 
   describe("loadRender", function() {
     it("should throw a not implemented error by default", function() {
       var layout = new Layout();
-      expect(function() { layout.loadRender(); }).to.throw(Error);
+      expect(function() { layout.loadRender(); }).to.Throw(Error);
     });
   });
 
   describe("unloadRender", function() {
     it("should throw a not implemented error by default", function() {
       var layout = new Layout();
-      expect(function() { layout.unloadRender(); }).to.throw(Error);
+      expect(function() { layout.unloadRender(); }).to.Throw(Error);
     });
   });
 
@@ -55,8 +55,8 @@ describe("decks.Layout", function() {
       layout.setHideAnimation(render);
       expect(render.transform).to.be.an("object");
       expect(render.animateOptions).to.be.an("object");
-      expect(_.isEmpty(render.transform)).to.be.false;
-      expect(_.isEmpty(render.animateOptions)).to.be.false;
+      expect(_.isEmpty(render.transform)).to.be.False;
+      expect(_.isEmpty(render.animateOptions)).to.be.False;
     });
   });
 });

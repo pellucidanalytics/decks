@@ -52,23 +52,23 @@ describe("decks.Deck", function () {
 
   describe("constructor", function() {
     it("should work with new", function() {
-      expect(deck).to.be.an.instanceof(Deck);
+      expect(deck).to.be.an.instanceOf(Deck);
     });
 
     it("should work without new", function() {
       var deck = Deck(deckOptions);
-      expect(deck).to.be.an.instanceof(Deck);
+      expect(deck).to.be.an.instanceOf(Deck);
     });
 
     it("should create the core services", function() {
       expect(deck.config).to.eql(Deck.prototype.defaultOptions.config);
       expect(deck.emitter).to.eql(emitter);
       expect(deck.animator).to.eql(animator);
-      expect(deck.itemCollection).to.be.an.instanceof(ItemCollection);
-      expect(deck.layout).to.be.an.instanceof(Layout);
-      expect(deck.frame).to.be.an.instanceof(Frame);
-      expect(deck.canvas).to.be.an.instanceof(Canvas);
-      expect(deck.viewport).to.be.an.instanceof(Viewport);
+      expect(deck.itemCollection).to.be.an.instanceOf(ItemCollection);
+      expect(deck.layout).to.be.an.instanceOf(Layout);
+      expect(deck.frame).to.be.an.instanceOf(Frame);
+      expect(deck.canvas).to.be.an.instanceOf(Canvas);
+      expect(deck.viewport).to.be.an.instanceOf(Viewport);
     });
 
     it("should bind to emitter events", function() {
@@ -177,7 +177,7 @@ describe("decks.Deck", function () {
     });
 
     it("should throw if already set", function() {
-      expect(function() { deck.setConfig({}); }).to.throw(Error);
+      expect(function() { deck.setConfig({}); }).to.Throw(Error);
     });
   });
 
@@ -190,7 +190,7 @@ describe("decks.Deck", function () {
     });
 
     it("should throw if already set", function() {
-      expect(function() { deck.setEmitter({}); }).to.throw(Error);
+      expect(function() { deck.setEmitter({}); }).to.Throw(Error);
     });
   });
 
@@ -203,7 +203,7 @@ describe("decks.Deck", function () {
     });
 
     it("should throw if already set", function() {
-      expect(function() { deck.setAnimator({}); }).to.throw(Error);
+      expect(function() { deck.setAnimator({}); }).to.Throw(Error);
     });
   });
 
@@ -216,7 +216,7 @@ describe("decks.Deck", function () {
     });
 
     it("should throw if already set", function() {
-      expect(function() { deck.setItemCollection([]); }).to.throw(Error);
+      expect(function() { deck.setItemCollection([]); }).to.Throw(Error);
     });
   });
 
@@ -250,7 +250,7 @@ describe("decks.Deck", function () {
     });
 
     it("should throw if already set", function() {
-      expect(function() { deck.setCanvas({}); }).to.throw(Error);
+      expect(function() { deck.setCanvas({}); }).to.Throw(Error);
     });
   });
 
@@ -268,7 +268,7 @@ describe("decks.Deck", function () {
     });
 
     it("should throw if already set", function() {
-      expect(function() { deck.setFrame({}); }).to.throw(Error);
+      expect(function() { deck.setFrame({}); }).to.Throw(Error);
     });
   });
 
@@ -298,7 +298,7 @@ describe("decks.Deck", function () {
     });
 
     it("should throw if already set", function() {
-      expect(function() { deck.setViewport({}); }).to.throw(Error);
+      expect(function() { deck.setViewport({}); }).to.Throw(Error);
     });
   });
 });

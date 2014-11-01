@@ -73,7 +73,7 @@ describe("decks.utils.rect", function() {
         right: 130
       };
 
-      expect(rect.intersects(r1, r2)).to.be.true;
+      expect(rect.intersects(r1, r2)).to.be.True;
     });
 
     it("should return false for non-intersecting rectangles", function(){
@@ -91,7 +91,7 @@ describe("decks.utils.rect", function() {
         right: 110
       };
 
-      expect(rect.intersects(r1, r2)).to.be.false;
+      expect(rect.intersects(r1, r2)).to.be.False;
     });
   });
 

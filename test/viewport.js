@@ -74,12 +74,12 @@ describe("decks.Viewport", function() {
 
   describe("constructor", function() {
     it("should work with new", function() {
-      expect(viewport).to.be.an.instanceof(Viewport);
+      expect(viewport).to.be.an.instanceOf(Viewport);
     });
 
     it("should work without new", function() {
       var viewport = Viewport(viewportOptions);
-      expect(viewport).to.be.an.instanceof(Viewport);
+      expect(viewport).to.be.an.instanceOf(Viewport);
     });
 
     it("should bind emitter events", function() {
@@ -92,7 +92,7 @@ describe("decks.Viewport", function() {
 
   describe("drawItem", function() {
     it("should throw for no item", function() {
-      expect(function() { viewport.drawItem(); }).to.throw(Error);
+      expect(function() { viewport.drawItem(); }).to.Throw(Error);
     });
 
     it("should call layout.getRenders, then drawRenders", function() {
@@ -103,7 +103,7 @@ describe("decks.Viewport", function() {
         {
           tranform: {},
           animateOptions: {}
-        },
+        }
       ];
       mockLayout.expects("getRenders").once().returns(renders);
       mockViewport.expects("drawRenders").once().withArgs(item, sinon.match(function(value) {
@@ -138,7 +138,7 @@ describe("decks.Viewport", function() {
       var mockViewport = sinon.mock(viewport);
       mockViewport.expects("eraseRenders").once().withArgs(item);
       viewport.eraseItem(item);
-      expect(item.isRemoving).to.be.true;
+      expect(item.isRemoving).to.be.True;
       mockViewport.verify();
     });
   });
@@ -157,7 +157,7 @@ describe("decks.Viewport", function() {
     it("should remove the item from the internal data structure", function() {
       viewport.renders["0"] = {};
       viewport.removeItem(new Item({ id: "0" }));
-      expect(viewport.renders["0"]).to.be.undefined;
+      expect(viewport.renders["0"]).to.be.Undefined;
     });
 
     it("should emit an event", function() {
@@ -193,8 +193,8 @@ describe("decks.Viewport", function() {
       var data2 = {};
       viewport.renders["0"] = data1;
       viewport.renders["1"] = data2;
-      expect(viewport.hasRenders(item1)).to.be.true;
-      expect(viewport.hasRenders(item2)).to.be.false;
+      expect(viewport.hasRenders(item1)).to.be.True;
+      expect(viewport.hasRenders(item2)).to.be.False;
     });
   });
 
@@ -233,7 +233,7 @@ describe("decks.Viewport", function() {
       };
       viewport.renders["0"] = {};
       viewport.removeRender(render);
-      expect(viewport.hasRenders(item)).to.be.false;
+      expect(viewport.hasRenders(item)).to.be.False;
       expect(viewport.getRenders(item)).to.eql({});
     });
   });

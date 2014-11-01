@@ -44,17 +44,17 @@ describe("decks.ItemCollection", function() {
     });
 
     it("should accept a Number index to get", function() {
-      expect(itemCollection.getItem(-1)).to.be.undefined;
+      expect(itemCollection.getItem(-1)).to.be.Undefined;
       expect(itemCollection.getItem(0).getData()).to.eql(items[0]);
       expect(itemCollection.getItem(1).getData()).to.eql(items[1]);
-      expect(itemCollection.getItem(2)).to.be.undefined;
+      expect(itemCollection.getItem(2)).to.be.Undefined;
     });
 
     it("should accept a String index to get", function() {
-      expect(itemCollection.getItem("-1")).to.be.undefined;
+      expect(itemCollection.getItem("-1")).to.be.Undefined;
       expect(itemCollection.getItem("0").getData()).to.eql(items[0]);
       expect(itemCollection.getItem("1").getData()).to.eql(items[1]);
-      expect(itemCollection.getItem("2")).to.be.undefined;
+      expect(itemCollection.getItem("2")).to.be.Undefined;
     });
   });
 

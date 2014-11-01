@@ -1,7 +1,8 @@
-var Velocity = require('velocity-animate');
+require("es5-shim-sham");
+require("jquery"); // needed for IE8 (before Velocity)
+var Velocity = require("velocity-animate");
 var Decks = require('../..');
 var list = require('./data').list;
-require("../../vendor/polyfills");
 
 function rand(max) {
   return - max / 2 + Math.random() * max;
@@ -14,22 +15,20 @@ var getRenders = function (item) {
   var row = Math.floor(index / rows) % rows;
   var column = index % cols;
 
-  return [
-    {
-      transform: {
-        top: 250 + row * 200 + rand(20),
-        left: 250 + column * 260 - rand(20),
-        rotateZ: 360 - rand(30),
-        scale: 1 + rand(0.5),
-        opacity: [1, 0.25]
-      },
-      animateOptions: {
-        delay: index * 250,
-        duration: 2000, //400 + index * 20,
-        easing: [250,15]// "ease"
-      }
+  return {
+    transform: {
+      top: 250 + row * 200 + rand(20),
+      left: 250 + column * 260 - rand(20),
+      rotateZ: 360 - rand(30),
+      scale: 1 + rand(0.5),
+      opacity: [1, 0.25]
+    },
+    animateOptions: {
+      delay: index * 250,
+      duration: 2000, //400 + index * 20,
+      easing: [250,15]// "ease"
     }
-  ];
+  };
 };
 
 var loadRender = function (render) {
@@ -51,18 +50,16 @@ var unloadRender = function (render) {
 };
 
 new Decks.Deck({
-  items: list,
-  viewport: {
-    animator: {
-      animate: Velocity
-    },
-    frame: {
-      element: document.body
-    }
+  animator: {
+    animate: Velocity
   },
+  items: list,
   layout: {
     getRenders: getRenders,
     loadRender: loadRender,
     unloadRender: unloadRender
+  },
+  frame: {
+    element: document.body
   }
 });

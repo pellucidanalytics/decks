@@ -55,13 +55,13 @@ describe("decks.ui.dom", function() {
     it("should return true if an element has the class", function() {
       var element = dom.create("div");
       element.className = "one";
-      expect(dom.hasClass(element, "one")).to.be.true;
+      expect(dom.hasClass(element, "one")).to.be.True;
     });
 
     it("should return true if element has the class among many classes", function(){
       var element = dom.create("div");
       element.className = "one two three";
-      expect(dom.hasClass(element, "two")).to.be.true;
+      expect(dom.hasClass(element, "two")).to.be.True;
     });
   });
 

@@ -7,7 +7,7 @@ describe("decks.events.DecksEvent", function() {
   describe("constructor", function() {
     it("should work without new", function() {
       var e = DecksEvent("test", {}, {});
-      expect(e).to.be.an.instanceof(DecksEvent);
+      expect(e).to.be.an.instanceOf(DecksEvent);
     });
 
     it("should set properties", function() {

@@ -62,7 +62,7 @@ describe("decks.events.binder", function() {
       var e = DecksEvent("event", source, { key: "val" });
       source.emit(e);
 
-      expect(target.onEventWasCalled).to.be.true;
+      expect(target.onEventWasCalled).to.be.True;
       expect(target.onEventThis).to.eql(target);
       expect(target.onEventArguments.length).to.eql(1);
       expect(target.onEventArguments[0]).to.eql(e);
@@ -74,13 +74,13 @@ describe("decks.events.binder", function() {
       target.bindEvents(source, eventMap);
 
       source.emit(DecksEvent("event", source, { key: "val" }));
-      expect(target.onEventWasCalled).to.be.true;
+      expect(target.onEventWasCalled).to.be.True;
 
       target.clear();
       target.unbindEvents(source, eventMap);
 
       source.emit(DecksEvent("event", source, { key: "val" }));
-      expect(target.onEventWasCalled).to.be.false;
+      expect(target.onEventWasCalled).to.be.False;
     });
   });
 });

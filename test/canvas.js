@@ -38,12 +38,12 @@ describe("decks.Canvas", function() {
 
   describe("constructor", function() {
     it("should work with new", function() {
-      expect(canvas).to.be.an.instanceof(Canvas);
+      expect(canvas).to.be.an.instanceOf(Canvas);
     });
 
     it("should work without new", function(){
       canvas = Canvas(canvasOptions);
-      expect(canvas).to.be.an.instanceof(Canvas);
+      expect(canvas).to.be.an.instanceOf(Canvas);
     });
 
     it("should set the element from options", function(){
@@ -53,7 +53,7 @@ describe("decks.Canvas", function() {
     it("should create an element if not provided in options", function() {
       delete canvasOptions.element;
       canvas = new Canvas(canvasOptions);
-      expect(canvas.element).to.be.an.instanceof(HTMLElement);
+      expect(canvas.element).to.be.an.instanceOf(HTMLElement);
     });
 
     it("should bind emitter events", function() {
@@ -67,7 +67,7 @@ describe("decks.Canvas", function() {
 
   describe("setElement", function() {
     it("should set class/style/etc. properties on the element", function(){
-      expect(dom.hasClass(canvas.element, canvas.config.canvasClassName)).to.be.true;
+      expect(dom.hasClass(canvas.element, canvas.config.canvasClassName)).to.be.True;
       expect(canvas.element.style.position).to.eql("absolute");
       expect(canvas.element.style.top).to.eql("0px");
       expect(canvas.element.style.left).to.eql("0px");

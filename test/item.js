@@ -1,3 +1,4 @@
+var _ = require("lodash");
 var tools = require("./testtools");
 var expect = tools.expect;
 var sinon = tools.sinon;
@@ -26,7 +27,7 @@ describe("decks.Item", function() {
 
     it("should set an id property, if provided in data", function() {
       expect(item.id).to.be.a("string");
-      expect(parseInt(item.id)).to.be.a("number");
+      expect(_.parseInt(item.id)).to.be.a("number");
 
       item = new Item(10);
       expect(item.id).to.eql("10");
@@ -46,7 +47,7 @@ describe("decks.Item", function() {
     it("should get data values", function() {
       item = new Item({ key1: "val1" }, itemOptions);
       expect(item.get("key1")).to.eql("val1");
-      expect(item.get("key2")).to.be.undefined;
+      expect(item.get("key2")).to.be.Undefined;
     });
   });
 
@@ -55,11 +56,11 @@ describe("decks.Item", function() {
       var item = new Item({ key1: "val1" }, itemOptions);
 
       expect(item.get("key1")).to.eql("val1");
-      expect(item.get("key2")).to.be.undefined;
+      expect(item.get("key2")).to.be.Undefined;
 
       item.set("key1", "newVal1");
       expect(item.get("key1")).to.eql("newVal1");
-      expect(item.get("key2")).to.be.undefined;
+      expect(item.get("key2")).to.be.Undefined;
 
       item.set("key2", "val2");
       expect(item.get("key1")).to.eql("newVal1");

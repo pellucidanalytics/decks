@@ -10,7 +10,7 @@ describe("decks.events.Emitter", function() {
   describe("constructor", function(){
     it("should be an instance of EventEmitter2", function() {
       var emitter = new Emitter();
-      expect(emitter).to.be.an.instanceof(EventEmitter2);
+      expect(emitter).to.be.an.instanceOf(EventEmitter2);
     });
   });
 
