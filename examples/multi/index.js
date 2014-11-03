@@ -179,8 +179,7 @@ $(function() {
   // Get the frame element (from the page)
   var frameElement = $root[0];
 
-  // Create the Deck
-  var deck = new Deck({
+  var deckOptions = {
     config: {
       debugEvents: false,
       debugDrawing: false,
@@ -194,5 +193,8 @@ $(function() {
       element: frameElement
     },
     layout: layout
-  });
+  };
+
+  // Create the Deck
+  var deck = new Deck(deckOptions);
 });
