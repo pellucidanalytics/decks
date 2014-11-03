@@ -1,0 +1,38 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  font-family: sans-serif;
+}
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #555;
+}
+#root {
+  margin: 40px auto;
+  width: 1024px;
+  height: 768px;
+  background-color: #777;
+}
+.decks-frame {
+  background-color: #aaa;
+}
+.decks-canvas {
+  background-color: #ccc;
+}
+.decks-item {
+  background-color: #eee;
+}
+.decks-item img {
+  width: 100%;
+  height: 100%;
+}
+.controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+.controls span {
+  color: #fff;
+}

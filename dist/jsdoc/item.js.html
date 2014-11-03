@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: item.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: item.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var _ = require("lodash");
+var hasEmitter = require("./events").hasEmitter;
+var DecksEvent = require("./events").DecksEvent;
+
+/**
+ * Manages a data object and adds an event API for setting values
+ *
+ * @class
+ * @mixes hasEmitter
+ * @param {Object} [data={}] object containing arbitrary data
+ */
+function Item(data, options) {
+  if (!(this instanceof Item)) {
+    return new Item(data);
+  }
+
+  data = data || {};
+  options = _.merge({}, this.defaultOptions, options);
+
+  this.setEmitter(options.emitter || {});
+  this.setId(data);
+  this.setIndex(data, { silent: true });
+  this.setData(data, { silent: true });
+}
+
+_.extend(Item.prototype, hasEmitter, /** @lends Item.prototype */ {
+  defaultOptions: {
+  },
+
+  /**
+   * Sets the Item's unique ID.
+   *
+   * This is required for indexing the item in various data structures in decks.js.
+   *
+   * @param {(String|Number|Object)} data the id string value, id numeric value, or an object which contains an id key
+   * @return {undefined}
+   */
+  setId: function(data) {
+    if (_.isString(this.id)) {
+      throw new Error("Item#setId: id cannot be changed");
+    }
+
+    if (_.isString(data)) {
+      this.id = data;
+      return;
+    }
+
+    if (_.isNumber(data)) {
+      this.id = "" + data; // convert to string
+      return;
+    }
+
+    // look for possible id properties in the data object
+    var key = _.find(["id", "_id", "Id", "ID"], function(key) {
+      return _.has(data, key) &amp;&amp; (_.isNumber(data[key]) || _.isString(data[key]));
+    });
+
+    if (key &amp;&amp; (_.isString(data[key]) || _.isNumber(data[key]))) {
+      this.id = "" + data[key]; // convert to string
+      return;
+    }
+
+    // default to generated unique ID
+    this.id = "" + _.uniqueId();
+  },
+
+  /**
+   * Sets the Item's index
+   *
+   * @param {!(Number|Object)} data numeric index value or an object with a numeric index property
+   * @param {?Object} options additional options
+   * @return {undefined}
+   */
+  setIndex: function(data, options) {
+    options = options || {};
+
+    var index = -1;
+
+    if (_.isNumber(data)) {
+      index = data;
+    }
+
+    if (_.has(data, "index") &amp;&amp; _.isNumber(data.index)) {
+      index = data.index;
+    }
+
+    if (this.index === index) {
+      return;
+    }
+
+    this.index = index;
+
+    if (!options.silent) {
+      this.emitter.emit(DecksEvent("item:index:changed", this, this.index));
+    }
+  },
+
+  /**
+   * Gets a single property value by key
+   *
+   * @param {String} key property key
+   * @return {*} property value
+   */
+  get: function(key) {
+    if (!_.isString(key)) {
+      throw new Error("Item#get: key is required and must be a string");
+    }
+
+    return this.data[key];
+  },
+
+  /**
+   * Sets a single property value by key
+   *
+   * @param {String} key property key
+   * @param {*} value property value
+   * @param {?Object} options additional options
+   * @return {undefined}
+   */
+  set: function(key, value, options) {
+    if (!_.isString(key)) {
+      throw new Error("Item#set: key is required and must be a string");
+    }
+
+    options = options || {};
+
+    if (_.isEqual(this.data[key], value)) {
+      return;
+    }
+
+    var oldValue = this.get(key);
+    this.data[key] = value;
+
+    if (!options.silent) {
+      this.emitter.emit(DecksEvent("item:changed", this, { key: key, value: value, oldValue: oldValue }));
+    }
+  },
+
+  /**
+   * Gets the full data object
+   *
+   * @return {Object}
+   */
+  getData: function() {
+    return this.data;
+  },
+
+  /**
+   * Sets the full data object
+   *
+   * @param {Object} data data object to set
+   * @param {?Object} options additional options
+   * @return {undefined}
+   */
+  setData: function(data, options) {
+    data = data || {};
+    options = options || {};
+    var oldData = this.getData();
+
+    if (_.isEqual(oldData, data)) {
+      return;
+    }
+
+    this.data = data;
+
+    if (!options.silent) {
+      this.emitter.emit(DecksEvent("item:changed", this, { oldData: oldData, data: data }));
+    }
+  },
+
+  /**
+   * Clears the data object (sets to empty object)
+   *
+   * @param {Object} [options={}] - Additional options
+   * @param {boolean} options.silent - If true, do not emit event after clear
+   * @return {undefined}
+   */
+  clear: function(options) {
+    options = options || {};
+    var oldData = this.getData();
+
+    if (_.isEmpty(oldData)) {
+      return;
+    }
+
+    this.data = {};
+
+    if (!options.silent) {
+      this.emitter.emit("item:cleared", this);
+    }
+  }
+});
+
+module.exports = Item;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Mon Nov 03 2014 14:49:09 GMT-0700 (MST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
