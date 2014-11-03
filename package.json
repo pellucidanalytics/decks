@@ -43,7 +43,7 @@
     "jquery": "^1.11.1",
     "jshint-stylish": "^1.0.0",
     "mocha": "^2.0.1",
-    "mocha-sauce": "git://github.com/pellucidanalytics/mocha-sauce.git",
+    "mocha-sauce": "pellucidanalytics/mocha-sauce",
     "nib": "^1.0.4",
     "node-notifier": "^4.0.2",
     "run-sequence": "^1.0.1",
