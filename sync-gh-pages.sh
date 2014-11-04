@@ -27,7 +27,7 @@ echo "Committing files..."
 git commit -m "Update gh-pages content $(date)"
 
 echo "Pushing to gh-pages..."
-#git push origin gh-pages
+git push origin gh-pages
 
 echo "Going back to master..."
 git checkout master
