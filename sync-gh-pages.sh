@@ -1,44 +1,33 @@
-#!/bin/bash
-###
-### The following block runs after commit to "master" branch
-###
-if [ `git rev-parse --abbrev-ref HEAD` == "master" ]; then
+#! /usr/bin/env bash
 
-    # Layout prefix is prepended to each markdown file synced
-    ###################################################################
-    LAYOUT_PREFIX='---\r\nlayout: index\r\n---\r\n\r\n'
+# Unoffical bash strict mode
+set -euo pipefail
+IFS=$'\n\t'
 
-    # Switch to gh-pages branch to sync it with master
-    ###################################################################
-    git checkout gh-pages
+# cd to script directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-    # Sync the README.md in master to index.md adding jekyll header
-    ###################################################################
-    git checkout master -- README.md
-    echo -e $LAYOUT_PREFIX > index.md
-    cat README.md >> index.md
-    rm README.md
-    git add index.md
-    git commit -a -m "Sync README.md in master branch to index.md in gh-pages"
-
-    # Sync the markdown files in the docs/* directory
-    ###################################################################
-    git checkout master -- docs
-    FILES=docs/*
-    for file in $FILES
-    do
-        echo -e $LAYOUT_PREFIX | cat - "$file" > temp && mv temp "$file"
-    done
-
-    git add docs
-    git commit -a -m "Sync docs from master branch to docs gh-pages directory"
-
-    # Uncomment the following push if you want to auto push to
-    # the gh-pages branch whenever you commit to master locally.
-    # This is a little extreme. Use with care!
-    ###################################################################
-    # git push origin gh-pages
-
-    # Finally, switch back to the master branch and exit block
-    git checkout master
+# Make sure we're on the master branch
+if [ `git rev-parse --abbrev-ref HEAD` != "master" ]; then
+  echo "Error: you must be on the master branch to sync gh-pages"
+  exit 1
 fi
+
+echo "Checking out gh-pages branch..."
+git checkout gh-pages
+
+# Record the last sync time (this also makes sure there is at least one change
+# to add and commit (otherwise they may fail)
+echo "Last sync $(date)" > last-sync.txt
+
+echo "Adding files..."
+git add -A .
+
+echo "Committing files..."
+git commit -m "Update gh-pages content $(date)"
+
+echo "Pushing to gh-pages..."
+#git push origin gh-pages
+
+echo "Going back to master..."
+git checkout master
