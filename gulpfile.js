@@ -385,4 +385,5 @@ gulp.task("publish", ["lib", "examples", "test"], function() {
   runShell("npm version " + versionString, "publish failed - npm version failed");
   runShell("npm publish .", "publish failed - npm publish . failed");
   runShell("git push --tags origin master", "publish failed - git push --tags origin master failed");
+  runShell("./sync-gh-pages.sh", "publish failed - sync-gh-pages.sh failed");
 });
