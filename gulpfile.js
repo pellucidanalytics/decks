@@ -366,7 +366,9 @@ gulp.task("default", function(cb) {
   );
 });
 
-gulp.task("publish", ["lib", "examples", "test"], function() {
+gulp.task("build", ["lib", "examples", "test"]);
+
+gulp.task("publish", ["build"], function() {
   gulpUtil.log("publishing to npm...");
 
   // TODO: allow passing a command line argument like "gulp publish --major|minor|patch|etc"
