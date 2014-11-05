@@ -4,7 +4,7 @@
   "description": "JavaScript UI library for viewing collections of items.",
   "main": "index.js",
   "browser": {
-    "lodash": "./node_modules/lodash/dist/lodash.compat.js"
+    "lodash": "lodash/dist/lodash.compat.js"
   },
   "scripts": {
     "test": "DEBUG=gulp-decks,mocha-sauce,sauce-runner gulp test"
