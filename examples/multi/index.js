@@ -1,4 +1,4 @@
-require("es5-shim-sham");
+require("../polyfills");
 var $ = window.jQuery = window.$ = require("jquery");
 var Velocity = require("velocity-animate");
 var _ = require("lodash");

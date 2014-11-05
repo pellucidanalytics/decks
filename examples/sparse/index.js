@@ -1,5 +1,5 @@
-require("es5-shim-sham");
-require("jquery"); // needed for IE8 (before Velocity)
+require("../polyfills");
+window.jQuery = window.$ = require("jquery"); // window global needed by Velocity for IE8
 var Velocity = require("velocity-animate");
 var Decks = require('../..');
 var list = require('./data').list;
