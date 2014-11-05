@@ -370,22 +370,5 @@ gulp.task("build", ["lib", "examples", "test"]);
 
 gulp.task("publish", ["build"], function() {
   gulpUtil.log("publishing to npm...");
-
-  // TODO: allow passing a command line argument like "gulp publish --major|minor|patch|etc"
-  var versionString = "prerelease";
-
-  if (!shell.which("git") || !shell.which("npm")) {
-    gulpUtil.log(gulpUtil.colors.red("publish failed - git and/or npm not found"));
-    shell.exit(1);
-  }
-
-  /* Don't add dist files for now
-  runShell("git add --force ./dist", "publish failed - git add --force ./dist failed");
-  runShell("git commit -m 'release ./dist files'", "publish failed - git commit failed");
-  */
-
-  runShell("npm version " + versionString, "publish failed - npm version failed");
-  runShell("npm publish .", "publish failed - npm publish . failed");
-  runShell("git push --tags origin master", "publish failed - git push --tags origin master failed");
-  runShell("./sync-gh-pages.sh", "publish failed - sync-gh-pages.sh failed");
+  runShell("./publish.sh", "publish failed!");
 });

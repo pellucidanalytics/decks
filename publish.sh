@@ -13,8 +13,17 @@ if [ `git rev-parse --abbrev-ref HEAD` != "master" ]; then
   exit 1
 fi
 
+echo "Adding dist files to master..."
+git add -A .
+
+echo "Committing dist files to master..."
+git commit -m 'Updating dist files for publish $(date)'
+
 echo "Checking out gh-pages branch..."
 git checkout gh-pages
+
+echo "Updating dist files from master..."
+git checkout master -- dist
 
 # Record the last sync time (this also makes sure there is at least one change
 # to add and commit (otherwise they may fail)
@@ -22,9 +31,6 @@ echo "Last sync $(date)" > last-sync.txt
 
 echo "Adding files..."
 git add -A .
-
-echo "Updating dist files from master..."
-git checkout master -- dist
 
 echo "Committing files..."
 git commit -m "Update gh-pages content $(date)"
@@ -34,3 +40,13 @@ git push origin gh-pages
 
 echo "Going back to master..."
 git checkout master
+
+echo "Running npm version..."
+# TODO: need to pass version string as argument to script
+npm version prerelease
+
+echo "Running npm publish..."
+npm publish .
+
+echo "Pushing new version tag to origin/master..."
+git push --tags origin master
