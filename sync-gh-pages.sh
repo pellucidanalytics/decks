@@ -23,6 +23,9 @@ echo "Last sync $(date)" > last-sync.txt
 echo "Adding files..."
 git add -A .
 
+echo "Updating dist files from master..."
+git checkout master -- dist
+
 echo "Committing files..."
 git commit -m "Update gh-pages content $(date)"
 
