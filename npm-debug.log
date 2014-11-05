@@ -1,0 +1,137 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'version', 'prerelease' ]
+2 info using npm@2.1.5
+3 info using node@v0.10.33
+4 verbose node symlink /usr/local/bin/node
+5 info git [ 'status', '--porcelain' ]
+6 verbose stack Error: Git working directory not clean.
+6 verbose stack M dist/jsdoc/BasicGridLayout.html
+6 verbose stack M dist/jsdoc/BasicStackLayout.html
+6 verbose stack M dist/jsdoc/Canvas.html
+6 verbose stack M dist/jsdoc/Deck.html
+6 verbose stack M dist/jsdoc/DecksEvent.html
+6 verbose stack M dist/jsdoc/Emitter.html
+6 verbose stack M dist/jsdoc/Frame.html
+6 verbose stack M dist/jsdoc/GestureEmitter.html
+6 verbose stack M dist/jsdoc/GestureHandler.html
+6 verbose stack M dist/jsdoc/Item.html
+6 verbose stack M dist/jsdoc/ItemCollection.html
+6 verbose stack M dist/jsdoc/Layout.html
+6 verbose stack M dist/jsdoc/MouseWheelEmitter.html
+6 verbose stack M dist/jsdoc/PanEmitter.html
+6 verbose stack M dist/jsdoc/PressEmitter.html
+6 verbose stack M dist/jsdoc/SwipeEmitter.html
+6 verbose stack M dist/jsdoc/TapEmitter.html
+6 verbose stack M dist/jsdoc/Viewport.html
+6 verbose stack M dist/jsdoc/ZoomLayout.html
+6 verbose stack M dist/jsdoc/basicgridlayout.js.html
+6 verbose stack M dist/jsdoc/basicstacklayout.js.html
+6 verbose stack M dist/jsdoc/binder.html
+6 verbose stack M dist/jsdoc/binder.js.html
+6 verbose stack M dist/jsdoc/canvas.js.html
+6 verbose stack M dist/jsdoc/deck.js.html
+6 verbose stack M dist/jsdoc/decksevent.js.html
+6 verbose stack M dist/jsdoc/dom.html
+6 verbose stack M dist/jsdoc/dom.js.html
+6 verbose stack M dist/jsdoc/emitter.js.html
+6 verbose stack M dist/jsdoc/events.html
+6 verbose stack M dist/jsdoc/frame.js.html
+6 verbose stack M dist/jsdoc/gestureemitter.js.html
+6 verbose stack M dist/jsdoc/gesturehandler.js.html
+6 verbose stack M dist/jsdoc/hasEmitter.html
+6 verbose stack M dist/jsdoc/hasemitter.js.html
+6 verbose stack M dist/jsdoc/index.html
+6 verbose stack M dist/jsdoc/index.js.html
+6 verbose stack M dist/jsdoc/index.js_.html
+6 verbose stack M dist/jsdoc/index.js__.html
+6 verbose stack M dist/jsdoc/index.js___.html
+6 verbose stack M dist/jsdoc/index.js____.html
+6 verbose stack M dist/jsdoc/item.js.html
+6 verbose stack M dist/jsdoc/itemcollection.js.html
+6 verbose stack M dist/jsdoc/layout.js.html
+6 verbose stack M dist/jsdoc/layouts.html
+6 verbose stack M dist/jsdoc/module-decks.html
+6 verbose stack M dist/jsdoc/mousewheelemitter.js.html
+6 verbose stack M dist/jsdoc/panemitter.js.html
+6 verbose stack M dist/jsdoc/pressemitter.js.html
+6 verbose stack M dist/jsdoc/rect.html
+6 verbose stack M dist/jsdoc/rect.js.html
+6 verbose stack M dist/jsdoc/swipeemitter.js.html
+6 verbose stack M dist/jsdoc/tapemitter.js.html
+6 verbose stack M dist/jsdoc/ui.html
+6 verbose stack M dist/jsdoc/utils.html
+6 verbose stack M dist/jsdoc/viewport.js.html
+6 verbose stack M dist/jsdoc/zoomlayout.js.html
+6 verbose stack     at /usr/local/lib/node_modules/npm/lib/version.js:92:33
+6 verbose stack     at ChildProcess.exithandler (child_process.js:646:7)
+6 verbose stack     at ChildProcess.emit (events.js:98:17)
+6 verbose stack     at maybeClose (child_process.js:756:16)
+6 verbose stack     at Socket.<anonymous> (child_process.js:969:11)
+6 verbose stack     at Socket.emit (events.js:95:17)
+6 verbose stack     at Pipe.close (net.js:465:12)
+7 verbose cwd /Users/awhite/dev/pellucidanalytics/decks
+8 error Darwin 14.0.0
+9 error argv "node" "/usr/local/bin/npm" "version" "prerelease"
+10 error node v0.10.33
+11 error npm  v2.1.5
+12 error Git working directory not clean.
+12 error M dist/jsdoc/BasicGridLayout.html
+12 error M dist/jsdoc/BasicStackLayout.html
+12 error M dist/jsdoc/Canvas.html
+12 error M dist/jsdoc/Deck.html
+12 error M dist/jsdoc/DecksEvent.html
+12 error M dist/jsdoc/Emitter.html
+12 error M dist/jsdoc/Frame.html
+12 error M dist/jsdoc/GestureEmitter.html
+12 error M dist/jsdoc/GestureHandler.html
+12 error M dist/jsdoc/Item.html
+12 error M dist/jsdoc/ItemCollection.html
+12 error M dist/jsdoc/Layout.html
+12 error M dist/jsdoc/MouseWheelEmitter.html
+12 error M dist/jsdoc/PanEmitter.html
+12 error M dist/jsdoc/PressEmitter.html
+12 error M dist/jsdoc/SwipeEmitter.html
+12 error M dist/jsdoc/TapEmitter.html
+12 error M dist/jsdoc/Viewport.html
+12 error M dist/jsdoc/ZoomLayout.html
+12 error M dist/jsdoc/basicgridlayout.js.html
+12 error M dist/jsdoc/basicstacklayout.js.html
+12 error M dist/jsdoc/binder.html
+12 error M dist/jsdoc/binder.js.html
+12 error M dist/jsdoc/canvas.js.html
+12 error M dist/jsdoc/deck.js.html
+12 error M dist/jsdoc/decksevent.js.html
+12 error M dist/jsdoc/dom.html
+12 error M dist/jsdoc/dom.js.html
+12 error M dist/jsdoc/emitter.js.html
+12 error M dist/jsdoc/events.html
+12 error M dist/jsdoc/frame.js.html
+12 error M dist/jsdoc/gestureemitter.js.html
+12 error M dist/jsdoc/gesturehandler.js.html
+12 error M dist/jsdoc/hasEmitter.html
+12 error M dist/jsdoc/hasemitter.js.html
+12 error M dist/jsdoc/index.html
+12 error M dist/jsdoc/index.js.html
+12 error M dist/jsdoc/index.js_.html
+12 error M dist/jsdoc/index.js__.html
+12 error M dist/jsdoc/index.js___.html
+12 error M dist/jsdoc/index.js____.html
+12 error M dist/jsdoc/item.js.html
+12 error M dist/jsdoc/itemcollection.js.html
+12 error M dist/jsdoc/layout.js.html
+12 error M dist/jsdoc/layouts.html
+12 error M dist/jsdoc/module-decks.html
+12 error M dist/jsdoc/mousewheelemitter.js.html
+12 error M dist/jsdoc/panemitter.js.html
+12 error M dist/jsdoc/pressemitter.js.html
+12 error M dist/jsdoc/rect.html
+12 error M dist/jsdoc/rect.js.html
+12 error M dist/jsdoc/swipeemitter.js.html
+12 error M dist/jsdoc/tapemitter.js.html
+12 error M dist/jsdoc/ui.html
+12 error M dist/jsdoc/utils.html
+12 error M dist/jsdoc/viewport.js.html
+12 error M dist/jsdoc/zoomlayout.js.html
+13 error If you need help, you may report this error at:
+13 error     <http://github.com/npm/npm/issues>
+14 verbose exit [ 1, true ]
