@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: Emitter</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: Emitter</h1>
+
+    
+
+
+
+<section>
+
+<header>
+    <h2>
+    Emitter
+    </h2>
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+
+    
+        
+<dt>
+    <h4 class="name" id="Emitter"><span class="type-signature"></span>new Emitter<span class="signature">(<span class="optional">options</span>)</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Custom event emitter implementation, that extends EventEmitter2
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Argument</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    {}
+                
+                </td>
+            
+
+            <td class="description last">configuration options</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="emitter.js.html">events/emitter.js</a>, <a href="emitter.js.html#line19">line 19</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+    
+    </div>
+
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        <ul>
+            <li>external:EventEmitter2</li>
+        </ul>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="_id"><span class="type-signature"></span>_id<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Generated unique id for the Emitter.  This is to help with debugging when multiple
+Emitter instances are being used
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="emitter.js.html">events/emitter.js</a>, <a href="emitter.js.html#line30">line 30</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="defaultOptions"><span class="type-signature"></span>defaultOptions<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Default options for the Emitter instance.
+Some of these are passed-through to the external:EventEmitter2 constructor.
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="emitter.js.html">events/emitter.js</a>, <a href="emitter.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        </dl>
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="emit"><span class="type-signature"></span>emit<span class="signature">(typeOrDecksEvent, data)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Overrides the EventEmitter2 emit method to support a single <a href="DecksEvent.html">DecksEvent</a> argument,
+which contains the event type as a property, along with other properties.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Argument</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>typeOrDecksEvent</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type"><a href="DecksEvent.html">DecksEvent</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">event type String, or <a href="DecksEvent.html">DecksEvent</a> instance.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">if the first argument is a String, the remaining arguments are emitted as the event data.
+This argument is N/A if the first argument is a <a href="DecksEvent.html">DecksEvent</a> instance.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="emitter.js.html">events/emitter.js</a>, <a href="emitter.js.html#line58">line 58</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    - true if at least one handler was invoked for the event, otherwise false
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+        </dl>
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 05 2014 08:31:35 GMT-0700 (MST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

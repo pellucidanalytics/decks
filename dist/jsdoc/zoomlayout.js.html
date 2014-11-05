@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: layouts/zoomlayout.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: layouts/zoomlayout.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var _ = require("lodash");
+var Layout = require("../layout");
+
+
+/**
+ * Basic zoomed-in layout implementation
+ *
+ * @class
+ * @extends Layout
+ * @param {?Object} options - options
+ */
+function ZoomLayout(options) {
+  if (!(this instanceof ZoomLayout)) {
+    return new ZoomLayout(options);
+  }
+
+  options = _.merge({}, this.defaultOptions, options);
+
+  this.horizontal = options.horizontal;
+  this.vertical = options.vertical;
+  if (this.horizontal &amp;&amp; this.vertical) {
+    throw new Error("ZoomLayout#constructor: cannot be both horizontal and vertical");
+  }
+  if (!this.horizontal &amp;&amp; !this.vertical) {
+    this.horizontal = true; // default to horizontal
+  }
+  this.padding = options.padding || 10;
+
+  Layout.call(this, options);
+}
+
+ZoomLayout.prototype = _.create(Layout.prototype, /** @lends ZoomLayout.prototype */ {
+  constructor: ZoomLayout,
+
+  defaultOptions: _.merge({}, Layout.prototype.defaultOptions, {
+    horizontal: true,
+    vertical: false
+  }),
+
+  getRenders: function(item, options) {
+    var width = options.frame.bounds.width - (2 * this.padding);
+    var height = options.frame.bounds.height - (2 * this.padding);
+
+    return {
+      transform: this.getTransform(item, width, height),
+      animateOptions: this.getAnimateOptions()
+    };
+  },
+
+  getTransform: function(item, width, height) {
+    var transform = {
+      width: width,
+      height: height,
+      rotateZ: 0
+    };
+
+    if (this.horizontal) {
+      transform.top = this.padding;
+      transform.left = item.index * (this.padding + width) + this.padding;
+    } else if (this.vertical) {
+      transform.top = item.index * (this.padding + height) + this.padding;
+      transform.left = this.padding;
+    }
+
+    return transform;
+  },
+
+  getAnimateOptions: function() {
+    return {
+      duration: 400
+    };
+  },
+
+  getCanvasGestureOptions: function() {
+    return {
+      gestures: {
+        pan: {
+          horizontal: this.horizontal,
+          vertical: this.vertical
+        },
+        swipe: {
+          horizontal: this.horizontal,
+          vertical: this.vertical
+        },
+        mouseWheel: {
+          horizontal: this.horizontal,
+          vertical: this.vertical
+        }
+      }
+    };
+  }
+});
+
+module.exports = ZoomLayout;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 05 2014 08:31:35 GMT-0700 (MST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
