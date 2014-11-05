@@ -17,7 +17,7 @@ echo "Adding dist files to master..."
 git add -A .
 
 echo "Committing dist files to master..."
-git commit -m 'Updating dist files for publish $(date)'
+git commit -m "Updating dist files for publish $(date)"
 
 echo "Checking out gh-pages branch..."
 git checkout gh-pages
@@ -29,13 +29,13 @@ git checkout master -- dist
 # to add and commit (otherwise they may fail)
 echo "Last sync $(date)" > last-sync.txt
 
-echo "Adding files..."
+echo "Adding files to gh-pages..."
 git add -A .
 
-echo "Committing files..."
+echo "Committing files to gh-pages..."
 git commit -m "Update gh-pages content $(date)"
 
-echo "Pushing to gh-pages..."
+echo "Pushing gh-pages to origin..."
 git push origin gh-pages
 
 echo "Going back to master..."
@@ -48,5 +48,5 @@ npm version prerelease
 echo "Running npm publish..."
 npm publish .
 
-echo "Pushing new version tag to origin/master..."
+echo "Pushing master to origin (with tags)..."
 git push --tags origin master
