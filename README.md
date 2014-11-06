@@ -64,3 +64,9 @@ TODO
 - [Loading Effects for Grid Items](http://tympanus.net/Development/GridLoadingEffects/index.html)
 - [Magnet](http://codecanyon.net/item/magnet-jquery-plugin-for-filterable-layouts/full_screen_preview/7550966?ref=jqueryrain)
 - [jQuery Gridly](http://ksylvest.github.io/jquery-gridly/)
+
+TODO
+
+- remove reversed from itemCollection? (use inverted sortBy)
+- Frame bounds/canvas bounds - try to find some relative solution that
+  doesn't change on scroll
