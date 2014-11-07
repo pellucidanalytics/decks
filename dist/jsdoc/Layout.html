@@ -39,7 +39,7 @@
     
         
 <dt>
-    <h4 class="name" id="Layout"><span class="type-signature"></span>new Layout<span class="signature">(options)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Layout"><span class="type-signature"></span>new Layout<span class="signature">(options)</span><span class="type-signature"> &rarr; {<a href="Layout.html">Layout</a>}</span></h4>
 
     
 </dt>
@@ -434,7 +434,7 @@ layout methods in the Layout constructor options.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line21">line 21</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line23">line 23</a>
     </li></ul></dd>
     
 
@@ -457,6 +457,24 @@ layout methods in the Layout constructor options.
     
 
     
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Layout.html">Layout</a></span>
+
+
+    </dd>
+</dl>
+
+        
 
     
 </dd>
@@ -467,6 +485,45 @@ layout methods in the Layout constructor options.
     
 
     
+        <h3 class="subsection-title">Mixes In</h3>
+
+        <ul>
+            <li><a href="binder.html">binder</a></li>
+        </ul>
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="defaultOptions"><span class="type-signature"></span>defaultOptions<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Default options for a Layout instance
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
 
     
 
@@ -474,6 +531,263 @@ layout methods in the Layout constructor options.
 
     
 
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line43">line 43</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="emitterEvents"><span class="type-signature"></span>emitterEvents<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Events that all Layout instances will bind to, so the layout can receive
+notifications when certain decks events occur.
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line50">line 50</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="onViewportRenderDrawing"><span class="type-signature"></span>onViewportRenderDrawing<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Event handler which informs the <a href="Layout.html">Layout</a> that a render is about to start drawing (animating).
+The <a href="Layout.html">Layout</a> can use this method to modify the render/element before the animation starts.
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line184">line 184</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="onViewportRenderErasing"><span class="type-signature"></span>onViewportRenderErasing<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Event handler which informs the <a href="Layout.html">Layout</a> that a render is about to start erasing (animating
+to a hidden state before being removed).)
+The <a href="Layout.html">Layout</a> can use this method to modify the render/element before the animation starts.
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line197">line 197</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="overridables"><span class="type-signature"></span>overridables<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        List of method names that can be overridden by passing them in via
+options properties in the constructor.  You can also override these
+properties by subclassing <a href="Layout.html">Layout</a>.
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line68">line 68</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        </dl>
     
 
     
@@ -490,7 +804,9 @@ layout methods in the Layout constructor options.
 
     
     <div class="description">
-        Gets the base animation to use when hiding (removing) a render
+        Gets the base animation to use/merge when hiding (removing) a render
+This is typically the opposite of the show animation transform.  E.g.
+if the show animation sets opacity: 1, this might set opacity: 0.
     </div>
     
 
@@ -523,7 +839,7 @@ layout methods in the Layout constructor options.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line143">line 143</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line239">line 239</a>
     </li></ul></dd>
     
 
@@ -553,7 +869,7 @@ layout methods in the Layout constructor options.
         
             
 <dt>
-    <h4 class="name" id="getRenders"><span class="type-signature"></span>getRenders<span class="signature">(item, options)</span><span class="type-signature"> &rarr; {Object|Array.&lt;Object>}</span></h4>
+    <h4 class="name" id="getRenders"><span class="type-signature">&lt;abstract> </span>getRenders<span class="signature">(item, options)</span><span class="type-signature"> &rarr; {Object|Array.&lt;Object>}</span></h4>
 
     
 </dt>
@@ -561,7 +877,22 @@ layout methods in the Layout constructor options.
 
     
     <div class="description">
-        Creates the renders for a given <a href="Item.html">Item</a>
+        Creates the "render" or "renders" for a given <a href="Item.html">Item</a> during a (re-)drawing cycle.
+
+A "render" is basically an instruction to the <a href="Viewport.html">Viewport</a> on where and how to draw
+the item in the * <a href="Canvas.html">Canvas</a>.  An <a href="Item.html">Item</a> can be drawn in the <a href="Canvas.html">Canvas</a> one
+time, or multiple times, which is specified by how many render objects this method returns.
+
+The <a href="Viewport.html">Viewport</a> invokes this method for an/each <a href="Item.html">Item</a> when a drawing
+cycle is happening.  This method should return a "render" object (which is a set of
+DOM style properties to apply to the render's element, along with animation options,
+like duration, easing, delay, etc.), or an array of render objects.
+
+A render object must have "transform" and "animateOptions" properties at a minimum,
+but can also have any other arbitrary properties that are needed for loading or unloading
+the render at a later time (e.g. in load/unloadRender).
+
+A render might look like this:
     </div>
     
 
@@ -665,7 +996,7 @@ layout methods in the Layout constructor options.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line71">line 71</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line138">line 138</a>
     </li></ul></dd>
     
 
@@ -692,7 +1023,7 @@ layout methods in the Layout constructor options.
     
             
 <div class="param-desc">
-    - The renders for the <a href="Item.html">Item</a>
+    - The render object or array of render objects for the <a href="Item.html">Item</a>
 </div>
 
 
@@ -715,6 +1046,34 @@ layout methods in the Layout constructor options.
         
 
     
+        <h5>Example</h5>
+        
+    <pre class="prettyprint"><code>Example render object created by Layout#getRenders:
+{
+ transform: {
+  top: 20,
+  left: 20,
+  width: 200,
+  height: 150,
+  rotateZ: 20
+ },
+ animateOptions: {
+  duration: 400,
+  easing: "easeInOutExpo"
+ },
+ someLayoutSpecificProperty: "some value",
+}
+
+The Viewport will reconcile any existing renders/elements for the given <a href="Item.html">Item</a>, and
+eventually animate an element to the property values listed in "transform", with the
+animation controlled by the options in "animateOptions".
+
+This method is abstract at this level - it must be implemented by either passing
+an options.getRenders function value into the <a href="Layout.html">Layout</a> constructor, or
+creating a subclass of <a href="Layout.html">Layout</a> that implements this method on itself, or its
+prototype.</code></pre>
+
+    
 </dd>
 
         
@@ -728,7 +1087,9 @@ layout methods in the Layout constructor options.
 
     
     <div class="description">
-        Gets the animation to use when showing a render
+        Gets the animation to use/merge when showing a render.
+This would typically be transform properties that ensure the element
+is fully visible (e.g. opacity: 1, scaleX: 1, scaleY: 1, display: auto, etc.
     </div>
     
 
@@ -761,7 +1122,7 @@ layout methods in the Layout constructor options.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line126">line 126</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line220">line 220</a>
     </li></ul></dd>
     
 
@@ -880,7 +1241,7 @@ layout methods in the Layout constructor options.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line81">line 81</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line148">line 148</a>
     </li></ul></dd>
     
 
@@ -1017,7 +1378,7 @@ layout methods in the Layout constructor options.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line92">line 92</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line159">line 159</a>
     </li></ul></dd>
     
 
@@ -1155,7 +1516,7 @@ transform and animateOptions properties on the render.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line174">line 174</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line270">line 270</a>
     </li></ul></dd>
     
 
@@ -1292,7 +1653,7 @@ transform and animateOptions properties on the render.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line163">line 163</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line259">line 259</a>
     </li></ul></dd>
     
 
@@ -1452,7 +1813,7 @@ transform and animateOptions properties on the render.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line103">line 103</a>
+        <a href="layout.js.html">layout.js</a>, <a href="layout.js.html#line170">line 170</a>
     </li></ul></dd>
     
 
@@ -1519,7 +1880,7 @@ transform and animateOptions properties on the render.
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 06 2014 17:15:28 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 06 2014 20:41:27 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>

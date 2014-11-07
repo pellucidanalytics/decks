@@ -72,6 +72,36 @@ var layouts = {
       rotateZ: 1080
     },
     animateOptions: {
+    },
+    onCanvasBoundsSet: function(e) {
+      console.info("canvas bounds set!", e);
+    },
+    onFrameBoundsSet: function(e) {
+      console.info("frame bounds set!", e);
+    },
+    onViewportRenderDrawing: function(e) {
+      console.info("render drawing!", e);
+    },
+    onViewportRenderDrawn: function(e) {
+      console.info("render drawn!", e);
+    },
+    onViewportRenderErasing: function(e) {
+      console.info("render erasing!", e);
+    },
+    onViewportRenderErased: function(e) {
+      console.info("render erased!", e);
+    },
+    onItemCollectionFilterSet: function(e) {
+      console.info("deck filter set!", e);
+    },
+    onItemCollectionSortBySet: function(e) {
+      console.info("deck sort by set!", e);
+    },
+    onItemCollectionReversedSet: function(e) {
+      console.info("deck reversed set!", e);
+    },
+    onItemCollectionIndexed: function(e) {
+      console.info("item collection indexed!", e);
     }
   }),
   grid2: new BasicGridLayout({
