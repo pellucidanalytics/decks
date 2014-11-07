@@ -55,7 +55,7 @@
     "watchify": "^2.1.0"
   },
   "dependencies": {
-    "eventemitter2": "^0.4.14",
+    "eventemitter3": "^0.1.5",
     "hammerjs": "pellucidanalytics/hammer.js",
     "lodash": "^2.4.1"
   }

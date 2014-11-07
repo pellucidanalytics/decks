@@ -4,13 +4,13 @@ var sinon = tools.sinon;
 var decks = require("../..");
 var Emitter = decks.events.Emitter;
 var DecksEvent = decks.events.DecksEvent;
-var EventEmitter2 = require("eventemitter2").EventEmitter2;
+var EventEmitter3 = require("eventemitter3");
 
 describe("decks.events.Emitter", function() {
   describe("constructor", function(){
-    it("should be an instance of EventEmitter2", function() {
+    it("should be an instance of EventEmitter3", function() {
       var emitter = new Emitter();
-      expect(emitter).to.be.an.instanceOf(EventEmitter2);
+      expect(emitter).to.be.an.instanceOf(EventEmitter3);
     });
   });
 
@@ -41,7 +41,8 @@ describe("decks.events.Emitter", function() {
     });
   });
 
-  describe("wildcards", function() {
+  // TODO: remove these unless we add wildcards to our EventEmitter3 or our Emitter subclass
+  xdescribe("wildcards", function() {
     it("should allow subscription with wildcards", function() {
       var emitter = new Emitter();
 
