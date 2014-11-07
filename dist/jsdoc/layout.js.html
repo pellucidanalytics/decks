@@ -26,6 +26,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>var _ = require("lodash");
+var binder = require("./events/binder");
 
 /**
  * Contains the logic for rendering a layout of items
@@ -34,14 +35,15 @@
  * layout methods in the Layout constructor options.
  *
  * @class
- * @param {?Object} options layout options
- * @param {?Function} options.getRenders implementation of getRenders method
- * @param {?Function} options.loadRender implementation of loadRender method
- * @param {?Function} options.unloadRender implementation of unloadRender method
- * @param {?Function} options.getShowAnimation implementation of getShowAnimation method
- * @param {?Function} options.getHideAnimation implementation of getHideAnimation method
- * @param {?Function} options.setShowAnimation implementation of setShowAnimation method
- * @param {?Function} options.setHideAnimation implementation of setHideAnimation method
+ * @param {?Object} options - layout options
+ * @param {?Function} options.getRenders - implementation of getRenders method
+ * @param {?Function} options.initializeRender - implementation of initializeRender method
+ * @param {?Function} options.loadRender - implementation of loadRender method
+ * @param {?Function} options.unloadRender - implementation of unloadRender method
+ * @param {?Function} options.getShowAnimation - implementation of getShowAnimation method
+ * @param {?Function} options.getHideAnimation - implementation of getHideAnimation method
+ * @param {?Function} options.setShowAnimation - implementation of setShowAnimation method
+ * @param {?Function} options.setHideAnimation - implementation of setHideAnimation method
  */
 function Layout(options) {
   if (!(this instanceof Layout)) {
@@ -59,19 +61,31 @@ function Layout(options) {
   }, this);
 }
 
-_.extend(Layout.prototype, /** @lends Layout.prototype */ {
+_.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
   defaultOptions: {
+  },
+
+  emitterEvents: {
+    "viewport:render:drawing": "onViewportRenderDrawing",
+    "viewport:render:erasing": "onViewportRenderErasing",
+    "viewport:render:drawn": "onViewportRenderDrawn",
+    "viewport:render:erased": "onViewportRenderErased"
   },
 
   overridables: [
     "getRenders",
+    "initializeRender",
     "loadRender",
     "unloadRender",
     "getShowAnimation",
     "getHideAnimation",
     "setShowAnimation",
     "setHideAnimation",
-    "getCanvasGestureOptions"
+    "getCanvasGestureOptions",
+    "onViewportRenderDrawing",
+    "onViewportRenderErasing",
+    "onViewportRenderDrawn",
+    "onViewportRenderErased"
   ],
 
   /**
@@ -81,8 +95,19 @@ _.extend(Layout.prototype, /** @lends Layout.prototype */ {
    * @param {Object} options - Other options provided by the {@link Viewport}
    * @return {(Object|Object[])} - The renders for the {@link Item}
    */
-  getRenders: function() {
-    throw new Error("Layout#getRenders: abstract method is not implemented");
+  getRenders: function(/*item, options*/) {
+    throw new Error("Layout#getRenders not implemented");
+  },
+
+  /**
+   * Allows the layout to initialize a new render object (element)
+   *
+   * @param {Object} render - The render object that was just created
+   * @return {undefined}
+   */
+  initializeRender: function(render, options) {
+    // Call unloadRender by default, as these methods are probably similar
+    this.unloadRender(render, options);
   },
 
   /**
@@ -91,18 +116,35 @@ _.extend(Layout.prototype, /** @lends Layout.prototype */ {
    * @param {Object} render - The render object to load
    * @return {undefined}
    */
-  loadRender: function() {
-    throw new Error("Layout#loadRender: abstract method is not implemented");
+  loadRender: function(/*render, options*/) {
+    throw new Error("Layout#loadRender not implemented");
   },
 
   /**
    * Contains the logic to unload the contents of a render (e.g. remove the DOM content of a render element)
    *
    * @param {Object} render - The render object to unload
+   * @param {Object} options
    * @return {undefined}
    */
-  unloadRender: function() {
-    throw new Error("Layout#unloadRender: abstract method is not implemented");
+  unloadRender: function(/*render, options*/) {
+    throw new Error("Layout#unloadRender not implemented");
+  },
+
+  onViewportRenderDrawing: function(/*render, options*/) {
+    //console.warn("Layout#onViewportRenderDrawing not implemented");
+  },
+
+  onViewportRenderErasing: function(/*render, options*/) {
+    //console.warn("Layout#onViewportRenderErasing not implemented");
+  },
+
+  onViewportRenderDrawn: function(/*render, options*/) {
+    //console.warn("Layout#onViewportRenderDrawn not implemented");
+  },
+
+  onViewportRenderErased: function(/*render, options*/) {
+    //console.warn("Layout#onViewportRenderErased not implemented");
   },
 
   /**
@@ -146,9 +188,7 @@ _.extend(Layout.prototype, /** @lends Layout.prototype */ {
    * @return {undefined}
    */
   setShowAnimation: function(render) {
-    var showAnimation = this.getShowAnimation();
-    render.transform = _.merge(showAnimation.transform, render.transform);
-    render.animateOptions = _.merge(showAnimation.animateOptions, render.animateOptions);
+    _.merge(render, this.getShowAnimation());
   },
 
   /**
@@ -159,9 +199,7 @@ _.extend(Layout.prototype, /** @lends Layout.prototype */ {
    * @return {undefined}
    */
   setHideAnimation: function(render) {
-    var hideAnimation = this.getHideAnimation();
-    render.transform = _.merge(hideAnimation.transform, render.transform);
-    render.animateOptions = _.merge(hideAnimation.animateOptions, render.animateOptions);
+    _.merge(render, this.getHideAnimation());
   },
 
   getCanvasGestureOptions: function() {
@@ -186,7 +224,7 @@ module.exports = Layout;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 05 2014 08:41:48 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 06 2014 17:15:28 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
