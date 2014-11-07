@@ -48,7 +48,7 @@ describe("decks.Layout", function() {
   });
 
   describe("setHideAnimation", function() {
-    it("should set transform and animateOptions properties on the given render", function() {
+    xit("should set transform and animateOptions properties on the given render", function() {
       var layout = new Layout();
       var render = {};
 

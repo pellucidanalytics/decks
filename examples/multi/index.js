@@ -1,6 +1,7 @@
 require("../polyfills");
 var $ = window.jQuery = window.$ = require("jquery");
-var Velocity = require("velocity-animate");
+var Velocity = window.Velocity = require("velocity-animate");
+require("./velocity.ui");
 var _ = require("lodash");
 var decks = require('../..');
 var Deck = decks.Deck;
@@ -42,21 +43,35 @@ function getRandomGroups(count) {
 }
 
 function loadRender(render) {
+  console.log("loadRender");
+
   var item = render.item;
 
-  //console.log("loadRender item %s, render %s", render.item.id, render.id, render.image);
-
   if (!render.image) {
-    render.element.innerHTML = "";
+    console.log("loadRender - image loading");
     render.image = new Image(imageWidth, imageHeight);
+
+    render.image.ondragstart = function() {
+      return false;
+    };
+
+    render.image.onload = function() {
+      console.log("loadRender - image loaded");
+      render.element.innerHTML = "";
+      render.element.appendChild(render.image);
+    };
+
+    render.image.onerror = render.image.onabort = function() {
+      console.error("Failed to load image");
+    };
+
     render.image.src = item.get("imgUrl");
-    render.image.ondragstart = function() { return false; };
-    render.element.appendChild(render.image);
   }
 }
 
 function unloadRender(render) {
-  render.element.innerHTML = "<span>Hello world</span>";
+  console.log("unloadRender");
+  render.element.innerHTML = "<span>Loading...</span>";
   render.image = null;
 }
 
