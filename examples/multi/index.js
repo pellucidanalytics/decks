@@ -73,35 +73,35 @@ var layouts = {
     },
     animateOptions: {
     },
-    onCanvasBoundsSet: function(e) {
-      console.info("canvas bounds set!", e);
+    onCanvasBoundsSet: function() {
+      //console.info("canvas bounds set!");
     },
-    onFrameBoundsSet: function(e) {
-      console.info("frame bounds set!", e);
+    onFrameBoundsSet: function() {
+      //console.info("frame bounds set!");
     },
-    onViewportRenderDrawing: function(e) {
-      console.info("render drawing!", e);
+    onViewportRenderDrawing: function() {
+      //console.info("render drawing!");
     },
-    onViewportRenderDrawn: function(e) {
-      console.info("render drawn!", e);
+    onViewportRenderDrawn: function() {
+      //console.info("render drawn!");
     },
-    onViewportRenderErasing: function(e) {
-      console.info("render erasing!", e);
+    onViewportRenderErasing: function() {
+      //console.info("render erasing!");
     },
-    onViewportRenderErased: function(e) {
-      console.info("render erased!", e);
+    onViewportRenderErased: function() {
+      //console.info("render erased!");
     },
-    onItemCollectionFilterSet: function(e) {
-      console.info("deck filter set!", e);
+    onItemCollectionFilterSet: function() {
+      //console.info("deck filter set!");
     },
-    onItemCollectionSortBySet: function(e) {
-      console.info("deck sort by set!", e);
+    onItemCollectionSortBySet: function() {
+      //console.info("deck sort by set!");
     },
-    onItemCollectionReversedSet: function(e) {
-      console.info("deck reversed set!", e);
+    onItemCollectionReversedSet: function() {
+      //console.info("deck reversed set!");
     },
-    onItemCollectionIndexed: function(e) {
-      console.info("item collection indexed!", e);
+    onItemCollectionIndexed: function() {
+      //console.info("item collection indexed!");
     }
   }),
   grid2: new BasicGridLayout({
