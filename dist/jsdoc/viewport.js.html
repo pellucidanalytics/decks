@@ -67,7 +67,55 @@ function Viewport(options) {
   /** Indicates if this is the first render cycle */
   this.isFirstRenderCycle = true;
 
-  /** Data structure for storing the items and corresponding renders */
+  /**
+   * Data structure for storing the items and corresponding renders
+   *
+   * The data structure is a 2-level tree.  At the first level, the key is the item.id.
+   * The value at the first level is an object with render.ids as keys.  The value At
+   * the second level is the render object, e.g.
+   *
+   * @example Internal Viewport renders data structure
+   * {
+   *   // Item 1
+   *   "item-id-1": {
+   *     // Render "0" for Item 1
+   *     "0": {
+   *       "id": "0",
+   *       "index": 0,
+   *       "transform": {
+   *         "top": 120,
+   *         "left": 140
+   *         ...
+   *       },
+   *       "animateOptions": {
+   *         ...
+   *       }
+   *     },
+   *     // Render "1" for Item 1
+   *     "1": {
+   *       "id": "1",
+   *       "index": 1,
+   *       "transform": {
+   *         "top": 120,
+   *         "left": 140
+   *         ...
+   *       },
+   *       "animateOptions": {
+   *         ...
+   *       }
+   *     }
+   *   },
+   *   // Item 2
+   *   "item-id-2": {
+   *     // Render "0" for Item 2
+   *     "0": {
+   *       "id": "0",
+   *       "index": 1,
+   *       "transform": ...
+   *     }
+   *   }
+   * }
+  * */
   this.renders = {};
 
   /** Keeps track of how many renders are currently being drawn */
@@ -81,6 +129,10 @@ function Viewport(options) {
    */
   this.isDeckReady = false;
 
+  /**
+   * Object of properties to pass to all {@link Layout} methods invoked by the {@link Viewport}
+   * This is to provide the {@link Layout} methods with more context for their logic.
+   */
   this.layoutMethodOptions = {};
 
   this.setAnimator(options.animator);
@@ -222,7 +274,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       // Assign ids to each render (based on the array index), and change it from an array to
       // an object with the render id as the key, and the render as the value.  Also, add some additional
       // data to the render, like the item.
-      //
       render.id = "" + index;
       render.index = index;
       render.item = item;
@@ -242,9 +293,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawItems: function(options) {
-    var items = this.itemCollection.getItems();
-
-    _.each(items, function(item) {
+    _.each(this.itemCollection.getItems(), function(item) {
       this.drawItem(item, options);
     }, this);
   },
@@ -272,9 +321,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseItems: function() {
-    var items = this.itemCollection.getItems();
-
-    _.each(items, function(item) {
+    _.each(this.itemCollection.getItems(), function(item) {
       this.eraseItem(item);
     }, this);
   },
@@ -376,8 +423,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     var eventName = render.isRemoving ? "viewport:render:erasing" : "viewport:render:drawing";
 
     raf(function() {
-      // This event is handled by the Canvas, to make sure the element is in the DOM
-      // Do this in one frame, and then start the animation in the next frame
+      // This event is handled by the Canvas (among other things), to make sure the element is in the DOM
+      // before the animation starts.
+      // Do this in one animation frame, and then start the animation in the next frame
       self.emit(DecksEvent(eventName, self, render));
 
       raf(function() {
@@ -442,6 +490,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       // Merge the old and new renders together, with new values winning over old values
       // This is done to preserve the render element, and other state values that are not
       // provided by the Layout's new render.
+
+      // TODO: this could probably be _.extend
       var mergedRender = _.merge({}, previousRender, newRender);
 
       // If the new render has the same transform as the current render, and doesn't need to be
@@ -509,9 +559,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseRenders: function(item) {
-    var renders = this.getRenders(item);
-
-    _.each(renders, function(render) {
+    _.each(this.getRenders(item), function(render) {
       this.eraseRender(render);
     }, this);
   },
@@ -569,6 +617,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     return element;
   },
 
+  /**
+   * Called when a new element is created for use as a render.  This gives the {@link Layout}
+   * the opportunity to customize the initial state of the render.  If an element already exists for
+   * a previous render, and the element will be re-used for a transition, this method is not called.
+   */
   initializeRender: function(render) {
     this.layout.initializeRender(render, this.layoutMethodOptions);
   },
@@ -580,6 +633,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   loadRender: function(render) {
+    // TODO: should there be a requestAnimationFrame here?
     this.layout.loadRender(render, this.layoutMethodOptions);
 
     if (render.isLoadNeeded) {
@@ -594,7 +648,26 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   unloadRender: function(render) {
+    // TODO: should there be a requestAnimationFrame here?
     this.layout.unloadRender(render, this.layoutMethodOptions);
+  },
+
+  /**
+   * Returns a boolean indicating whether this render should be loaded at this time.
+   *
+   * The {@link Layout} can implement a method "shouldLoadRender" to specifiy whether
+   * any given render should be loaded.
+   *
+   * If the {@link Layout} returns false
+   *
+   * @param {!Object} render - render to check whether it needs to be loaded
+   * @return {boolean}
+   */
+  shouldLoadRender: function(render) {
+    // TODO: not sure what's the best ordering/combination of these checks
+    return this.layout.shouldLoadRender(render) ||
+      render.isLoadNeeded ||
+      this.frame.isElementVisible(render.element);
   },
 
   /**
@@ -605,8 +678,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   loadOrUnloadRender: function(render) {
-    // TODO: should we wrap this in raf (requestAnimationFrame)?
-    if (render.isLoadNeeded || this.frame.isElementVisible(render.element)) {
+    if (this.shouldLoadRender(render)) {
       this.loadRender(render);
     } else {
       this.unloadRender(render);
@@ -636,6 +708,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckReady: draw items");
     }
 
+    // Flag the items as needing to be loaded, because they haven't been loaded before
     this.drawItems({ isLoadNeeded: true });
   },
 
@@ -648,6 +721,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckLayoutSet: draw items");
     }
 
+    // Flag the items as needing to be re-loaded because different layouts may require different
+    // loading logic/UI representations for each render.
     this.drawItems({ isLoadNeeded: true });
   },
 
@@ -656,6 +731,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckDraw: draw items");
     }
 
+    // Flag the items as needing to be re-loaded, because this event is from an explicit call to deck.draw()
+    // by the app - which is requesting a re-draw/re-load.
     this.drawItems({ isLoadNeeded: true });
   },
 
@@ -664,6 +741,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onFrameBoundsSet: draw items");
     }
 
+    // Don't need to re-load the items if just re-drawing due to a frame size/location change
     this.drawItems();
   },
 
@@ -674,6 +752,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onItemChanged: draw item", item);
     }
 
+    // Flag for re-load here, because the data of the item has changed, so it might need to be re-loaded
     this.drawItem(item, { isLoadNeeded: true });
   },
 
@@ -685,7 +764,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onItemIndexChanged: draw item", item, index);
     }
 
-    this.drawItem(item, { isLoadNeeded: true }); // TODO: not sure if load needed on item index change
+    // TODO: not sure if load needed on item index changed
+    // Maybe so if an index changes, and the layout renders things differently based on index (?)
+    this.drawItem(item, { isLoadNeeded: true });
   },
 
   onItemCollectionItemRemoved: function(e) {
@@ -702,18 +783,25 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     var self = this;
 
     if (render.isRemoving) {
+      // Erase animation completed - if render is flagged for removal, remove it now
       self.removeRender(render);
 
+      // If the render's item is flagged for removal, and all renders are now removed, remove the item
       if (render.item.isRemoving &amp;&amp; !self.hasRenders(render.item)) {
         self.removeItem(render.item);
       }
     } else {
+      // Draw animation completed - save the render in the internal data structure
       self.setRender(render);
     }
+
+    // TODO: not sure if it's better to load renders as each individual animation completes,
+    // or just load them all when all animations in the draw cycle complete
 
     self.rendersDrawingCount--;
 
     if (self.rendersDrawingCount === 0) {
+      // If the current draw cycle is complete, notify anyone that cares
       raf(function() {
         self.loadOrUnloadRenders();
         self.emit(DecksEvent("viewport:all:renders:drawn", self));
@@ -750,7 +838,7 @@ module.exports = Viewport;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 07 2014 11:19:10 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 07 2014 16:47:20 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
