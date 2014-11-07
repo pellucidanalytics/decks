@@ -30,11 +30,11 @@ var binder = require("./events").binder;
 var hasEmitter = require("./events").hasEmitter;
 var DecksEvent = require("./events").DecksEvent;
 var dom = require("./ui").dom;
-var Item = require("./item");
 var ItemCollection = require("./itemcollection");
 var Layout = require("./layout");
 var Frame = require("./frame");
 var Canvas = require("./canvas");
+var requestAnimFrame = require("./utils/requestanimationframe"); // rename to avoid jshint warning for overwriting global
 
 /**
  * Viewport - manages visual (DOM) components
@@ -50,9 +50,6 @@ var Canvas = require("./canvas");
  * @param {!Layout} options.layout - Layout instance
  * @param {!Frame} options.frame - Frame instance
  * @param {!Canvas} options.canvas - Canvas instance
- * @param {?number} [options.throttleLoadOrUnloadRenderWait=1000] - Wait time for throttled loadOrUnloadRender
- * @param {?number} [options.throttleLoadOrUnloadRendersWait=1000] - Wait time for throttled loadOrUnloadRenders
- * @param {?number} [options.debounceDrawItemsWait=1000] - Wait time for debounced drawItems
  */
 function Viewport(options) {
   if (!(this instanceof Viewport)) {
@@ -61,28 +58,30 @@ function Viewport(options) {
 
   options = _.merge({}, this.defaultOptions, options);
 
-  // Create throttled/debounced versions of certain methods that are called frequently
-  this.throttledLoadOrUnloadRenders = _.throttle(_.bind(this.loadOrUnloadRenders, this), options.throttleLoadOrUnloadRendersWait);
-  this.throttledLoadOrUnloadRender = _.throttle(_.bind(this.loadOrUnloadRender, this), options.throttleLoadOrUnloadRenderWait);
-  this.debouncedDrawItems = _.debounce(_.bind(this.drawItems, this), options.debounceDrawItemsWait);
+  /** Debounced version of load or unload renders */
+  this.debouncedLoadOrUnloadRenders = _.debounce(_.bind(this.loadOrUnloadRenders, this), options.debouncedLoadOrUnloadRendersWait);
 
-  this.firstRender = true;
+  /** Debounced version of drawItems */
+  this.debouncedDrawItems = _.debounce(_.bind(this.drawItems, this), options.debouncedDrawItemsWait);
 
-  /**
-   * Data structure for storing the items and corresponding renders
-   */
+  /** Indicates if this is the first render cycle */
+  this.isFirstRenderCycle = true;
+
+  /** Data structure for storing the items and corresponding renders */
   this.renders = {};
 
-  /**
-   * Keeps track of how many renders are currently being drawn
-   */
+  /** Keeps track of how many renders are currently being drawn */
   this.rendersDrawingCount = 0;
+
+  this.renderCycleCompleteEventDelay = options.renderCycleCompleteEventDelay;
 
   /**
    * Flag that indicates if the deck is ready.  Drawing actions are suppressed
    * until the deck is signaled as ready
    */
   this.isDeckReady = false;
+
+  this.layoutMethodOptions = {};
 
   this.setAnimator(options.animator);
   this.setConfig(options.config);
@@ -98,9 +97,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * Default options for instances of Viewport
    */
   defaultOptions: {
-    throttleLoadOrUnloadRenderWait: 1000,
-    throttleLoadOrUnloadRendersWait: 1000,
-    debounceDrawItemsWait: 1000
+    debouncedLoadOrUnloadRendersWait: 1000,
+    debouncedDrawItemsWait: 1000,
+    renderCycleCompleteEventDelay: 2500
   },
 
   /**
@@ -126,7 +125,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       throw new Error("Viewport#setAnimator: animator already set");
     }
 
-    this.animator = animator;
+    this.animator = this.layoutMethodOptions.animator = animator;
   },
 
   setConfig: function(config) {
@@ -138,7 +137,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       throw new Error("Viewport#setConfig: config already set");
     }
 
-    this.config = config;
+    this.config = this.layoutMethodOptions.config = config;
   },
 
   setItemCollection: function(itemCollection) {
@@ -150,7 +149,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       throw new Error("Viewport#setItemCollection: itemCollection already set");
     }
 
-    this.itemCollection = itemCollection;
+    this.itemCollection = this.layoutMethodOptions.itemCollection = itemCollection;
     // itemCollection events are forwarded by the main deck emitter, so we don't need to subscribe to this directly
   },
 
@@ -159,7 +158,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       throw new Error("Viewport#setLayout: layout is required and must be a Layout");
     }
 
-    this.layout = layout;
+    this.layout = this.layoutMethodOptions.layout = layout;
   },
 
   setFrame: function(frame) {
@@ -171,7 +170,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       throw new Error("Viewport#setFrame: frame already set");
     }
 
-    this.frame = frame;
+    this.frame = this.layoutMethodOptions.frame = frame;
   },
 
   setCanvas: function(canvas) {
@@ -183,7 +182,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       throw new Error("Viewport#setCanvas: canvas already set");
     }
 
-    this.canvas = canvas;
+    this.canvas = this.layoutMethodOptions.canvas = canvas;
   },
 
   /**
@@ -198,13 +197,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * 2. Initiate the draw process for each render.
    *
    * @param {!Item} item item to draw
+   * @param {?Object} options - additional options for drawing
+   * @param {boolean} options.isLoadNeeded - indicates if the item should be re-loaded after the animation completes.
    * @return {undefined}
    */
   drawItem: function(item, options) {
-    if (!(item instanceof Item)) {
-      throw new Error("Viewport#drawItem: item is required and must be an Item");
-    }
-
     if (!this.isDeckReady) {
       if (this.config.debugDrawing) {
         console.warn("Viewport#drawItem: not drawing - deck is not ready");
@@ -212,10 +209,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
-    //this.emit(DecksEvent("viewport:item:drawing", this, item));
-
     // Give the layout some contextual info/objects to help with creating renders
-    var layoutRenders = this.layout.getRenders(item, this.getLayoutMethodOptions()) || [];
+    var layoutRenders = this.layout.getRenders(item, this.layoutMethodOptions) || [];
 
     if (!_.isArray(layoutRenders)) {
       layoutRenders = [layoutRenders];
@@ -227,11 +222,13 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       // Assign ids to each render (based on the array index), and change it from an array to
       // an object with the render id as the key, and the render as the value.  Also, add some additional
       // data to the render, like the item.
-      _.merge(render, options, {
-        id: "" + index,
-        index: index,
-        item: item
-      });
+      //
+      render.id = "" + index;
+      render.index = index;
+      render.item = item;
+      if (options) {
+        render.isLoadNeeded = !!options.isLoadNeeded;
+      }
 
       renders[render.id] = render;
     });
@@ -246,8 +243,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   drawItems: function(options) {
     var items = this.itemCollection.getItems();
-
-    this.emit(DecksEvent("viewport:items:drawing", this, items));
 
     _.each(items, function(item) {
       this.drawItem(item, options);
@@ -265,14 +260,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseItem: function(item) {
-    if (!(item instanceof Item)) {
-      throw new Error("Viewport#eraseItem: item is required and must be an Item");
-    }
-
-    // Item will be removed once all the renders are fully removed
+    // Mark the item for removal once all the renders for the item are hidden and removed
     item.isRemoving = true;
-
-    this.emit(DecksEvent("viewport:item:erasing", this, item));
 
     this.eraseRenders(item);
   },
@@ -284,8 +273,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   eraseItems: function() {
     var items = this.itemCollection.getItems();
-
-    this.emit(DecksEvent("viewport:items:erasing", this, items));
 
     _.each(items, function(item) {
       this.eraseItem(item);
@@ -301,15 +288,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   removeItem: function(item) {
-    if (!(item instanceof Item)) {
-      throw new Error("Viewport#removeItem: item is required and must be an Item");
-    }
-
-    this.emit(DecksEvent("viewport:item:removing", this, item));
-
     delete this.renders[item.id];
-
-    this.emit(DecksEvent("viewport:item:removed", this, item));
   },
 
   /**
@@ -359,17 +338,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   setRender: function(render) {
-    if (!render) {
-      throw new Error("Viewport#setRender: render is required");
-    }
-
     var renders = this.getRenders(render.item);
-
-    this.emit(DecksEvent("viewport:render:setting", this, render));
 
     renders[render.id] = render;
 
-    this.emit(DecksEvent("viewport:render:set", this, render));
+    this.emit(DecksEvent("viewport:render:drawn", this, render));
   },
 
   /**
@@ -390,36 +363,31 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawRender: function(render) {
-    if (!render) {
-      throw new Error("Viewport#drawRender: render is required");
+    var self = this;
+
+    self.setDefaultRenderAnimateOptions(render);
+
+    self.rendersDrawingCount++;
+
+    if (self.config.debugDrawing) {
+      console.log("Viewport#drawRender: renders drawing count: " + self.rendersDrawingCount);
     }
 
-    if (!render.element) {
-      throw new Error("Viewport#drawRender: render.element is required");
-    }
+    var eventName = render.isRemoving ? "viewport:render:erasing" : "viewport:render:drawing";
 
-    if (!render.transform) {
-      throw new Error("Viewport#drawRender: render.transform is required");
-    }
+    requestAnimFrame(function() {
+      // This event is handled by the Canvas, to make sure the element is in the DOM
+      // Do this in one frame, and then start the animation in the next frame
+      self.emit(DecksEvent(eventName, self, render));
 
-    if (!render.animateOptions) {
-      throw new Error("Viewport#drawRender: render.animateOptions is required");
-    }
-
-    var animateOptions = this.getRenderAnimateOptions(render);
-
-    this.rendersDrawingCount++;
-
-    if (this.config.debugDrawing) {
-      console.log("Viewport#drawRender: renders drawing count: " + this.rendersDrawingCount);
-    }
-
-    this.emit(DecksEvent("viewport:render:drawing", this, render));
-
-    this.animator.animate({
-      elements: render.element,
-      properties: render.transform,
-      options: animateOptions
+      requestAnimFrame(function() {
+        // Start the animation now
+        self.animator.animate({
+          elements: render.element,
+          properties: render.transform,
+          options: render.animateOptions
+        });
+      });
     });
   },
 
@@ -438,23 +406,17 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawRenders: function(item, renders) {
-    if (!(item instanceof Item)) {
-      throw new Error("Viewport#drawRenders: item is required and must be an Item");
-    }
-
-    if (!renders) {
-      throw new Error("Viewport#drawRenders: renders is required");
-    }
-
+    // Get the new render ids
     var newRenderIds = _.keys(renders);
 
+    // Get the previous render ids
     var previousRenders = this.getRenders(item);
     var previousRenderIds = _.keys(previousRenders);
 
     // If the new renders have keys that already exist, merge the renders
     var renderIdsToMerge = _.intersection(previousRenderIds, newRenderIds);
 
-    // If the new renders don't have keys that already exist, remove the existing renders
+    // If the new renders don't have keys that match existing renders, remove these existing renders
     var renderIdsToRemove = _.difference(previousRenderIds, renderIdsToMerge);
 
     // If the new renders have keys that don't already exist, add those new renders
@@ -484,7 +446,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
       // If the new render has the same transform as the current render, and doesn't need to be
       // reloaded, we don't need to do anything
-      if (_.isEqual(previousRender.transform, mergedRender.transform) &amp;&amp; !mergedRender.loadNeeded) {
+      if (_.isEqual(previousRender.transform, mergedRender.transform) &amp;&amp; !mergedRender.isLoadNeeded) {
         if (this.config.debugDrawing) {
           console.warn("Viewport#drawRenders: not redrawing item render (no change to transform)", item, mergedRender);
         }
@@ -529,15 +491,10 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseRender: function(render) {
-    if (!render) {
-      throw new Error("Viewport#eraseRender: render is required");
-    }
-
+    // Flag this render to be removed when the hide animation is complete
     render.isRemoving = true;
 
-    this.layout.setHideAnimation(render);
-
-    this.emit(DecksEvent("viewport:render:erasing", this, render));
+    this.layout.setHideAnimation(render, this.layoutMethodOptions);
 
     // Once the "hide" operation is completed, the render will be removed
     this.drawRender(render);
@@ -552,13 +509,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseRenders: function(item) {
-    if (!(item instanceof Item)) {
-      throw new Error("Viewport#eraseRenders: item is required and must be an Item");
-    }
-
     var renders = this.getRenders(item);
-
-    this.emit(DecksEvent("viewport:renders:erasing", this, renders));
 
     _.each(renders, function(render) {
       this.eraseRender(render);
@@ -575,17 +526,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   removeRender: function(render) {
-    if (!render) {
-      throw new Error("Viewport#removeRender: render is required");
-    }
-
     var renders = this.getRenders(render.item);
-
-    this.emit(DecksEvent("viewport:render:removing", this, render));
 
     delete renders[render.id];
 
-    this.emit(DecksEvent("viewport:render:removed", this, render));
+    this.emit(DecksEvent("viewport:render:erased", this, render));
   },
 
   /**
@@ -594,31 +539,16 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} options object to pass to callback methods, like complete
    * @return {Object} hash of animation options
    */
-  getRenderAnimateOptions: function(render) {
-    if (!render) {
-      throw new Error("Viewport#getRenderAnimateOptions: render is required");
-    }
+  setDefaultRenderAnimateOptions: function(render) {
+    var self = this;
 
-    // Create a default animate options object with bound callbacks
-    // for the animation events (begin, complete).  The merge the animationOptions
-    // from the render on top of that.
-    var defaultAnimateOptions = {
-      begin: _.bind(function(elements) {
-        render.animationBeginData = {
-          elements: elements
-        };
-        this.onAnimationBegin(render);
-      }, this),
-
-      complete: _.bind(function(elements) {
-        render.animationCompleteData = {
-          elements: elements
-        };
-        this.onAnimationComplete(render);
-      }, this)
+    // Add the "complete" callback for velocity animation complete
+    render.animateOptions.complete = function(elements) {
+      render.animationCompleteData = {
+        elements: elements
+      };
+      self.onAnimationComplete(render);
     };
-
-    return _.extend(defaultAnimateOptions, render.animateOptions);
   },
 
   /**
@@ -627,14 +557,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {HTMLElement} detached DOM element which will become the container for a render element.
    */
   createRenderElement: function(item, render) {
-    if (!(item instanceof Item)) {
-      throw new Error("Viewport#createRenderElement: item is required and must be an Item");
-    }
-
-    if (!render) {
-      throw new Error("Viewport#createRenderElement: render is required");
-    }
-
     var element = dom.create("div");
 
     dom.addClass(element, this.config.itemClassName);
@@ -654,19 +576,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   loadRender: function(render) {
-    if (!render) {
-      throw new Error("Viewport#loadRender: render is required");
+    this.layout.loadRender(render, this.layoutMethodOptions);
+
+    if (render.isLoadNeeded) {
+      render.isLoadNeeded = false;
     }
-
-    this.emit(DecksEvent("viewport:render:loading", this, render));
-
-    this.layout.loadRender(render, this.getLayoutMethodOptions());
-
-    if (render.loadNeeded) {
-      render.loadNeeded = false;
-    }
-
-    this.emit(DecksEvent("viewport:render:loaded", this, render));
   },
 
   /**
@@ -676,15 +590,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   unloadRender: function(render) {
-    if (!render) {
-      throw new Error("Viewport#unloadRender: render is required");
-    }
-
-    this.emit(DecksEvent("viewport:render:unloading", this, render));
-
-    this.layout.unloadRender(render, this.getLayoutMethodOptions());
-
-    this.emit(DecksEvent("viewport:render:unloaded", this, render));
+    this.layout.unloadRender(render, this.layoutMethodOptions);
   },
 
   /**
@@ -695,11 +601,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   loadOrUnloadRender: function(render) {
-    if (!render) {
-      throw new Error("Viewport#loadOrUnloadRender: render is required");
-    }
-
-    if (this.frame.isElementVisible(render.element) || render.loadNeeded) {
+    if (render.isLoadNeeded || this.frame.isElementVisible(render.element)) {
       this.loadRender(render);
     } else {
       this.unloadRender(render);
@@ -718,24 +620,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   },
 
   /**
-   * Gets options to pass to Layout methods.
-   *
-   * @return {undefined}
-   */
-  getLayoutMethodOptions: function() {
-    return {
-      animator: this.animator,
-      config: this.config,
-      emitter: this.emitter,
-      itemCollection: this.itemCollection,
-      layout: this.layout,
-      frame: this.frame,
-      canvas: this.canvas,
-      viewport: this
-    };
-  },
-
-  /**
    * Called when the deck is ready.  Starts the drawing cycle for the items.
    *
    * @return {undefined}
@@ -747,7 +631,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckReady: draw items");
     }
 
-    this.drawItems({ loadNeeded: true });
+    this.drawItems({ isLoadNeeded: true });
   },
 
   onDeckLayoutSet: function(e) {
@@ -759,7 +643,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckLayoutSet: draw items");
     }
 
-    this.drawItems({ loadNeeded: true });
+    this.drawItems({ isLoadNeeded: true });
   },
 
   onDeckDraw: function() {
@@ -767,7 +651,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckDraw: draw items");
     }
 
-    this.drawItems({ loadNeeded: true });
+    this.drawItems({ isLoadNeeded: true });
   },
 
   onFrameBoundsSet: function() {
@@ -785,7 +669,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onItemChanged: draw item", item);
     }
 
-    this.drawItem(item, { loadNeeded: true });
+    this.drawItem(item, { isLoadNeeded: true });
   },
 
   onItemIndexChanged: function(e) {
@@ -796,7 +680,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onItemIndexChanged: draw item", item, index);
     }
 
-    this.drawItem(item, { loadNeeded: true });
+    this.drawItem(item, { isLoadNeeded: true }); // TODO: not sure if load needed on item index change
   },
 
   onItemCollectionItemRemoved: function(e) {
@@ -809,49 +693,26 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.eraseItem(item);
   },
 
-  onAnimationBegin: function(render) {
-    // This tells the Canvas to add the element to it's container element
-    this.emit(DecksEvent("viewport:render:animation:begin", this, render));
-  },
-
   onAnimationComplete: function(render) {
     var self = this;
-    if (render.isRemoving) {
-      // If the render was marked for removal, remove it from the Viewport data structure now
-      this.removeRender(render);
 
-      // If the item was marked for removal, and the final render for the item has been removed,
-      // remove the item now
-      if (render.item.isRemoving &amp;&amp; !this.hasRenders(render.item)) {
-        this.removeItem(render.item);
+    if (render.isRemoving) {
+      self.removeRender(render);
+
+      if (render.item.isRemoving &amp;&amp; !self.hasRenders(render.item)) {
+        self.removeItem(render.item);
       }
     } else {
-      // Store the render in the Viewport data structure
-      this.setRender(render);
+      self.setRender(render);
     }
 
-    this.rendersDrawingCount--;
+    self.rendersDrawingCount--;
 
-    if (this.config.debugDrawing) {
-      console.log("Viewport#onAnimationComplete: renders drawing count: " + this.rendersDrawingCount);
-
-      if (this.rendersDrawingCount &lt; 0) {
-        // TODO: This shouldn't happen - if it happens, need to figure out why
-        console.warn("Viewport#onAnimationComplete: rendersDrawingCount is less than 0 (this is a bug): " + this.rendersDrawingCount);
-      }
-    }
-
-    if (this.rendersDrawingCount === 0) {
-      var delay = 2500;
-      // This signals the end of the current drawing cycle
-      if(this.firstRender) {
-        this.firstRender = false;
-        delay = 0;
-      }
-      setTimeout(function() {
+    if (self.rendersDrawingCount === 0) {
+      requestAnimFrame(function() {
         self.loadOrUnloadRenders();
         self.emit(DecksEvent("viewport:all:renders:drawn", self));
-      }, delay);
+      });
     }
   },
 
@@ -863,7 +724,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   },
 
   onCanvasElementMoved: function() {
-    this.throttledLoadOrUnloadRenders();
+    this.debouncedLoadOrUnloadRenders();
   }
 });
 
@@ -884,7 +745,7 @@ module.exports = Viewport;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 05 2014 08:41:48 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 06 2014 17:15:28 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
