@@ -1,3 +1,7 @@
+// This is needed for requestAnimationFrame polyfill
+window.jQuery = window.$ = require("jquery");
+require("velocity-animate");
+
 require("./sanitycheck");
 
 require("./events");
