@@ -14,6 +14,7 @@ describe("decks.utils.rect", function() {
       };
 
       var expected = {
+        isNormalized: true,
         top: 10,
         bottom: 90,
         left: 20,
@@ -112,6 +113,7 @@ describe("decks.utils.rect", function() {
       };
 
       var expected = {
+        isNormalized: true,
         top: 10,
         bottom: 100,
         left: 20,
@@ -139,6 +141,7 @@ describe("decks.utils.rect", function() {
       };
 
       var expected = {
+        isNormalized: true,
         top: 10,
         bottom: 110,
         left: 10,
@@ -175,6 +178,7 @@ describe("decks.utils.rect", function() {
       ];
 
       var expected = {
+        isNormalized: true,
         top: -20,
         bottom: 100,
         left: 0,

@@ -43,12 +43,12 @@ function getRandomGroups(count) {
 }
 
 function loadRender(render) {
-  console.log("loadRender");
+  //console.log("loadRender");
 
   var item = render.item;
 
   if (!render.image) {
-    console.log("loadRender - image loading");
+    //console.log("loadRender - image loading");
     render.image = new Image(imageWidth, imageHeight);
 
     render.image.ondragstart = function() {
@@ -56,7 +56,7 @@ function loadRender(render) {
     };
 
     render.image.onload = function() {
-      console.log("loadRender - image loaded");
+      //console.log("loadRender - image loaded");
       render.element.innerHTML = "";
       render.element.appendChild(render.image);
     };
@@ -70,7 +70,7 @@ function loadRender(render) {
 }
 
 function unloadRender(render) {
-  console.log("unloadRender");
+  //console.log("unloadRender");
   render.element.innerHTML = "<span>Loading...</span>";
   render.image = null;
 }
@@ -237,7 +237,10 @@ $(function() {
     frame: {
       element: frameElement
     },
-    layout: layout
+    layout: layout,
+    viewport: {
+      useAnimationSlots: true
+    }
   };
 
   // Create the Deck

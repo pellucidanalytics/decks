@@ -111,6 +111,7 @@ describe("decks.Frame", function() {
       document.body.appendChild(element);
       var frame = new Frame(frameOptions);
       expect(frame.bounds).to.eql({
+        isNormalized: true,
         top: 20,
         bottom: 820,
         left: 40,
