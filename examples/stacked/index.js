@@ -24,7 +24,6 @@ var getRenders = function(item) {
       opacity: [1, 0.25]
     },
     animateOptions: {
-      delay: index * 250,
       duration: 2000, //400 + index * 20,
       easing: [250,15]// "ease"
     }
