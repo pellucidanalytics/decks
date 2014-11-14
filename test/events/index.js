@@ -1,3 +1,3 @@
-require("./binder");
-require("./decksevent");
-require("./emitter");
+require("./binder.spec");
+require("./decksevent.spec");
+require("./emitter.spec");

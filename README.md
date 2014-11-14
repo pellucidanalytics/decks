@@ -9,7 +9,6 @@
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/pelluciddecks.svg?auth=ece3dc76af60a49515da2a7b0bbfa51c)](https://saucelabs.com/u/pelluciddecks?auth=ece3dc76af60a49515da2a7b0bbfa51c)
 
-[GitHub Pages Site](https://pellucidanalytics.github.io/decks)
 
 ## Overview
 
@@ -40,17 +39,9 @@ gulp examples
 gulp publish
 ```
 
-## Features
+## Documentation
 
-TODO
-
-## API Documentation (JSDoc)
-
-TODO
-
-## Tools/Dependencies
-
-TODO
+- [Docs](https://pellucidanalytics.github.io/decks)
 
 ## Inspirations
 
@@ -64,9 +55,3 @@ TODO
 - [Loading Effects for Grid Items](http://tympanus.net/Development/GridLoadingEffects/index.html)
 - [Magnet](http://codecanyon.net/item/magnet-jquery-plugin-for-filterable-layouts/full_screen_preview/7550966?ref=jqueryrain)
 - [jQuery Gridly](http://ksylvest.github.io/jquery-gridly/)
-
-TODO
-
-- remove reversed from itemCollection? (use inverted sortBy)
-- Frame bounds/canvas bounds - try to find some relative solution that
-  doesn't change on scroll

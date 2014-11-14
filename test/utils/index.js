@@ -1,1 +1,2 @@
-require("./rect");
+require("./rect.spec");
+require("./validate.spec");

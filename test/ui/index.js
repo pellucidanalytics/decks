@@ -1,1 +1,1 @@
-require("./dom");
+require("./dom.spec");

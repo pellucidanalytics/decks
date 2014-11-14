@@ -1,4 +1,4 @@
-// This is needed for requestAnimationFrame polyfill
+// Velocity requires global jQuery/$ for IE8
 window.jQuery = window.$ = require("jquery");
 require("velocity-animate");
 
@@ -9,10 +9,10 @@ require("./layouts");
 require("./ui");
 require("./utils");
 
-require("./canvas");
-require("./deck");
-require("./frame");
-require("./item");
-require("./itemcollection");
-require("./layout");
-require("./viewport");
+require("./canvas.spec");
+require("./deck.spec");
+require("./frame.spec");
+require("./item.spec");
+require("./itemcollection.spec");
+require("./layout.spec");
+require("./viewport.spec");

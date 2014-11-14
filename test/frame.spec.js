@@ -73,7 +73,8 @@ describe("decks.Frame", function() {
     it("should apply styles/classes/etc. to the element", function() {
       expect(element.className).to.eql(config.frameClassName);
       expect(element.style.position).to.eql("relative");
-      expect(element.style.overflow).to.eql("hidden");
+      //expect(element.style.overflow).to.eql("auto");
+      //expect(element.style.overflow).to.eql("scroll");
     });
 
     it("should emit an event", function() {
@@ -163,12 +164,14 @@ describe("decks.Frame", function() {
       var frame = new Frame(frameOptions);
       var mockCanvas = {
         element: dom.create("div"),
+        setFrame: sinon.spy(),
         setFrameBounds: sinon.spy()
       };
       var e = new DecksEvent("canvas:bounds:set", mockCanvas, mockCanvas.element);
       frame.onCanvasElementSet(e);
       expect(frame.element.childNodes.length).to.eql(1);
       expect(frame.element.firstChild).to.eql(mockCanvas.element);
+      expect(mockCanvas.setFrame).to.have.been.calledWith(frame);
       expect(mockCanvas.setFrameBounds).to.have.been.calledWith(frame.bounds);
     });
   });
