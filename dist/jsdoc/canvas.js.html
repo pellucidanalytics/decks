@@ -33,6 +33,8 @@ var rect = require("./utils").rect;
 var dom = require("./ui").dom;
 var GestureHandler = require("./ui").GestureHandler;
 var Layout = require("./layout");
+var Frame = require("./frame");
+var validate = require("./utils/validate");
 
 /**
  * Canvas - manages the main DOM element in which items are rendered, and where
@@ -100,30 +102,19 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
       press: {
         enabled: true
       }
+    },
+    movement: {
+      scroll: true
     }
   },
 
   setAnimator: function(animator) {
-    if (!animator) {
-      throw new Error("Canvas#setAnimator: animator is required");
-    }
-
-    if (this.animator) {
-      throw new Error("Canvas#setAnimator: animator already set");
-    }
-
+    validate(animator, "Canvas#setAnimator: animator", { isPlainObject: true, isNotSet: this.animator });
     this.animator = animator;
   },
 
   setConfig: function(config) {
-    if (!config) {
-      throw new Error("Canvas#setConfig: config is required");
-    }
-
-    if (this.config) {
-      throw new Error("Canvas#setConfig: config already set");
-    }
-
+    validate(config, "Canvas#setConfig: config", { isPlainObject: true, isNotSet: this.config });
     this.config = config;
   },
 
@@ -136,13 +127,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
    * @return {undefined}
    */
   setElement: function(element) {
-    if (!_.isElement(element)) {
-      throw new Error("Canvas#setElement: element is required and must be an Element");
-    }
-
-    if (this.element) {
-      throw new Error("Canvas#setElement: element already set");
-    }
+    validate(element, "Canvas#setElement: element", { isElement: true, isNotSet: this.element });
 
     dom.addClass(element, this.config.canvasClassName);
     dom.setStyle(element, "position", "absolute");
@@ -154,9 +139,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   },
 
   setLayout: function(layout) {
-    if (!(layout instanceof Layout)) {
-      throw new Error("Canvas#setLayout: layout is required and must be a Layout");
-    }
+    validate(layout, "Canvas#setLayout: layout", { isInstanceOf: Layout });
 
     /*
     if (this.layout) {
@@ -175,7 +158,9 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   setBounds: function(bounds) {
     bounds = bounds || rect.normalize(this.element);
 
-    if (rect.isEqual(this.bounds, bounds)) { return; }
+    if (rect.isEqual(this.bounds, bounds)) {
+      return;
+    }
 
     this.bounds = bounds;
     dom.setStyle(this.element, "width", this.bounds.width);
@@ -184,22 +169,34 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     this.emit(DecksEvent("canvas:bounds:set", this, this.bounds));
   },
 
-  setFrameBounds: function(frameBounds) {
-    if (!frameBounds) {
-      throw new Error("Canvas#setFrameBounds: frameBounds is required");
-    }
+  setFrame: function(frame) {
+    validate(frame, "Canvas#setFrame: frame", { isInstanceOf: Frame, isNotSet: this.frame });
+    this.frame = frame;
+  },
 
-    if (rect.isEqual(this.frameBounds, frameBounds)) { return; }
+  setFrameBounds: function(frameBounds) {
+    validate(frameBounds, "Canvas#setFrameBounds: frameBounds", { isRequired: true });
+
+    if (rect.isEqual(this.frameBounds, frameBounds)) {
+      return;
+    }
 
     this.frameBounds = frameBounds;
 
     this.emit(DecksEvent("canvas:frame:bounds:set", this, this.frameBounds));
 
+    // If the Canvas bounds are not set yet, use the Frame bounds
     if (!this.bounds) {
       this.setBounds(this.frameBounds);
     }
 
-    this.configureGestures();
+    // If a GestureHandler is already created, update it's bounds, otherwise
+    // configure the GestureHandler now
+    if (this.gestureHandler) {
+      this.gestureHandler.setBounds(this.frameBounds);
+    } else {
+      this.configureGestures();
+    }
   },
 
   /**
@@ -209,17 +206,13 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
    * @return {undefined}
    */
   addRender: function(render) {
-    if (!render) {
-      throw new Error("Canvas#addRender: render is required");
-    }
+    validate(render, "Canvas#addRender: render", { isRequired: true });
 
     if (render.isInCanvas) {
       return;
     }
 
-    if (!_.isElement(render.element)) {
-      throw new Error("Canvas#addRender: render.element is required and must be an Element");
-    }
+    validate(render.element, "Canvas#addRender: render.element", { isElement: true });
 
     dom.append(this.element, render.element);
     render.isInCanvas = true;
@@ -234,17 +227,13 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
    * @return {undefined}
    */
   removeRender: function(render) {
-    if (!render) {
-      throw new Error("Canvas#removeRender: render is required");
-    }
+    validate(render, "Canvas#removeRender: render", { isRequired: true });
 
     if (!render.isInCanvas) {
       return;
     }
 
-    if (!_.isElement(render.element)) {
-      throw new Error("Canvas#removeRender: render.element is required and must be an Element");
-    }
+    validate(render.element, "Canvas#removeRender: render.element", { isElement: true });
 
     dom.remove(this.element, render.element);
     render.isInCanvas = false;
@@ -253,9 +242,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   },
 
   resizeToFitElement: function(element) {
-    if (!_.isElement(element)) {
-      throw new Error("Canvas#resizeToFitElement: element is required and must be an Element");
-    }
+    validate(element, "Canvas#resizeToFitElement: element", { isElement: true });
 
     // TODO: maybe don't need to check this.frameBounds
     var bounds = rect.unionAll([element, this.bounds, this.frameBounds]);
@@ -281,6 +268,8 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   },
 
   resetPosition: function() {
+    var self = this;
+
     this.emit(DecksEvent("canvas:position:resetting", this));
 
     this.animator.animate(this.element, {
@@ -288,42 +277,45 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
       left: 0
     }, {
       duration: 200,
-      complete: _.bind(function() {
-        this.emit(DecksEvent("canvas:position:reset", this));
-      }, this)
+      complete: function() {
+        self.emit(DecksEvent("canvas:position:reset", self));
+      }
     });
   },
 
-  /*
   panToElement: function(element) {
+    validate(element, "Canvas#panToElement: element", { isElement: true });
     // ask layout where to put element (e.g. centered, top-left, etc)
   },
-  */
 
   configureGestures: function() {
-    if (!this.element) {
+    if (!this.element || !this.frame) {
       if (this.config.debugGestures) {
-        console.warn("Canvas#configureGestures: not configuring gestures - Canvas element not set yet");
+        console.warn("Canvas#configureGestures: not configuring gestures - Canvas element or frame not set yet");
       }
       return;
     }
 
-    var canvasGestureHandlerOptions = {
+    var canvasDefaultGestureHandlerOptions = this.defaultGestureHandlerOptions;
+
+    var canvasInstanceGestureHandlerOptions = {
       animator: this.animator,
       config: this.config,
       emitter: this.emitter,
-      bounds: this.frameBounds
+      bounds: this.frameBounds,
+      movement: {
+        scrollContainerElement: this.frame.element
+      }
     };
 
     var layoutGestureHandlerOptions = this.layout.getCanvasGestureOptions();
 
     var gestureHandlerOptions = _.merge(
       {},
-      this.defaultGestureHandlerOptions,
-      canvasGestureHandlerOptions,
+      canvasDefaultGestureHandlerOptions,
+      canvasInstanceGestureHandlerOptions,
       layoutGestureHandlerOptions);
 
-    // TODO: don't destory gestures on frame bounds change
     if (this.gestureHandler) {
       this.gestureHandler.destroy();
     }
@@ -395,7 +387,7 @@ module.exports = Canvas;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 13 2014 11:00:57 GMT-0500 (EST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 14 2014 17:14:30 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -34,6 +34,7 @@ var Layout = require("./layout");
 var Canvas = require("./canvas");
 var Frame = require("./frame");
 var Viewport = require("./viewport");
+var validate = require("./utils/validate");
 
 /**
  * Top-level API for managing the "decks.js" system.
@@ -63,6 +64,8 @@ function Deck(options) {
 
   options = _.merge({}, this.defaultOptions, options);
 
+  validate.isEnabled = !!options.config.validation;
+
   this.setEmitter(options.emitter || {}, this.emitterEvents);
   this.setConfig(options.config || {});
   this.setAnimator(options.animator);
@@ -86,7 +89,8 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
       itemClassName: "decks-item",
       debugEvents: false,
       debugDrawing: false,
-      debugGestures: false
+      debugGestures: false,
+      validation: true
     }
   },
 
@@ -143,41 +147,19 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
   },
 
   setConfig: function(config) {
-    if (!config) {
-      throw new Error("Deck#setConfig: config is required");
-    }
-
-    if (this.config) {
-      throw new Error("Deck#setConfig: config already set");
-    }
-
-    this.config = _.merge({}, this.defaultOptions.config, config);
-
+    validate(config, "config", { isPlainObject: true, isNotSet: this.config });
+    this.config = config;
     this.emit(DecksEvent("deck:config:set", this, this.config));
   },
 
   setAnimator: function(animator) {
-    if (!animator) {
-      throw new Error("Deck#setAnimator: animator is required");
-    }
-
-    if (this.animator) {
-      throw new Error("Deck#setAnimator: animator already set");
-    }
-
+    validate(animator, "animator", { isPlainObject: true, isNotSet: this.animator });
     this.animator = animator;
-
     this.emit(DecksEvent("deck:animator:set", this, this.animator));
   },
 
   setItemCollection: function(itemCollection) {
-    if (!itemCollection) {
-      throw new Error("Deck#setItemCollection: itemCollection is required");
-    }
-
-    if (this.itemCollection) {
-      throw new Error("Deck#setItemCollection: itemCollection already set");
-    }
+    validate(itemCollection, "itemCollection", { isRequired: true, isNotSet: this.itemCollection });
 
     if (!(itemCollection instanceof ItemCollection)) {
       itemCollection = new ItemCollection(itemCollection);
@@ -185,8 +167,8 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
 
     this.itemCollection = itemCollection;
 
-    // If the ItemCollection has its own emitter, bind and forward all events on the
-    // main Deck emitter.
+    // If the ItemCollection has a different emitter, bind to the item collection emitter and
+    // forward all events on the main Deck emitter.
     if (this.emitter !== itemCollection.emitter) {
       this.bindEvents(itemCollection, this.itemCollectionEvents);
     }
@@ -195,14 +177,15 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
   },
 
   setLayout: function(layout) {
-    if (!layout) {
-      throw new Error("Deck#setLayout: layout is required");
-    }
+    validate(layout, "layout", { isRequired: true });
 
     if (this.layout === layout) {
       return;
     }
 
+    this.emit(DecksEvent("deck:layout:setting", this, { oldLayout: this.layout, newLayout: layout }));
+
+    // Unbind events from the old layout
     if (this.layout) {
       this.layout.unbindEvents(this.emitter, this.layout.emitterEvents);
     }
@@ -218,20 +201,31 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:layout:set", this, this.layout));
   },
 
-  setCanvas: function(canvas) {
-    if (!canvas) {
-      throw new Error("Deck#setCanvas: canvas is required");
+  setFrame: function(frame) {
+    validate(frame, "frame", { isRequired: true, isNotSet: this.frame });
+
+    if (!(frame instanceof Frame)) {
+      _.extend(frame, {
+        emitter: this.emitter,
+        config: this.config,
+        animator: this.animator
+      });
+      frame = new Frame(frame);
     }
 
-    if (this.canvas) {
-      throw new Error("Deck#setCanvas: canvas already set");
-    }
+    this.frame = frame;
+
+    this.emit(DecksEvent("deck:frame:set", this, this.frame));
+  },
+
+  setCanvas: function(canvas) {
+    validate(canvas, "canvas", { isRequired: true, isNotSet: this.canvas });
 
     if (!(canvas instanceof Canvas)) {
       _.extend(canvas, {
-        animator: this.animator,
-        config: this.config,
         emitter: this.emitter,
+        config: this.config,
+        animator: this.animator,
         layout: this.layout
       });
       canvas = new Canvas(canvas);
@@ -242,47 +236,18 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:canvas:set", this, this.canvas));
   },
 
-  setFrame: function(frame) {
-    if (!frame) {
-      throw new Frame("Deck#setFrame: frame is required");
-    }
-
-    if (this.frame) {
-      throw new Error("Deck#setFrame: frame already set");
-    }
-
-    if (!(frame instanceof Frame)) {
-      _.extend(frame, {
-        animator: this.animator,
-        config: this.config,
-        emitter: this.emitter
-      });
-      frame = new Frame(frame);
-    }
-
-    this.frame = frame;
-
-    this.emit(DecksEvent("deck:frame:set", this, this.frame));
-  },
-
   setViewport: function(viewport) {
-    if (!viewport) {
-      throw new Error("Deck#setViewport: viewport is required");
-    }
-
-    if (this.viewport) {
-      throw new Error("Deck#setViewport: viewport already set");
-    }
+    validate(viewport, "viewport", { isRequired: true, isNotSet: this.viewport });
 
     if (!(viewport instanceof Viewport)) {
       _.extend(viewport, {
-        animator: this.animator,
-        canvas: this.canvas,
-        config: this.config,
         emitter: this.emitter,
-        frame: this.frame,
+        config: this.config,
+        animator: this.animator,
         itemCollection: this.itemCollection,
-        layout: this.layout
+        layout: this.layout,
+        frame: this.frame,
+        canvas: this.canvas
       });
       viewport = new Viewport(viewport);
     }
@@ -321,7 +286,7 @@ module.exports = Deck;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 13 2014 11:00:57 GMT-0500 (EST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 14 2014 17:14:30 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -34,6 +34,7 @@ var ItemCollection = require("./itemcollection");
 var Layout = require("./layout");
 var Frame = require("./frame");
 var Canvas = require("./canvas");
+var validate = require("./utils/validate");
 var raf = require("raf");
 
 /**
@@ -56,16 +57,24 @@ function Viewport(options) {
     return new Viewport(options);
   }
 
-  this.options = options = _.merge({}, this.defaultOptions, options);
+  options = _.merge({}, this.defaultOptions, options);
 
-  /** Debounced version of load or unload renders */
-  this.debouncedLoadOrUnloadRenders = _.debounce(_.bind(this.loadOrUnloadRenders, this), options.debouncedLoadOrUnloadRendersWait);
+  this.debouncedLoadOrUnloadRendersWait = options.debouncedLoadOrUnloadRendersWait;
+  this.debouncedDrawItemsWait = options.debouncedDrawItemsWait;
+  this.useAnimationSlots = options.useAnimationSlots;
+  this.itemsPerRenderSlot = options.itemsPerRenderSlot;
+  this.maxSlotsWithAnimations = options.maxSlotsWithAnimations;
+  this.slotRenderDelay = options.slotRenderDelay;
 
-  /** Debounced version of drawItems */
-  this.debouncedDrawItems = _.debounce(_.bind(this.drawItems, this), options.debouncedDrawItemsWait);
+  /**
+   * Debounced version of load or unload renders
+   */
+  this.debouncedLoadOrUnloadRenders = _.debounce(_.bind(this.loadOrUnloadRenders, this), this.debouncedLoadOrUnloadRendersWait);
 
-  /** Indicates if this is the first render cycle */
-  this.isFirstRenderCycle = true;
+  /**
+   * Debounced version of drawItems
+   */
+  this.debouncedDrawItems = _.debounce(_.bind(this.drawItems, this), this.debouncedDrawItemsWait);
 
   /**
    * Data structure for storing the items and corresponding renders
@@ -115,13 +124,13 @@ function Viewport(options) {
    *     }
    *   }
    * }
-  * */
+   */
   this.renders = {};
 
-  /** Keeps track of how many renders are currently being drawn */
+  /**
+   * Keeps track of how many renders are currently being drawn
+   */
   this.rendersDrawingCount = 0;
-
-  this.renderCycleCompleteEventDelay = options.renderCycleCompleteEventDelay;
 
   /**
    * Flag that indicates if the deck is ready.  Drawing actions are suppressed
@@ -142,6 +151,15 @@ function Viewport(options) {
   this.setLayout(options.layout);
   this.setFrame(options.frame);
   this.setCanvas(options.canvas);
+
+  // Optionally use animation slots for drawing renders (better performance at the expense of number
+  // of animations allowed.
+  if (this.useAnimationSlots) {
+    if (this.config.debugDrawing) {
+      console.info("Viewport#constructor: using animation slots");
+    }
+    this.drawRender = this.drawRenderWithAnimationSlots;
+  }
 }
 
 _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype */ {
@@ -151,7 +169,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   defaultOptions: {
     debouncedLoadOrUnloadRendersWait: 1000,
     debouncedDrawItemsWait: 1000,
-    renderCycleCompleteEventDelay: 2500,
+    allRendersDrawnEventDelay: 2500,
+    useAnimationSlots: false, /* Whether to forcefully run animations in small, staggered slots */
     itemsPerRenderSlot: 15, /* number of items created and animated in each rendering slot */
     maxSlotsWithAnimations: 3, /* animations are applied for total items = itemsPerRenderSlot * maxSlotsWithAnimations */
     slotRenderDelay: 100 /* delay between each render slot */
@@ -172,71 +191,32 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   },
 
   setAnimator: function(animator) {
-    if (!animator) {
-      throw new Error("Viewport#setAnimator: animator is required");
-    }
-
-    if (this.animator) {
-      throw new Error("Viewport#setAnimator: animator already set");
-    }
-
+    validate(animator, "animator", { isPlainObject: true, isNotSet: this.animate });
     this.animator = this.layoutMethodOptions.animator = animator;
   },
 
   setConfig: function(config) {
-    if (!config) {
-      throw new Error("Viewport#setConfig: config is required");
-    }
-
-    if (this.config) {
-      throw new Error("Viewport#setConfig: config already set");
-    }
-
+    validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = this.layoutMethodOptions.config = config;
   },
 
   setItemCollection: function(itemCollection) {
-    if (!(itemCollection instanceof ItemCollection)) {
-      throw new Error("Viewport#setItemCollection: itemCollection is required and must be an ItemCollection");
-    }
-
-    if (this.itemCollection) {
-      throw new Error("Viewport#setItemCollection: itemCollection already set");
-    }
-
+    validate(itemCollection, "itemCollection", { isInstanceOf: ItemCollection, isNotSet: this.itemCollection });
     this.itemCollection = this.layoutMethodOptions.itemCollection = itemCollection;
-    // itemCollection events are forwarded by the main deck emitter, so we don't need to subscribe to this directly
   },
 
   setLayout: function(layout) {
-    if (!(layout instanceof Layout)) {
-      throw new Error("Viewport#setLayout: layout is required and must be a Layout");
-    }
-
+    validate(layout, "layout", { isInstanceOf: Layout });
     this.layout = this.layoutMethodOptions.layout = layout;
   },
 
   setFrame: function(frame) {
-    if (!(frame instanceof Frame)) {
-      throw new Error("Viewport#setFrame: frame is required and must be a Frame");
-    }
-
-    if (this.frame) {
-      throw new Error("Viewport#setFrame: frame already set");
-    }
-
+    validate(frame, "frame", { isInstanceOf: Frame, isNotSet: this.frame });
     this.frame = this.layoutMethodOptions.frame = frame;
   },
 
   setCanvas: function(canvas) {
-    if (!(canvas instanceof Canvas)) {
-      throw new Error("Viewport#setCanvas: canvas is required and must be a Canvas");
-    }
-
-    if (this.canvas) {
-      throw new Error("Viewport#setCanvas: canvas already set");
-    }
-
+    validate(canvas, "canvas", { isInstanceOf: Canvas, isNotSet: this.canvas });
     this.canvas = this.layoutMethodOptions.canvas = canvas;
   },
 
@@ -353,10 +333,10 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   getRenders: function(item) {
     // If no item specified, return all current renders
     if (!item) {
-      return _(this.renders) // object with item ids as keys
-        .map(_.values) // array of objects with render ids as keys
-        .map(_.values) // array of arrays of renders
-        .flatten() // array of renders
+      return _(this.renders) // object with that have item ids as keys
+        .map(_.values) // array of objects that have render ids as keys
+        .map(_.values) // array of arrays of render objects
+        .flatten() // array of render objects
         .value();
     }
 
@@ -425,12 +405,46 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     var eventName = render.isRemoving ? "viewport:render:erasing" : "viewport:render:drawing";
 
+    raf(function() {
+      // This event is handled by the Canvas (among other things), to make sure the element is in the DOM
+      // before the animation starts.
+      // Do this in one animation frame, and then start the animation in the next frame
+      self.emit(DecksEvent(eventName, self, render));
+
+      raf(function() {
+        // Start the animation now
+        self.animator.animate({
+          elements: render.element,
+          properties: render.transform,
+          options: render.animateOptions
+        });
+      });
+    });
+  },
+
+  /**
+   * Alternate version of drawRender which forcibly slots out the animations, disables animations
+   * after a certain threshold, and staggers small groups of them to gain better animation performance.
+   */
+  drawRenderWithAnimationSlots: function(render) {
+    var self = this;
+
+    self.setDefaultRenderAnimateOptions(render);
+
+    self.rendersDrawingCount++;
+
+    if (self.config.debugDrawing) {
+      console.log("Viewport#drawRender: renders drawing count: " + self.rendersDrawingCount);
+    }
+
+    var eventName = render.isRemoving ? "viewport:render:erasing" : "viewport:render:drawing";
+
     // stagger the element creation and animation into batches
-    var renderSlotIndex = parseInt(self.rendersDrawingCount / this.options.itemsPerRenderSlot, 10);
-    var slotRenderDelay = this.options.slotRenderDelay;
+    var renderSlotIndex = parseInt(self.rendersDrawingCount / this.itemsPerRenderSlot, 10);
+    var slotRenderDelay = this.slotRenderDelay;
 
     // Disable animation if the item falls in later slots
-    if (renderSlotIndex >= this.options.maxSlotsWithAnimations ||
+    if (renderSlotIndex >= this.maxSlotsWithAnimations ||
         render.animateOptions.display &amp;&amp; render.animateOptions.display === "none") {
       // disable animation
       render.animateOptions.duration = 0;
@@ -441,20 +455,20 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     }
 
     setTimeout(function () {
-        raf(function() {
-          // This event is handled by the Canvas (among other things), to make sure the element is in the DOM
-          // before the animation starts.
-          // Do this in one animation frame, and then start the animation in the next frame
-          self.emit(DecksEvent(eventName, self, render));
+      raf(function() {
+        // This event is handled by the Canvas (among other things), to make sure the element is in the DOM
+        // before the animation starts.
+        // Do this in one animation frame, and then start the animation in the next frame
+        self.emit(DecksEvent(eventName, self, render));
 
-          raf(function() {
-            // Start the animation now
-            self.animator.animate({
-              elements: render.element,
-              properties: render.transform,
-              options: render.animateOptions
-            });
+        raf(function() {
+          // Start the animation now
+          self.animator.animate({
+            elements: render.element,
+            properties: render.transform,
+            options: render.animateOptions
           });
+        });
       });
     }, renderSlotIndex * slotRenderDelay /* stagger item creation and animation */);
   },
@@ -858,7 +872,7 @@ module.exports = Viewport;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 13 2014 11:00:57 GMT-0500 (EST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 14 2014 17:14:30 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
