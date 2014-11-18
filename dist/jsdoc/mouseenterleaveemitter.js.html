@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: ui/pressemitter.js</title>
+    <title>JSDoc: Source: ui/mouseenterleaveemitter.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: ui/pressemitter.js</h1>
+    <h1 class="page-title">Source: ui/mouseenterleaveemitter.js</h1>
 
     
 
@@ -30,64 +30,60 @@ var GestureEmitter = require("./gestureemitter");
 var DecksEvent = require("../events/decksevent");
 
 /**
- * Gesture emitter that monitors a single element for press (long-touch/hold) events.
+ * Class that emits or provides support for mouseover and mouseout events
  *
  * @class
  * @extends GestureEmitter
- * @param {!Element} element - Element to monitor
- * @param {?Object} [options={}] - Additional options
+ * @param {Element} element - element for which to monitor for pan gestures/events.
+ * @param {?Object} options - Additional options
+ * @param {?boolean} [options.horizontal=false] - Whether to monitor horizontal pan gestures.
+ * @param {?boolean} [options.vertical=true] - Whether to monitor vertical pan gestures.
+ * @param {?number} [options.threshold=0] - Threshold distance before pan gestures are detected.
  */
-function PressEmitter(element, options) {
-  if (!(this instanceof PressEmitter)) {
-    return new PressEmitter(element, options);
+function MouseEnterLeaveEmitter(element, options) {
+  if (!(this instanceof MouseEnterLeaveEmitter)) {
+    return new MouseEnterLeaveEmitter(element, options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
 
   GestureEmitter.call(this, element, options);
 
-  this.bindHammerEvents();
+  this.enter = !!options.enter;
+  this.leave = !!options.leave;
+
+  this.bindElementEvents();
 }
 
-PressEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PressEmitter.prototype */ {
-  constructor: PressEmitter,
+MouseEnterLeaveEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends MouseEnterLeaveEmitter.prototype */ {
+  constructor: MouseEnterLeaveEmitter,
 
-  /**
-   * Default options
-   */
   defaultOptions: _.merge({}, GestureEmitter.prototype.defaultOptions, {
+    enter: true,
+    out: true
   }),
 
-  /**
-   * Gets a map of hammer events to monitor for press-related gestures.
-   */
-  getHammerEvents: function() {
-    return {
-      "press": "onPress"
-    };
+  getElementEvents: function() {
+    var map = {};
+    if (this.enter) {
+      map.mouseenter = "onMouseEnter";
+    }
+    if (this.leave) {
+      map.mouseleave = "onMouseLeave";
+    }
+    return map;
   },
 
-  /**
-   * Called when a Hammer.js press event occurs
-   *
-   * @param e - Hammer.js event Object
-   * @fires PressEmitter#gesture:press
-   */
-  onPress: function(e) {
-    /**
-     * Event for a press (long-touch/hold) gesture.
-     *
-     * @event PressEmitter#gesture:press
-     * @type {DecksEvent}
-     * @property {String} type - The event type string
-     * @property {PressEmitter} sender - The PressEmitter instance sending the event.
-     * @property {*} data - The Hammer.js press event object.
-     */
-    this.emit(DecksEvent("gesture:press", this, e));
+  onMouseEnter: function(e) {
+    this.emit(DecksEvent("gesture:mouse:enter", this, e));
+  },
+
+  onMouseLeave: function(e) {
+    this.emit(DecksEvent("gesture:mouse:leave", this, e));
   }
 });
 
-module.exports = PressEmitter;
+module.exports = MouseEnterLeaveEmitter;
 </code></pre>
         </article>
     </section>
