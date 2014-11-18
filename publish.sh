@@ -13,6 +13,9 @@ if [ `git rev-parse --abbrev-ref HEAD` != "master" ]; then
   exit 1
 fi
 
+echo "Fetching origin..."
+git fetch origin
+
 echo "Adding dist files to master..."
 git add -A .
 
@@ -21,6 +24,9 @@ git commit -m "Updating dist files for publish $(date)"
 
 echo "Checking out gh-pages branch..."
 git checkout gh-pages
+
+echo "Merging origin/gh-pages..."
+git merge origin/gh-pages
 
 echo "Updating dist files from master..."
 git checkout master -- dist
