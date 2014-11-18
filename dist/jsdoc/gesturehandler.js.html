@@ -29,7 +29,6 @@
 var Hammer = require("hammerjs");
 var binder = require("../events").binder;
 var hasEmitter = require("../events").hasEmitter;
-//var dom = require("./dom");
 var rect = require("../utils").rect;
 var DecksEvent = require("../events").DecksEvent;
 var PanEmitter = require("./panemitter");
@@ -135,10 +134,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       }
     },
     inertia: {
-      distanceScale: 400, // used to calculate the movement distance for an inertia-based movement (swipe gesture)
-      durationScale: 60, // used to calculate the movement duration for an inertia-based movement (swipe gesture)
+      distanceScale: 500, // 400 used to calculate the movement distance for an inertia-based movement (swipe gesture)
+      durationScale: 500, // 60 used to calculate the movement duration for an inertia-based movement (swipe gesture)
       animateOptions: {
-        easing: "ease-out"
+        easing: "easeOutCubic"
       }
     }
   },
@@ -153,7 +152,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     "gesture:swipe:any": "onGestureSwipeAny",
     "gesture:swipe:x": "onGestureSwipeX",
-    "gesture:swipe:y": "onGestureSwipeY"
+    "gesture:swipe:y": "onGestureSwipeY",
+
+    "gesture:tap": "onGestureTap",
+    "gesture:press": "onGesturePress"
   },
 
   /**
@@ -248,7 +250,6 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   updatePositionData: function(e) {
-    console.log("updateCurrentPosition");
     this.currentPosition = {
       event: e
     };
@@ -264,23 +265,26 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
 
     if (!this.startPosition) {
-      console.log("updateStartPosition");
       this.startPosition = this.currentPosition;
     }
   },
 
   clearPositionData: function() {
-    console.log("clearPositionData");
     this.startPosition = null;
     this.currentPosition = null;
   },
 
   resetPosition: function() {
-    console.log("resetPosition");
     var animateOptions = {};
     var beginOptions = {};
     var completeOptions = { waitForXAndY: true };
     this.animateMoveXAndY(0, 0, animateOptions, beginOptions, completeOptions);
+  },
+
+  stopAnimation: function() {
+    this.animator.animate(this.element, "stop", true);
+    this.clearPositionData();
+    this.isAnimating = false;
   },
 
   /**
@@ -291,6 +295,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @return {undefined}
    */
   animateMoveForPan: function(e, animateOptions, beginOptions, completeOptions) {
+    completeOptions.waitForXAndY = true;
     this.animateMoveForPanX(e, animateOptions, beginOptions, completeOptions);
     this.animateMoveForPanY(e, animateOptions, beginOptions, completeOptions);
   },
@@ -371,6 +376,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @return {undefined}
    */
   animateMoveForSwipe: function(e, animateOptions, beginOptions, completeOptions) {
+    completeOptions.waitForXAndY = true;
     this.animateMoveForSwipeX(e, animateOptions, beginOptions, completeOptions);
     this.animateMoveForSwipeY(e, animateOptions, beginOptions, completeOptions);
   },
@@ -416,12 +422,14 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   getInertiaDuration: function(velocity) {
-    return this.inertia.durationScale * velocity;
+    return Math.abs(this.inertia.durationScale * velocity);
   },
 
   snapToContainerBounds: function() {
     var self = this;
 
+    // If we don't have container bounds, we can't snap to anything.
+    // If we are moving by scrolling, we can't snap, because the browser doesn't let you pull the element inside the bounds.
     if (!self.bounds || self.movement.scroll) {
       return;
     }
@@ -472,12 +480,14 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   animateMoveXOrY: function(value, axis, animateOptions, beginOptions, completeOptions) {
     var self = this;
     var transform;
+
+    /*
     animateOptions = animateOptions || {};
     beginOptions = beginOptions || {};
     completeOptions = completeOptions || {};
+    */
 
     if (self.movement.scroll) {
-      console.log("scroll " + axis + " " + value);
       transform = "scroll";
       animateOptions.offset = value;
       animateOptions.axis = axis;
@@ -495,13 +505,13 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     animateOptions = _.extend({
       complete: function() {
-        completeOptions.count++;
-        console.log("count " + completeOptions.count);
-        if (completeOptions.count &lt; 2 &amp;&amp; completeOptions.waitForXAndY) {
-          console.warn("suppressed animation complete");
-          return;
+        // Wait for two invocations of the callback, which signals that both X and Y animations are complete
+        if (completeOptions.waitForXAndY) {
+          completeOptions.count++;
+          if (completeOptions.count &lt; 2) {
+            return;
+          }
         }
-        console.info("animation complete");
         self.onAnimationComplete(completeOptions);
       }
     }, this.movement.animateOptions, animateOptions);
@@ -532,12 +542,18 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   onGesturePanStart: function(e) {
-    console.log("pan start");
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("pan start");
     this.updatePositionData(e.data);
   },
 
   onGesturePanAny: function(e) {
-    console.log("pan any");
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("pan any");
     this.updatePositionData(e.data);
     var animateOptions = {};
     var beginOptions = {};
@@ -546,7 +562,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   onGesturePanX: function(e) {
-    console.log("pan x");
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("pan x");
     this.updatePositionData(e.data);
     var animateOptions = {};
     var beginOptions = {};
@@ -555,7 +574,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   onGesturePanY: function(e) {
-    console.log("pan y");
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("pan y");
     this.updatePositionData(e.data);
     var animateOptions = {};
     var beginOptions = {};
@@ -563,8 +585,11 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.animateMoveForPanY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGesturePanEnd: function(/*e*/) {
-    console.log("pan end");
+  onGesturePanEnd: function(e) {
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("pan end");
     // If the user swiped, the element will still be moving when the pan ends, so don't snap to bounds
     if (!this.isAnimating) {
       this.snapToContainerBounds();
@@ -572,21 +597,22 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.clearPositionData();
   },
 
-  onGesturePanCancel: function(/*e*/) {
-    console.log("pan cancel");
-
-    // TODO: not sure what needs to be done here, if anything.
-    // The event doesn't seem to happen much or at all - not sure what causes it
-    if (this.isAnimating) {
-      this.animator.animate(this.element, "stop");
-      this.isAnimating = false;
+  onGesturePanCancel: function(e) {
+    if (e.sender.element !== this.element) {
+      return;
     }
-
-    this.clearPositionData();
+    //console.log("pan cancel");
+    // TODO: not sure what triggers this, or what is appropriate to do to handle it.
+    if (this.isAnimating) {
+      this.stopAnimation();
+    }
   },
 
   onGestureSwipeAny: function(e) {
-    console.log("swipe any");
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("swipe any");
     var animateOptions = {};
     var beginOptions = {};
     var completeOptions = { waitForXAndY: true };
@@ -594,7 +620,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   onGestureSwipeX: function(e) {
-    console.log("swipe x");
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("swipe x");
     var animateOptions = {};
     var beginOptions = {};
     var completeOptions = { waitForXAndY: false };
@@ -602,11 +631,32 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   onGestureSwipeY: function(e) {
-    console.log("swipe y");
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    //console.log("swipe y");
     var animateOptions = {};
     var beginOptions = {};
     var completeOptions = { waitForXAndY: false };
     this.animateMoveForSwipeY(e.data, animateOptions, beginOptions, completeOptions);
+  },
+
+  onGestureTap: function(e) {
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    if (this.isAnimating) {
+      this.stopAnimation();
+    }
+  },
+
+  onGesturePress: function(e) {
+    if (e.sender.element !== this.element) {
+      return;
+    }
+    if (this.isAnimating) {
+      this.stopAnimation();
+    }
   }
 });
 
@@ -627,7 +677,7 @@ module.exports = GestureHandler;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Mon Nov 17 2014 17:19:19 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Tue Nov 18 2014 10:03:20 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>

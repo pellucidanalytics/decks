@@ -27,7 +27,7 @@ function createItem() {
 }
 
 function createItems(count) {
-  count = count || 1000;
+  count = count || 20;
   var items = _.map(_.range(count), createItem);
   return items;
 }
@@ -248,4 +248,14 @@ $(function() {
 
   // Create the Deck
   var deck = new Deck(deckOptions);
+
+  /*
+  deck.on("gesture:mouse:over", function(e) {
+    console.log("mouseover", e.data.target);
+  });
+
+  deck.on("gesture:mouse:out", function(e) {
+    console.log("mouseout", e.data.target);
+  });
+  */
 });
