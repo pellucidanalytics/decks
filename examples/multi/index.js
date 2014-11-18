@@ -27,7 +27,7 @@ function createItem() {
 }
 
 function createItems(count) {
-  count = count || 20;
+  count = count || 1000;
   var items = _.map(_.range(count), createItem);
   return items;
 }
@@ -56,6 +56,9 @@ function loadRender(render) {
     };
 
     render.image.onload = function() {
+      if (!render.image) {
+        return;
+      }
       //console.log("loadRender - image loaded");
       render.element.innerHTML = "";
       render.element.appendChild(render.image);

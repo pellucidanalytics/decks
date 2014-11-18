@@ -29,12 +29,14 @@
 var Hammer = require("hammerjs");
 var binder = require("../events").binder;
 var hasEmitter = require("../events").hasEmitter;
-var dom = require("./dom");
+//var dom = require("./dom");
 var rect = require("../utils").rect;
 var DecksEvent = require("../events").DecksEvent;
 var PanEmitter = require("./panemitter");
 var SwipeEmitter = require("./swipeemitter");
 var MouseWheelEmitter = require("./mousewheelemitter");
+var MouseOverOutEmitter = require("./mouseoveroutemitter");
+var MouseEnterLeaveEmitter = require("./mouseoveroutemitter");
 var TapEmitter = require("./tapemitter");
 var PressEmitter = require("./pressemitter");
 var validate = require("../utils/validate");
@@ -75,6 +77,16 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
         horizontal: true,
         vertical: true
       },
+      mouseOverOut: {
+        enabled: true,
+        over: true,
+        out: true
+      },
+      mouseEnterLeave: {
+        enabled: true,
+        enter: true,
+        leave: true
+      },
       pan: {
         enabled: true,
         horizontal: true,
@@ -95,15 +107,24 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     bounds: null,
     movement: {
       /**
-       * If false, gestures will cause movements by changing/animating the element's top and left style.
-       * If true, gestures will cause movements by animating element's scroll position.
+       * If false, gestures will cause movements on the element by changing/animating the element's top and left style.
+       * If true, gestures will cause movements on the element by animating element's scroll position.
        */
       scroll: false,
 
       /**
        * If scroll: true, the container element must be specified.
        */
-      scrollContainerElement: null
+      scrollContainerElement: null,
+
+      /**
+       * Default animation options for moveemnts
+       */
+      animateOptions: {
+        duration: 200,
+        easing: "ease-in-out",
+        queue: false
+      }
     },
     snapping: {
       distanceThreshold: 40, // The pixel distance when pulling away from an edge, where movement resistance begins to be applied
@@ -117,7 +138,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       distanceScale: 400, // used to calculate the movement distance for an inertia-based movement (swipe gesture)
       durationScale: 60, // used to calculate the movement duration for an inertia-based movement (swipe gesture)
       animateOptions: {
-        easing: "easeOutExpo"
+        easing: "ease-out"
       }
     }
   },
@@ -129,11 +150,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     "gesture:pan:y": "onGesturePanY",
     "gesture:pan:end": "onGesturePanEnd",
     "gesture:pan:cancel": "onGesturePanCancel",
+
     "gesture:swipe:any": "onGestureSwipeAny",
     "gesture:swipe:x": "onGestureSwipeX",
-    "gesture:swipe:y": "onGestureSwipeY",
-    "gesture:tap": "onGestureTap",
-    "gesture:press": "onGesturePress"
+    "gesture:swipe:y": "onGestureSwipeY"
   },
 
   /**
@@ -143,6 +163,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     pan: PanEmitter,
     swipe: SwipeEmitter,
     mouseWheel: MouseWheelEmitter,
+    mouseOverOut: MouseOverOutEmitter,
+    mouseEnterLeave: MouseEnterLeaveEmitter,
     tap: TapEmitter,
     press: PressEmitter
   },
@@ -167,6 +189,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     validate(options, "options", { isRequired: true });
 
     this.movement = options.movement;
+
     if (this.movement.scroll &amp;&amp; !_.isElement(this.movement.scrollContainerElement)) {
       throw new Error("GestureHandler#setOptions: for scroll movement, scrollContainerElement is required");
     }
@@ -175,7 +198,6 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.snapping = options.snapping;
     this.inertia = options.inertia;
 
-    // Create and init each GestureEmitter instance
     _.each(options.gestures, function(gestureEmitterOptions, key) {
       if (!gestureEmitterOptions.enabled) {
         return;
@@ -210,9 +232,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
         console.log("GestureHandler#destroy: destroying gesture emitter: " + key);
       }
 
-      if (_.isFunction(gestureEmitter.destroy)) {
-        gestureEmitter.destroy();
-      }
+      gestureEmitter.destroy();
 
       delete this.gestureEmitters[key];
     }, this);
@@ -227,28 +247,40 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.unbindEvents(this.emitter, this.emitterEvents);
   },
 
-  updatePosition: function(e) {
+  updatePositionData: function(e) {
+    console.log("updateCurrentPosition");
     this.currentPosition = {
       event: e
     };
 
-    // If moving by scroll, record the starting scroll top and left
+    // If moving by scroll, record the starting scroll top and left, otherwise, record the style top and left
     if (this.movement.scroll) {
-      this.currentPosition.scrollTop = this.movement.scrollContainerElement.scrollTop;
-      this.currentPosition.scrollLeft = this.movement.scrollContainerElement.scrollLeft;
+      _.extend(this.currentPosition, {
+        scrollTop: this.movement.scrollContainerElement.scrollTop,
+        scrollLeft: this.movement.scrollContainerElement.scrollLeft
+      });
     } else {
-      this.currentPosition.left = dom.getStyle(this.element, "left", { parseInt: true });
-      this.currentPosition.top = dom.getStyle(this.element, "top", { parseInt: true });
+      _.extend(this.currentPosition, rect.normalize(this.element));
     }
 
     if (!this.startPosition) {
+      console.log("updateStartPosition");
       this.startPosition = this.currentPosition;
     }
   },
 
-  clearPosition: function() {
+  clearPositionData: function() {
+    console.log("clearPositionData");
     this.startPosition = null;
     this.currentPosition = null;
+  },
+
+  resetPosition: function() {
+    console.log("resetPosition");
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = { waitForXAndY: true };
+    this.animateMoveXAndY(0, 0, animateOptions, beginOptions, completeOptions);
   },
 
   /**
@@ -258,10 +290,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param elementRect - the bounding client rect of the element
    * @return {undefined}
    */
-  move: function(e, elementRect) {
-    elementRect = elementRect || rect.normalize(this.element);
-    this.moveX(e, elementRect);
-    this.moveY(e, elementRect);
+  animateMoveForPan: function(e, animateOptions, beginOptions, completeOptions) {
+    this.animateMoveForPanX(e, animateOptions, beginOptions, completeOptions);
+    this.animateMoveForPanY(e, animateOptions, beginOptions, completeOptions);
   },
 
   /**
@@ -271,33 +302,31 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param elementRect
    * @return {undefined}
    */
-  moveX: function(e, elementRect) {
-    var self = this;
+  animateMoveForPanX: function(e, animateOptions, beginOptions, completeOptions) {
+    var x;
 
-    if (self.movement.scroll) {
-      self.animator.animate(self.element, "scroll", {
-        axis: "x",
-        offset: self.startPosition.scrollLeft - e.deltaX,
-        container: self.movement.scrollContainerElement,
-        duration: 0,
-        queue: false,
-        complete: function() {
-          self.emit("gesture:element:moved", self, self.element);
-        }
-      });
+    if (this.movement.scroll) {
+      x = this.startPosition.scrollLeft - e.deltaX;
     } else {
-      elementRect = elementRect || rect.normalize(self.element);
-      var left = self.startPosition.left + e.deltaX;
-      if (self.bounds &amp;&amp; self.snapping.distanceThreshold) {
-        if (elementRect.left > self.bounds.left &amp;&amp; ((elementRect.left - self.bounds.left) > self.snapping.distanceThreshold)) {
-          left = self.startPosition.left + self.snapping.distanceThreshold + ((e.deltaX - self.snapping.distanceThreshold) * self.snapping.distanceScale);
-        } else if (elementRect.right &lt; self.bounds.right &amp;&amp; ((self.bounds.right - elementRect.right) > self.snapping.distanceThreshold)) {
-          left = self.startPosition.left - self.snapping.distanceThreshold + ((e.deltaX + self.snapping.distanceThreshold) * self.snapping.distanceScale);
+      x = this.startPosition.left + e.deltaX;
+
+      // Limit movement if the user is dragging the element towards the inside of the container bounds
+      if (this.bounds &amp;&amp; this.snapping.distanceThreshold) {
+        if ((this.currentPosition.left - this.bounds.left) > this.snapping.distanceThreshold) {
+          x = (this.startPosition.left + this.snapping.distanceThreshold) +
+            ((e.deltaX - this.snapping.distanceThreshold) * this.snapping.distanceScale);
+        } else if ((this.bounds.right - this.currentPosition.right) > this.snapping.distanceThreshold) {
+          x = (this.startPosition.left - this.snapping.distanceThreshold) +
+            ((e.deltaX + this.snapping.distanceThreshold) * this.snapping.distanceScale);
         }
       }
-      dom.setStyle(self.element, "left", left);
-      self.emit(DecksEvent("gesture:element:moved", self, self.element));
     }
+
+    animateOptions.duration = 0;
+    completeOptions.snapToContainerBounds = false;
+    completeOptions.clearPositionData = false;
+
+    this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
   },
 
   /**
@@ -307,32 +336,31 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param elementRect
    * @return {undefined}
    */
-  moveY: function(e, elementRect) {
-    var self = this;
+  animateMoveForPanY: function(e, animateOptions, beginOptions, completeOptions) {
+    var y;
 
-    if (self.movement.scroll) {
-      self.animator.animate(self.element, "scroll", {
-        offset: self.startPosition.scrollTop - e.deltaY,
-        container: self.movement.scrollContainerElement,
-        duration: 0,
-        queue: false,
-        complete: function() {
-          self.emit("gesture:element:moved", self, self.element);
-        }
-      });
+    if (this.movement.scroll) {
+      y = this.startPosition.scrollTop - e.deltaY;
     } else {
-      elementRect = elementRect || rect.normalize(self.element);
-      var top = self.startPosition.top + e.deltaY;
-      if (self.bounds &amp;&amp; self.snapping.distanceThreshold) {
-        if (elementRect.top > self.bounds.top &amp;&amp; ((elementRect.top - self.bounds.top) > self.snapping.distanceThreshold)) {
-          top = self.Starts.top + self.snapping.distanceThreshold + ((e.deltaY - self.snapping.distanceThreshold) * self.snapping.distanceScale);
-        } else if (elementRect.bottom &lt; self.bounds.bottom &amp;&amp; ((self.bounds.bottom  - elementRect.bottom) > self.snapping.distanceThreshold)) {
-          top = self.Starts.top - self.snapping.distanceThreshold + ((e.deltaY + self.snapping.distanceThreshold) * self.snapping.distanceScale);
+      y = this.startPosition.top + e.deltaY;
+
+      // Limit movement if the user is dragging the element towards the inside of the container bounds
+      if (this.bounds &amp;&amp; this.snapping.distanceThreshold) {
+        if ((this.currentPosition.top - this.bounds.top) > this.snapping.distanceThreshold) {
+          y = (this.startPosition.top + this.snapping.distanceThreshold) +
+            ((e.deltaY - this.snapping.distanceThreshold) * this.snapping.distanceScale);
+        } else if ((this.bounds.bottom - this.currentPosition.bottom) > this.snapping.distanceThreshold) {
+          y = (this.startPosition.top - this.snapping.distanceThreshold) +
+            ((e.deltaY + this.snapping.distanceThreshold) * this.snapping.distanceScale);
         }
       }
-      dom.setStyle(self.element, "top", top);
-      self.emit(DecksEvent("gesture:element:moved", self, self.element));
     }
+
+    animateOptions.duration = 0;
+    completeOptions.snapToContainerBounds = false;
+    completeOptions.clearPositionData = false;
+
+    this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
   },
 
   /**
@@ -342,91 +370,45 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  moveWithInertia: function(e) {
-    this.moveWithInertiaX(e);
-    this.moveWithInertiaY(e);
+  animateMoveForSwipe: function(e, animateOptions, beginOptions, completeOptions) {
+    this.animateMoveForSwipeX(e, animateOptions, beginOptions, completeOptions);
+    this.animateMoveForSwipeY(e, animateOptions, beginOptions, completeOptions);
   },
 
-  moveWithInertiaX: function(e) {
-    var self = this;
+  animateMoveForSwipeX: function(e, animateOptions, beginOptions, completeOptions) {
+    var distance = this.getInertiaDistance(e.velocityX);
+    var duration = this.getInertiaDuration(e.velocityX);
+    var x;
 
-    var distance = self.getInertiaDistance(e.velocityX);
-    var duration = self.getInertiaDuration(e.velocityX);
-    var transform;
-    var animateOptions;
-
-    if (self.movement.scroll) {
-      transform = "scroll";
-      animateOptions = {
-        offset: self.currentPosition.scrollLeft + distance,
-        axis: "x"
-      };
+    if (this.movement.scroll) {
+      x = this.currentPosition.scrollLeft + distance;
     } else {
-      transform = {
-       left: "-=" + distance
-      };
+      x = "-=" + distance;
     }
 
-    animateOptions = _.extend({
-      container: self.movement.scrollContainerElement,
-      duration: duration,
-      queue: false,
-      complete: function() {
-        self.isAnimating = false;
-        self.snapToContainerBounds();
-        self.emit(DecksEvent("gesture:element:moved", self, self.element));
-      }
-    }, self.inertia.animateOptions, animateOptions);
+    _.extend(animateOptions, this.inertia.animateOptions, { duration: duration });
+    completeOptions.snapToContainerBounds = true;
+    completeOptions.clearPositionData = true;
 
-    self.isAnimating = true;
-    self.emit(DecksEvent("gesture:element:moving", self, self.element));
-
-    console.log("move inertia x: ", animateOptions);
-    self.animator.animate(self.element, transform, animateOptions);
+    this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
   },
 
-  moveWithInertiaY: function(e) {
-    var self = this;
+  animateMoveForSwipeY: function(e, animateOptions, beginOptions, completeOptions) {
+    var distance = this.getInertiaDistance(e.velocityY);
+    var duration = this.getInertiaDuration(e.velocityY);
+    var y;
 
-    var distance = self.getInertiaDistance(e.velocityY);
-    var duration = self.getInertiaDuration(e.velocityY);
-    var transform;
-    var animateOptions;
-
-    console.log("start scrollTop", self.startPosition.scrollTop);
-    console.log("current scrollTop", self.currentPosition.scrollTop);
-    console.log("distance", distance);
-    console.log("duration", duration);
-    console.log("added", self.currentPosition.scrollTop + distance);
-    console.log("substracted", self.currentPosition.scrollTop - distance);
-
-    if (self.movement.scroll) {
-      transform = "scroll";
-      animateOptions = {
-        offset: self.currentPosition.scrollTop + distance,
-        container: self.movement.scrollContainerElement
-      };
+    if (this.movement.scroll) {
+      y = this.currentPosition.scrollTop + distance;
     } else {
-      transform = {
-       top: "-=" + distance
-      };
+      y = "-=" + distance;
     }
 
-    animateOptions = _.extend({
-      duration: duration,
-      queue: false,
-      complete: function() {
-        self.isAnimating = false;
-        self.snapToContainerBounds();
-        self.emit(DecksEvent("gesture:element:moved", self, self.element));
-      }
-    }, self.inertia.animateOptions, animateOptions);
+    _.extend(animateOptions, this.inertia.animateOptions, { duration: duration });
+    completeOptions.snapToContainerBounds = true;
+    completeOptions.clearPositionData = true;
 
-    self.isAnimating = true;
-    self.emit(DecksEvent("gesture:element:moving", self, self.element));
-
-    console.log("move inertia y: ", animateOptions);
-    self.animator.animate(self.element, transform, animateOptions);
+    this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
   },
 
   getInertiaDistance: function(velocity) {
@@ -440,110 +422,191 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   snapToContainerBounds: function() {
     var self = this;
 
-    // Snapping to bounds is only applicable for top/left movements (not scrolling)
     if (!self.bounds || self.movement.scroll) {
       return;
     }
 
-    // Check if the element is 
-    var elementRect = rect.normalize(self.element);
-    var properties = {};
-
-    if (elementRect.top > self.bounds.top) {
-      // Top is above the top bounds, push it back down
-      properties.top = 0;
-    } else if (elementRect.bottom &lt; self.bounds.bottom) {
-      // Bottom is below the bottom bounds, push it back up
-      properties.top = "+=" + (self.bounds.bottom - elementRect.bottom);
+    var x;
+    if (this.currentPosition.left > self.bounds.left) {
+      x = 0;
+    } else if (this.currentPosition.right &lt; self.bounds.right) {
+      x = "+=" + (self.bounds.right - this.currentPosition.right);
     }
 
-    if (elementRect.left > self.bounds.left) {
-      // Left is inside the left bounds, push it back to the right
-      properties.left = 0;
-    } else if (elementRect.right &lt; self.bounds.right) {
-      // Right is inside the right bounds, push it back to the left
-      properties.left = "+=" + (self.bounds.right - elementRect.right);
+    var y;
+    if (this.currentPosition.top > self.bounds.top) {
+      y = 0;
+    } else if (this.currentPosition.bottom &lt; self.bounds.bottom) {
+      y = "+=" + (self.bounds.bottom - this.currentPosition.bottom);
     }
 
-    if (_.isEmpty(properties)) {
-      return;
-    }
+    var animateOptions = _.extend({}, this.snapping.animateOptions);
+    var beginOptions = {};
+    var completeOptions = { snapToContainerBounds: false, clearPositionData: true };
 
-    var animateOptions = _.extend({
-      complete: function(/*elements*/) {
-        self.isAnimating = false;
-        self.emit(DecksEvent("gesture:element:moved", self, self.element));
+    if (!_.isUndefined(x) &amp;&amp; !_.isUndefined(y)) {
+      completeOptions.waitForXAndY = true;
+      this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
+      this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
+    } else if (!_.isUndefined(x)) {
+      this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
+    } else if (!_.isUndefined(y)) {
+      this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
+    }
+  },
+
+  animateMoveX: function(value, animateOptions, beginOptions, completeOptions) {
+    this.animateMoveXOrY(value, "x", animateOptions, beginOptions, completeOptions);
+  },
+
+  animateMoveY: function(value, animateOptions, beginOptions, completeOptions) {
+    this.animateMoveXOrY(value, "y", animateOptions, beginOptions, completeOptions);
+  },
+
+  animateMoveXAndY: function(x, y, animateOptions, beginOptions, completeOptions) {
+    completeOptions.waitForXAndY = true;
+    this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
+    this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
+  },
+
+  animateMoveXOrY: function(value, axis, animateOptions, beginOptions, completeOptions) {
+    var self = this;
+    var transform;
+    animateOptions = animateOptions || {};
+    beginOptions = beginOptions || {};
+    completeOptions = completeOptions || {};
+
+    if (self.movement.scroll) {
+      console.log("scroll " + axis + " " + value);
+      transform = "scroll";
+      animateOptions.offset = value;
+      animateOptions.axis = axis;
+      animateOptions.container = self.movement.scrollContainerElement;
+    } else {
+      transform = {};
+      if (axis === "x") {
+        transform.left = value;
+      } else {
+        transform.top = value;
       }
-    }, self.snapping.animateOptions);
+    }
 
-    self.isAnimating = true;
-    self.emit(DecksEvent("gesture:element:moving", self, self.element));
-    self.animator.animate(self.element, properties, animateOptions);
+    completeOptions.count = 0;
+
+    animateOptions = _.extend({
+      complete: function() {
+        completeOptions.count++;
+        console.log("count " + completeOptions.count);
+        if (completeOptions.count &lt; 2 &amp;&amp; completeOptions.waitForXAndY) {
+          console.warn("suppressed animation complete");
+          return;
+        }
+        console.info("animation complete");
+        self.onAnimationComplete(completeOptions);
+      }
+    }, this.movement.animateOptions, animateOptions);
+
+    this.isAnimating = true;
+
+    if (!beginOptions.silent) {
+      this.emit(DecksEvent("gesture:element:moving", this, this.element));
+    }
+
+    self.animator.animate(self.element, transform, animateOptions);
+  },
+
+  onAnimationComplete: function(options) {
+    this.isAnimating = false;
+
+    if (options.snapToContainerBounds) {
+      this.snapToContainerBounds();
+    }
+
+    if (options.clearPositionData) {
+      this.clearPositionData();
+    }
+
+    if (!options.silent) {
+      this.emit(DecksEvent("gesture:element:moved", this, this.element));
+    }
   },
 
   onGesturePanStart: function(e) {
     console.log("pan start");
-    this.updatePosition(e.data);
+    this.updatePositionData(e.data);
   },
 
   onGesturePanAny: function(e) {
     console.log("pan any");
-    this.updatePosition(e.data);
-    this.move(e.data);
+    this.updatePositionData(e.data);
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = { waitForXAndY: true };
+    this.animateMoveForPan(e.data, animateOptions, beginOptions, completeOptions);
   },
 
   onGesturePanX: function(e) {
     console.log("pan x");
-    this.updatePosition(e.data);
-    this.moveX(e.data);
+    this.updatePositionData(e.data);
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = { waitForXAndY: false };
+    this.animateMoveForPanX(e.data, animateOptions, beginOptions, completeOptions);
   },
 
   onGesturePanY: function(e) {
     console.log("pan y");
-    this.updatePosition(e.data);
-    this.moveY(e.data);
+    this.updatePositionData(e.data);
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = { waitForXAndY: false };
+    this.animateMoveForPanY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
   onGesturePanEnd: function(/*e*/) {
     console.log("pan end");
+    // If the user swiped, the element will still be moving when the pan ends, so don't snap to bounds
     if (!this.isAnimating) {
-      if (this.config.debugGestures) {
-        console.log("GestureHandler#onGesturePanEnd: snap to bounds");
-      }
       this.snapToContainerBounds();
     }
-    this.clearPosition();
+    this.clearPositionData();
   },
 
   onGesturePanCancel: function(/*e*/) {
     console.log("pan cancel");
-    // TODO: not sure what needs to be done here, if anything
+
+    // TODO: not sure what needs to be done here, if anything.
+    // The event doesn't seem to happen much or at all - not sure what causes it
     if (this.isAnimating) {
       this.animator.animate(this.element, "stop");
       this.isAnimating = false;
     }
-    this.clearPosition();
+
+    this.clearPositionData();
   },
 
   onGestureSwipeAny: function(e) {
     console.log("swipe any");
-    this.moveWithInertia(e.data);
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = { waitForXAndY: true };
+    this.animateMoveForSwipe(e.data, animateOptions, beginOptions, completeOptions);
   },
 
   onGestureSwipeX: function(e) {
     console.log("swipe x");
-    this.moveWithInertiaX(e.data);
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = { waitForXAndY: false };
+    this.animateMoveForSwipeX(e.data, animateOptions, beginOptions, completeOptions);
   },
 
   onGestureSwipeY: function(e) {
     console.log("swipe y");
-    this.moveWithInertiaY(e.data);
-  },
-
-  onGestureTap: function(/*e*/) {
-  },
-
-  onGesturePress: function(/*e*/) {
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = { waitForXAndY: false };
+    this.animateMoveForSwipeY(e.data, animateOptions, beginOptions, completeOptions);
   }
 });
 
@@ -558,13 +621,13 @@ module.exports = GestureHandler;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 14 2014 17:14:30 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Mon Nov 17 2014 17:19:19 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>

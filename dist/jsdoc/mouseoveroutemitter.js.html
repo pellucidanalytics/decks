@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: decks/utils</title>
+    <title>JSDoc: Source: ui/mouseoveroutemitter.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,261 +17,76 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: decks/utils</h1>
-
-    
-
-
-
-<section>
-
-<header>
-    <h2>
-    decks/utils
-    </h2>
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-
-    
-        
-            <div class="description">Index module for utility modules/classes/mixins/etc.</div>
-        
-
-        
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js____.html">utils/index.js</a>, <a href="index.js____.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Members</h3>
-
-        <dl>
-            
-<dt>
-    <h4 class="name" id="browser"><span class="type-signature">&lt;static> </span>browser<span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        Provides access to the module:decks/utils/browser module.
-    </div>
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js____.html">utils/index.js</a>, <a href="index.js____.html#line10">line 10</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="rect"><span class="type-signature">&lt;static> </span>rect<span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        Provides access to the <a href="rect.html">module:decks/utils/rect</a> module.
-    </div>
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js____.html">utils/index.js</a>, <a href="index.js____.html#line15">line 15</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="validate"><span class="type-signature">&lt;static> </span>validate<span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        Provides access to the module:decks/utils/validate module.
-    </div>
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js____.html">utils/index.js</a>, <a href="index.js____.html#line20">line 20</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-</dd>
-
-        </dl>
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+    <h1 class="page-title">Source: ui/mouseoveroutemitter.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var _ = require("lodash");
+var GestureEmitter = require("./gestureemitter");
+var DecksEvent = require("../events/decksevent");
+
+/**
+ * Class that emits or provides support for mouseover and mouseout events on an element
+ *
+ * @class
+ * @extends GestureEmitter
+ * @param {Element} element - element for which to monitor for pan gestures/events.
+ * @param {?Object} options - Additional options
+ * @param {?boolean} [options.horizontal=false] - Whether to monitor horizontal pan gestures.
+ * @param {?boolean} [options.vertical=true] - Whether to monitor vertical pan gestures.
+ * @param {?number} [options.threshold=0] - Threshold distance before pan gestures are detected.
+ */
+function MouseOverOutEmitter(element, options) {
+  if (!(this instanceof MouseOverOutEmitter)) {
+    return new MouseOverOutEmitter(element, options);
+  }
+
+  options = _.merge({}, this.defaultOptions, options);
+
+  GestureEmitter.call(this, element, options);
+
+  this.over = !!options.over;
+  this.out = !!options.out;
+
+  this.bindElementEvents();
+}
+
+MouseOverOutEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends MouseOverOutEmitter.prototype */ {
+  constructor: MouseOverOutEmitter,
+
+  defaultOptions: _.merge({}, GestureEmitter.prototype.defaultOptions, {
+    over: true,
+    out: true
+  }),
+
+  getElementEvents: function() {
+    var map = {};
+    if (this.over) {
+      map.mouseover = "onMouseOver";
+    }
+    if (this.out) {
+      map.mouseout = "onMouseOut";
+    }
+    return map;
+  },
+
+  onMouseOver: function(e) {
+    this.emit(DecksEvent("gesture:mouse:over", this, e));
+  },
+
+  onMouseOut: function(e) {
+    this.emit(DecksEvent("gesture:mouse:out", this, e));
+  }
+});
+
+module.exports = MouseOverOutEmitter;
+</code></pre>
+        </article>
+    </section>
 
 
 
