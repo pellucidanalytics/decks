@@ -31,6 +31,7 @@ var hasEmitter = require("./events").hasEmitter;
 var DecksEvent = require("./events").DecksEvent;
 var dom = require("./ui").dom;
 var ItemCollection = require("./itemcollection");
+var Item = require("./item");
 var Layout = require("./layout");
 var Frame = require("./frame");
 var Canvas = require("./canvas");
@@ -67,12 +68,12 @@ function Viewport(options) {
   this.slotRenderDelay = options.slotRenderDelay;
 
   /**
-   * Debounced version of load or unload renders
+   * Debounced version of {@link Viewport#loadOrUnloadRenders}
    */
   this.debouncedLoadOrUnloadRenders = _.debounce(_.bind(this.loadOrUnloadRenders, this), this.debouncedLoadOrUnloadRendersWait);
 
   /**
-   * Debounced version of drawItems
+   * Debounced version of {@link Viewport#drawItems}
    */
   this.debouncedDrawItems = _.debounce(_.bind(this.drawItems, this), this.debouncedDrawItemsWait);
 
@@ -190,46 +191,82 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     "gesture:element:moved": "onGestureElementMoved"
   },
 
+  /**
+   * Sets the animator instance
+   *
+   * @param animator
+   * @return {undefined}
+   */
   setAnimator: function(animator) {
     validate(animator, "animator", { isPlainObject: true, isNotSet: this.animate });
     this.animator = this.layoutMethodOptions.animator = animator;
   },
 
+  /**
+   * Sets the configuration object
+   *
+   * @param config
+   * @return {undefined}
+   */
   setConfig: function(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = this.layoutMethodOptions.config = config;
   },
 
+  /**
+   * Sets the {@link ItemCollection} instance
+   *
+   * @param itemCollection
+   * @return {undefined}
+   */
   setItemCollection: function(itemCollection) {
     validate(itemCollection, "itemCollection", { isInstanceOf: ItemCollection, isNotSet: this.itemCollection });
     this.itemCollection = this.layoutMethodOptions.itemCollection = itemCollection;
   },
 
+  /**
+   * Sets the {@link Layout} instance
+   *
+   * @param layout
+   * @return {undefined}
+   */
   setLayout: function(layout) {
     validate(layout, "layout", { isInstanceOf: Layout });
     this.layout = this.layoutMethodOptions.layout = layout;
   },
 
+  /**
+   * Sets the {@link Frame} instance
+   *
+   * @param frame
+   * @return {undefined}
+   */
   setFrame: function(frame) {
     validate(frame, "frame", { isInstanceOf: Frame, isNotSet: this.frame });
     this.frame = this.layoutMethodOptions.frame = frame;
   },
 
+  /**
+   * Sets the {@link Canvas} instance
+   *
+   * @param canvas
+   * @return {undefined}
+   */
   setCanvas: function(canvas) {
     validate(canvas, "canvas", { isInstanceOf: Canvas, isNotSet: this.canvas });
     this.canvas = this.layoutMethodOptions.canvas = canvas;
   },
 
   /**
-   * Starts the drawing (animation) process for an Item.
+   * Starts the drawing (animation) process for an {@link Item}.
    *
-   * 1. Request one or more "render" objects from the Layout.  A "render" is basically
+   * 1. Get one or more "render" objects from the {@link Layout} for the {@link Item}.  A "render" is
    * an object that specifies where to place an item in the canvas, along with animation
-   * information to animate the positioning/transform/delay/druation/etc.  A Layout can provide
-   * more than one render for an single Item, if the item needs to be displayed multiple times within
-   * the canvas (e.g. if one item belongs in multiple visual collections on the screen).
+   * options to animate the positioning/transform/delay/druation/etc.  A Layout can provide zero, one,
+   * or more renders for an single {@link Item}, if the {@link Item} needs to be displayed multiple times within
+   * the {@link Canvas} (e.g. if one {@link Item} should have multiple visual representations on the screen).
    *
-   * 2. Initiate the draw process for each render.
+   * 2. Initiate the async draw process for each render.
    *
    * @param {!Item} item item to draw
    * @param {?Object} options - additional options for drawing
@@ -237,6 +274,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawItem: function(item, options) {
+    validate(item, "item", { isInstanceOf: Item });
+
     if (!this.isDeckReady) {
       if (this.config.debugDrawing) {
         console.warn("Viewport#drawItem: not drawing - deck is not ready");
@@ -244,7 +283,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
-    // Give the layout some contextual info/objects to help with creating renders
     var layoutRenders = this.layout.getRenders(item, this.layoutMethodOptions) || [];
 
     if (!_.isArray(layoutRenders)) {
@@ -292,6 +330,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseItem: function(item) {
+    validate(item, "item", { isInstanceOf: Item });
+
     // Mark the item for removal once all the renders for the item are hidden and removed
     item.isRemoving = true;
 
@@ -318,6 +358,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   removeItem: function(item) {
+    validate(item, "item", { isInstanceOf: Item });
     delete this.renders[item.id];
   },
 
@@ -340,6 +381,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
         .value();
     }
 
+    validate(item, "item", { isInstanceOf: Item });
+
     if (!this.renders[item.id]) {
       this.renders[item.id] = {};
     }
@@ -347,11 +390,17 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     return this.renders[item.id];
   },
 
+  getRender: function(item, renderIdOrIndex) {
+    validate(item, "item", { isInstanceOf: Item });
+    var renderId = "" + (renderIdOrIndex || 0);
+    return this.getRenders(item)[renderId];
+  },
+
   /**
    * Checks if an Item currently has any renders stored in the Viewport items/renders
    * data structure.
    *
-   * @param {!Item} item Item for which to check for the existence of renders
+   * @param {?Item} item - Item for which to check for the existence of renders (or undefined to see if any renders exist)
    * @return {boolean} true if the Item has renders, otherwise false
    */
   hasRenders: function(item) {
@@ -368,6 +417,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   setRender: function(render) {
+    validate(render, "render", { isRequired: true });
+
     var renders = this.getRenders(render.item);
 
     renders[render.id] = render;
@@ -393,6 +444,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawRender: function(render) {
+    validate(render, "render", { isRequired: true });
     var self = this;
 
     self.setDefaultRenderAnimateOptions(render);
@@ -427,6 +479,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * after a certain threshold, and staggers small groups of them to gain better animation performance.
    */
   drawRenderWithAnimationSlots: function(render) {
+    validate(render, "render", { isRequired: true });
     var self = this;
 
     self.setDefaultRenderAnimateOptions(render);
@@ -488,6 +541,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawRenders: function(item, renders) {
+    validate(item, "item", { isInstanceOf: Item });
+    validate(renders, "renders", { isPlainObject: true });
+
     // Get the new render ids
     var newRenderIds = _.keys(renders);
 
@@ -575,6 +631,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseRender: function(render) {
+    validate(render, "render", { isRequired: true });
+
     // Flag this render to be removed when the hide animation is complete
     render.isRemoving = true;
 
@@ -587,7 +645,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   /**
    * Removes all the renders for an item
    *
-   * @param {!Item} item item from which to remove all renders
+   * @param {?Item} item - item from which to remove all renders, or undefined to remove all renders
    * @param {?Number} index index of item, if known
    * @param {?Object} options additional options
    * @return {undefined}
@@ -608,6 +666,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   removeRender: function(render) {
+    validate(render, "render", { isRequired: true });
+
     var renders = this.getRenders(render.item);
 
     delete renders[render.id];
@@ -622,6 +682,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {Object} hash of animation options
    */
   setDefaultRenderAnimateOptions: function(render) {
+    validate(render, "render", { isRequired: true });
+
     var self = this;
 
     // Add the "complete" callback for velocity animation complete
@@ -639,6 +701,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {HTMLElement} detached DOM element which will become the container for a render element.
    */
   createRenderElement: function(item, render) {
+    validate(item, "item", { isInstanceOf: Item });
+    validate(render, "render", { isRequired: true });
+
     var element = dom.create("div");
 
     dom.addClass(element, this.config.itemClassName);
@@ -657,6 +722,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * a previous render, and the element will be re-used for a transition, this method is not called.
    */
   initializeRender: function(render) {
+    validate(render, "render", { isRequired: true });
     this.layout.initializeRender(render, this.layoutMethodOptions);
   },
 
@@ -667,6 +733,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   loadRender: function(render) {
+    validate(render, "render", { isRequired: true });
+
     // TODO: should there be a requestAnimationFrame here?
     this.layout.loadRender(render, this.layoutMethodOptions);
 
@@ -682,6 +750,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   unloadRender: function(render) {
+    validate(render, "render", { isRequired: true });
+
     // TODO: should there be a requestAnimationFrame here?
     this.layout.unloadRender(render, this.layoutMethodOptions);
   },
@@ -698,6 +768,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {boolean}
    */
   shouldLoadRender: function(render) {
+    validate(render, "render", { isRequired: true });
+
     // TODO: not sure what's the best ordering/combination of these checks
     return this.layout.shouldLoadRender(render) ||
       render.isLoadNeeded ||
@@ -728,6 +800,31 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     _.each(this.getRenders(), function(render) {
       this.loadOrUnloadRender(render);
     }, this);
+  },
+
+  /**
+   * Pans the {@link Canvas} to the {@link Item}'s render element specified by renderIdOrIndex.
+   *
+   * @param {!Item} item - item to pan to
+   * @param {?(string|number)} [renderIdOrIndex=0] - render id or index to pan to
+   * @return {undefined}
+   */
+  panToItem: function(item, renderIdOrIndex) {
+    validate(item, "item", { isInstanceOf: Item });
+
+    var render = this.getRender(item, renderIdOrIndex);
+
+    if (!render) {
+      throw new Error("Viewport#panToItem: No render found for item " + item.id + " with render id or index " + renderIdOrIndex);
+    }
+
+    if (!render.element) {
+      throw new Error("Viewport#panToItem: No render element found for item " + item.id + " with render id or index " + renderIdOrIndex);
+    }
+
+    var panOffsets = this.layout.getPanToItemOffsets(item, render, this.layoutMethodOptions);
+
+    this.canvas.panToElement(render.element, panOffsets.x, panOffsets.y);
   },
 
   /**
@@ -872,7 +969,7 @@ module.exports = Viewport;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Tue Nov 18 2014 10:14:06 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 19 2014 14:08:30 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -78,6 +78,7 @@ function unloadRender(render) {
   render.image = null;
 }
 
+
 var layouts = {
   grid1: new BasicGridLayout({
     itemWidth: 100,
@@ -258,4 +259,44 @@ $(function() {
     console.log("mouseout", e.data.target);
   });
   */
+
+  // Test the deck.panToItem method by tapping on an element
+  deck.on("gesture:tap", function(e) {
+    var $target = $(e.data.target).closest(".decks-item");
+    if (!$target.length) {
+      return;
+    }
+
+    var itemId = $target.data("item-id");
+
+    $target.addClass("panning-to");
+    setTimeout(function() {
+      $target.removeClass("panning-to");
+    }, 2000);
+
+    deck.panToItem(itemId);
+  });
+
+  // Test the setLayoutAndPanToItem method by pressing an element
+  deck.on("gesture:press", function(e) {
+    var $target = $(e.data.target).closest(".decks-item");
+    if (!$target.length) {
+      return;
+    }
+
+    var itemId = $target.data("item-id");
+
+    $target.addClass("panning-to");
+    setTimeout(function() {
+      $target.removeClass("panning-to");
+    }, 2000);
+
+    if (deck.layout === layouts.zoom) {
+      deck.setLayoutAndPanToItem(layouts.grid1, itemId);
+      $layoutSelect.val("grid1");
+    } else {
+      deck.setLayoutAndPanToItem(layouts.zoom, itemId);
+      $layoutSelect.val("zoom");
+    }
+  });
 });

@@ -28,6 +28,9 @@ body {
   width: 100%;
   height: 100%;
 }
+.decks-item.panning-to {
+  outline: 5px solid #008000;
+}
 .controls {
   position: absolute;
   top: 10px;
