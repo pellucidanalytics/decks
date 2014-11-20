@@ -36,7 +36,40 @@ describe("decks.ui.dom", function() {
     });
   });
 
+  describe("parse", function() {
+    it("should parse HTML", function() {
+      var html = "<hr/>";
+      var element = dom.parse(html);
+      expect(element.outerHTML).to.eql("<hr>");
+    });
+  });
+
+  describe("text", function(){
+    it("should get inner text", function() {
+      var element = dom.create("div");
+      element.innerHTML = "<div>Testing</div>";
+      expect(dom.text(element)).to.eql("Testing");
+    });
+
+    it("should set inner text", function() {
+      var element = dom.create("div");
+      element.innerHTML = "<div>Testing</div>";
+      expect(dom.text(element)).to.eql("Testing");
+      dom.text(element, "Something else");
+      expect(dom.text(element)).to.eql("Something else");
+      expect(element.textContent || element.innerText).to.eql("Something else");
+    });
+  });
+
   describe("empty", function() {
+    it("should empty the contents of an element", function() {
+      var element = dom.create("div");
+      element.innerHTML = "<h1>Hi</h1><p>Testing</p>";
+      expect(element.firstChild.tagName).to.eql("H1");
+      expect(element.children.length).to.eql(2);
+      dom.empty(element);
+      expect(element.children.length).to.eql(0);
+    });
   });
 
   describe("append", function() {
