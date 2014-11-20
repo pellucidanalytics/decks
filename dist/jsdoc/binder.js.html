@@ -26,6 +26,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>var _ = require("lodash");
+var Emitter = require("./emitter");
 var browser = require("../utils/browser");
 
 /**
@@ -48,28 +49,30 @@ var binder = {
   bindEvents: function(source, eventToMethodMap) {
     _.each(eventToMethodMap, function(methodName, eventName) {
       if (!_.isFunction(this[methodName])) {
-        throw new Error("binder#bindEvents: target object does not have a method named " + methodName);
+        throw new Error("binder#bindEvents: event target object does not have a method named " + methodName);
       }
 
       var eventNames = this.getEventNames(eventName);
 
       _.each(eventNames, function(eventName) {
-        var bindMethodName = this.getBindMethodName(source, eventName);
+        var onMethodName = this.getOnMethodName(source);
 
-        var boundMethodName = this.getBoundMethodName(methodName);
-
-        if (!_.isFunction(this[boundMethodName])) {
-          this[boundMethodName] = _.bind(this[methodName], this);
-        }
-
-        if (eventName === "*") {
-          source[bindMethodName](this[boundMethodName]);
+        if (source instanceof Emitter) {
+          // Assuming the on method supports a context arg, so we don't need to _.bind the method
+          source[onMethodName](eventName, this[methodName], this);
         } else {
+          // Not assuming the on method supports a context arg, so we need to _.bind the method
+          var boundMethodName = this.getBoundMethodName(methodName);
+          if (!_.isFunction(this[boundMethodName])) {
+            this[boundMethodName] = _.bind(this[methodName], this);
+          }
+
           // IE8 prefixes the event name with "on"
-          if (bindMethodName === "attachEvent") {
+          if (onMethodName === "attachEvent") {
             eventName = "on" + eventName;
           }
-          source[bindMethodName](eventName, this[boundMethodName]);
+
+          source[onMethodName](eventName, this[boundMethodName]);
         }
       }, this);
     }, this);
@@ -88,22 +91,25 @@ var binder = {
       var eventNames = this.getEventNames(eventName);
 
       _.each(eventNames, function(eventName) {
-        var unbindMethodName = this.getUnbindMethodName(source, eventName);
+        var offMethodName = this.getOffMethodName(source, eventName);
 
-        var boundMethodName = this.getBoundMethodName(methodName);
-
-        if (!this[boundMethodName]) {
-          return;
-        }
-
-        if (eventName === "*") {
-          source[unbindMethodName](this[boundMethodName]);
+        if (source instanceof Emitter) {
+          // Assuming the off method supports a context arg, so we don't need to _.bind the method
+          source[offMethodName](eventName, this[methodName], this);
         } else {
-          // IE8 prefixes event names with "on"
-          if (unbindMethodName === "detachEvent") {
+          // Not assuming the off method supports a context arg, get the _.bind copy of the method
+          var boundMethodName = this.getBoundMethodName(methodName);
+
+          if (!this[boundMethodName]) {
+            return;
+          }
+
+          // IE8 prefixes event names with "on" (e.g. onmouseup)
+          if (offMethodName === "detachEvent") {
             eventName = "on" + eventName;
           }
-          source[unbindMethodName](eventName, this[boundMethodName]);
+
+          source[offMethodName](eventName, this[boundMethodName]);
         }
       }, this);
     }, this);
@@ -116,22 +122,14 @@ var binder = {
    * @param {!*} source object that emits events
    * @return {String} first method name that could be used to bind events.
    */
-  getBindMethodName: function(source, eventName) {
-    if (eventName === "*") {
-      if (_.isFunction(source.onAny)) {
-        return "onAny";
-      } else {
-        throw new Error("binder#getBindMethodName: event source object does not have an onAny method");
-      }
-    }
-
+  getOnMethodName: function(source) {
     var name = _.find(["on", "addListener", "addEventListener", "attachEvent"], function(name) {
       // "attachEvent" is not a "function" in IE8 (WTF)
       return _.isFunction(source[name]) || (browser.isIE8 &amp;&amp; source[name]);
     });
 
     if (!name) {
-      throw new Error("binder#getBindMethodName: event source object does not have an event binding method");
+      throw new Error("binder#getOnMethodName: event source object does not have an event binding method");
     }
 
     return name;
@@ -144,22 +142,14 @@ var binder = {
    * @param {!*} source object which emits events
    * @return {String} first method name that could be used to unbind events.
    */
-  getUnbindMethodName: function(source, eventName) {
-    if (eventName === "*") {
-      if (_.isFunction(source.offAny)) {
-        return "offAny";
-      } else {
-        throw new Error("binder#getUnbindMethodName: event source does not have an offAny method");
-      }
-    }
-
+  getOffMethodName: function(source) {
     var name = _.find(["off", "removeListener", "removeEventListener", "detachEvent"], function(name) {
       // "detachEvent" is not a "function" in IE8 (WTF)
       return _.isFunction(source[name]) || (browser.isIE8 &amp;&amp; source[name]);
     });
 
     if (!name) {
-      throw new Error("binder#getUnbindMethodName: event source object does not have an event unbinding method");
+      throw new Error("binder#getOffMethodName: event source object does not have an event unbinding method");
     }
 
     return name;
@@ -216,7 +206,7 @@ module.exports = binder;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Tue Nov 18 2014 10:14:06 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 20 2014 14:42:06 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
