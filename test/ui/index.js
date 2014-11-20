@@ -1,2 +1,10 @@
 require("./dom.spec");
 require("./gestureemitter.spec");
+require("./gesturehandler.spec");
+require("./mouseenterleaveemitter.spec");
+require("./mouseoveroutemitter.spec");
+require("./mousewheelemitter.spec");
+require("./panemitter.spec");
+require("./pressemitter.spec");
+require("./swipeemitter.spec");
+require("./tapemitter.spec");
