@@ -160,14 +160,18 @@ describe("decks.Viewport", function() {
       expect(viewport.renders["0"]).to.be.Undefined;
     });
 
-    xit("should emit an event", function() {
+    it("should emit an event", function() {
       var item = new Item({ "id": "0" });
       viewport.renders["0"] = {};
       var spy = sinon.spy();
-      emitter.on("viewport:item:removed", spy);
+      emitter.on("viewport:item:erased", spy);
       viewport.removeItem(item);
-      expect(spy).to.have.been.calledWith(DecksEvent("viewport:item:removed", viewport, item));
-
+      expect(spy).to.have.been.calledWithMatch(function(e) {
+        return e instanceof DecksEvent &&
+          e.type === "viewport:item:erased" &&
+          e.sender === viewport &&
+          e.data === item;
+      });
     });
   });
 
@@ -249,8 +253,9 @@ describe("decks.Viewport", function() {
       mockAnimator.expects("animate").once().withArgs(sinon.match(function(arg) {
         return arg.elements === render.element &&
           arg.properties === render.transform &&
-          arg.options;
+          !!arg.options;
       }));
+      //viewport.animator = mockAnimator;
       viewport.drawRender(render);
       mockAnimator.verify();
     });

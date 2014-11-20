@@ -129,9 +129,40 @@ function Viewport(options) {
   this.renders = {};
 
   /**
+   * Keyed object of custom render objects.  The key is the custom Render id.
+   *
+   * A custom render is an object with an element/transform/etc., which is drawn on the
+   * {@link Canvas}, but is not associated with an {@link Item} in the {@link ItemCollection}.
+   *
+   * This might be a custom divider line, label, etc.
+   *
+   * @example Internal Viewport custom renders data structure
+   * {
+   *   "0": {
+   *     element: ...,
+   *     transform: {
+   *       ...
+   *     },
+   *     animateOptions: {
+   *       ...
+   *     },
+   *     someOtherProperty: {
+   *       ...
+   *     }
+   *   }
+   * }
+   */
+  this.customRenders = {};
+
+  /**
    * Keeps track of how many renders are currently being drawn
    */
   this.rendersDrawingCount = 0;
+
+  /**
+   * Keeps track of the number of custom renders being drawn
+   */
+  this.customRendersDrawingCount = 0;
 
   /**
    * Flag that indicates if the deck is ready.  Drawing actions are suppressed
@@ -333,7 +364,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(item, "item", { isInstanceOf: Item });
 
     // Mark the item for removal once all the renders for the item are hidden and removed
-    item.isRemoving = true;
+    item.isErasing = true;
 
     this.eraseRenders(item);
   },
@@ -360,6 +391,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   removeItem: function(item) {
     validate(item, "item", { isInstanceOf: Item });
     delete this.renders[item.id];
+    this.emit(DecksEvent("viewport:item:erased", this, item));
   },
 
   /**
@@ -455,7 +487,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.log("Viewport#drawRender: renders drawing count: " + self.rendersDrawingCount);
     }
 
-    var eventName = render.isRemoving ? "viewport:render:erasing" : "viewport:render:drawing";
+    var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
 
     raf(function() {
       // This event is handled by the Canvas (among other things), to make sure the element is in the DOM
@@ -490,7 +522,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.log("Viewport#drawRender: renders drawing count: " + self.rendersDrawingCount);
     }
 
-    var eventName = render.isRemoving ? "viewport:render:erasing" : "viewport:render:drawing";
+    var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
 
     // stagger the element creation and animation into batches
     var renderSlotIndex = parseInt(self.rendersDrawingCount / this.itemsPerRenderSlot, 10);
@@ -634,7 +666,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(render, "render", { isRequired: true });
 
     // Flag this render to be removed when the hide animation is complete
-    render.isRemoving = true;
+    render.isErasing = true;
 
     this.layout.setHideAnimation(render, this.layoutMethodOptions);
 
@@ -691,7 +723,20 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       render.animationCompleteData = {
         elements: elements
       };
-      self.onAnimationComplete(render);
+      self.onRenderAnimationComplete(render);
+    };
+  },
+
+  setDefaultCustomRenderAnimateOptions: function(customRender) {
+    validate(customRender, "customRender", { isRequired: true });
+
+    var self = this;
+
+    customRender.animateOptions.complete = function(elements) {
+      customRender.animationCompleteData = {
+        elements: elements
+      };
+      self.onCustomRenderAnimationComplete(customRender);
     };
   },
 
@@ -716,6 +761,20 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     return element;
   },
 
+  createCustomRenderElement: function(customRender) {
+    validate(customRender, "customRender", { isRequired: true });
+
+    var element = dom.create("div");
+
+    dom.addClass(element, this.config.customRenderClassName);
+    dom.setStyle(element, "position", "absolute");
+    dom.setStyle(element, "top", 0);
+    dom.setStyle(element, "left", 0);
+    dom.setAttr(element, "data-custom-render-id", customRender.id);
+
+    return element;
+  },
+
   /**
    * Called when a new element is created for use as a render.  This gives the {@link Layout}
    * the opportunity to customize the initial state of the render.  If an element already exists for
@@ -724,6 +783,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   initializeRender: function(render) {
     validate(render, "render", { isRequired: true });
     this.layout.initializeRender(render, this.layoutMethodOptions);
+  },
+
+  initializeCustomRender: function(customRender) {
+    validate(customRender, "customRender", { isRequired: true });
+    this.layout.initializeCustomRender(customRender, this.layoutMethodOptions);
   },
 
   /**
@@ -827,6 +891,107 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.canvas.panToElement(render.element, panOffsets.x, panOffsets.y);
   },
 
+  getCustomRenders: function() {
+    return this.customRenders;
+  },
+
+  getCustomRender: function(id) {
+    return this.customRenders[id];
+  },
+
+  setCustomRender: function(customRender) {
+    this.customRenders[customRender.id] = customRender;
+  },
+
+  removeCustomRender: function(customRender) {
+    delete this.customRenders[customRender.id];
+  },
+
+  hasCustomRenders: function() {
+    return !_.isEmpty(this.customRenders);
+  },
+
+  drawCustomRender: function(customRender) {
+    validate(customRender, "customRender", { isRequired: true });
+    var self = this;
+
+    self.setDefaultCustomRenderAnimateOptions(customRender);
+
+    self.customRendersDrawingCount++;
+
+    if (self.config.debugDrawing) {
+      console.log("Viewport#drawCustomRender: custom renders drawing count: " + self.customRendersDrawingCount);
+    }
+
+    var eventName = customRender.isErasing ? "viewport:custom:render:erasing" : "viewport:custom:render:drawing";
+
+    raf(function() {
+      // This event is handled by the Canvas (among other things), to make sure the element is in the DOM
+      // before the animation starts.
+      // Do this in one animation frame, and then start the animation in the next frame
+      self.emit(DecksEvent(eventName, self, customRender));
+
+      raf(function() {
+        // Start the animation now
+        self.animator.animate({
+          elements: customRender.element,
+          properties: customRender.transform,
+          options: customRender.animateOptions
+        });
+      });
+    });
+  },
+
+  drawCustomRenders: function() {
+    var layoutCustomRenders = this.layout.getCustomRenders(this.getCustomRenders(), this.layoutMethodOptions) || [];
+
+    if (!_.isArray(layoutCustomRenders)) {
+      layoutCustomRenders = [layoutCustomRenders];
+    }
+
+    var customRenders = {};
+    _.each(layoutCustomRenders, function(customRender, index) {
+      customRender.id = "" + index;
+      customRenders[customRender.id] = customRender;
+    }, this);
+
+    var customRenderIds = _.keys(customRenders);
+    var previousCustomRenders = this.getCustomRenders();
+    var previousCustomRenderIds = _.keys(previousCustomRenders);
+    var customRenderIdsToMerge = _.intersection(customRenderIds, previousCustomRenderIds);
+    var customRenderIdsToAdd = _.difference(customRenderIds, customRenderIdsToMerge);
+    var customRenderIdsToRemove = _.difference(previousCustomRenderIds, customRenderIdsToMerge);
+
+    _.each(customRenderIdsToMerge, function(id) {
+      var mergedCustomRender  = _.merge({}, previousCustomRenders[id], customRenders[id]);
+      this.drawCustomRender(mergedCustomRender);
+    }, this);
+
+    _.each(customRenderIdsToAdd, function(id) {
+      var customRender = customRenders[id];
+      customRender.element = this.createCustomRenderElement();
+      this.initializeCustomRender(customRender);
+      this.drawCustomRender(customRender);
+    }, this);
+
+    _.each(customRenderIdsToRemove, function(id) {
+      var customRender = previousCustomRenders[id];
+      this.eraseCustomRender(customRender);
+    }, this);
+  },
+
+  eraseCustomRender: function(customRender) {
+    validate(customRender, "customRender", { isRequired: true });
+    customRender.isErasing = true;
+    this.drawCustomRender(customRender);
+  },
+
+  eraseCustomRenders: function() {
+    _.each(this.getCustomRenders(), function(customRender) {
+      this.eraseCustomRender(customRender);
+    }, this);
+  },
+
   /**
    * Called when the deck is ready.  Starts the drawing cycle for the items.
    *
@@ -910,15 +1075,15 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.eraseItem(item);
   },
 
-  onAnimationComplete: function(render) {
+  onRenderAnimationComplete: function(render) {
     var self = this;
 
-    if (render.isRemoving) {
+    if (render.isErasing) {
       // Erase animation completed - if render is flagged for removal, remove it now
       self.removeRender(render);
 
       // If the render's item is flagged for removal, and all renders are now removed, remove the item
-      if (render.item.isRemoving &amp;&amp; !self.hasRenders(render.item)) {
+      if (render.item.isErasing &amp;&amp; !self.hasRenders(render.item)) {
         self.removeItem(render.item);
       }
     } else {
@@ -926,17 +1091,43 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       self.setRender(render);
     }
 
-    // TODO: not sure if it's better to load renders as each individual animation completes,
-    // or just load them all when all animations in the draw cycle complete
-
     self.rendersDrawingCount--;
 
     if (self.rendersDrawingCount === 0) {
-      // If the current draw cycle is complete, notify anyone that cares
-      raf(function() {
-        self.loadOrUnloadRenders();
+      // If the current draw cycle is complete:
+      // 1. notify anyone that cares
+      // 2. load or unload renders
+      // 3. do a draw cycle on custom renders
+      setTimeout(function() {
+
         self.emit(DecksEvent("viewport:all:renders:drawn", self));
-      });
+
+        setTimeout(function() {
+          self.loadOrUnloadRenders();
+
+          setTimeout(function() {
+            self.drawCustomRenders();
+          }, 0);
+        }, 0);
+      }, 0);
+    }
+  },
+
+  onCustomRenderAnimationComplete: function(customRender) {
+    var self = this;
+
+    if (customRender.isErasing) {
+      self.removeCustomRender(customRender);
+    } else {
+      self.setCustomRender(customRender);
+    }
+
+    self.customRendersDrawingCount--;
+
+    if (self.customRendersDrawingCount === 0) {
+      setTimeout(function() {
+        self.emit(DecksEvent("viewport:all:custom:renders:drawn", self));
+      }, 0);
     }
   },
 
@@ -969,7 +1160,7 @@ module.exports = Viewport;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 19 2014 14:08:30 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 19 2014 17:12:43 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
