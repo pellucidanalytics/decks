@@ -40,6 +40,83 @@ describe("decks.Item", function() {
 
       item = new Item({ id: "10" });
       expect(item.id).to.eql("10");
+
+      item = new Item({ _id: "10" });
+      expect(item.id).to.eql("10");
+
+      item = new Item({ Id: "10" });
+      expect(item.id).to.eql("10");
+
+      item = new Item({ ID: "10" });
+      expect(item.id).to.eql("10");
+
+      // No id specified - one should be generated
+      item = new Item();
+      expect(item.id).to.be.a("string");
+      expect(item.id).to.have.length.above(0);
+    });
+
+    it("should set a default index value", function( ){
+      item = new Item();
+      expect(item.index).to.eql(-1);
+    });
+  });
+
+  describe("setId", function() {
+    it("should throw if already set", function() {
+      item = new Item(10);
+      expect(function() { item.setId(20); }).to.Throw;
+    });
+  });
+
+  describe("setIndex", function() {
+    it("should set the new index value", function() {
+      item = new Item();
+      item.setIndex(10);
+      expect(item.index).to.eql(10);
+      item.setIndex(20);
+      expect(item.index).to.eql(20);
+      item.setIndex(-1);
+      expect(item.index).to.eql(-1);
+    });
+
+    it("should set s new index from an object", function() {
+      item = new Item();
+      item.setIndex({ index: 10 });
+      expect(item.index).to.eql(10);
+      item.setIndex({ index: 20 });
+      expect(item.index).to.eql(20);
+      item.setIndex({ index: -1 });
+      expect(item.index).to.eql(-1);
+    });
+
+    it("should emit an event if the index is changed", function() {
+      var spy = sinon.spy();
+      item = new Item();
+      item.on("item:index:changed", spy);
+      item.setIndex(10);
+      expect(spy).to.have.been.calledWith(DecksEvent("item:index:changed", item, 10));
+    });
+
+    it("should not emit an event if the index was not changed", function() {
+      var spy = sinon.spy();
+      item = new Item();
+      item.setIndex(10);
+      item.on("item:index:changed", spy);
+      item.setIndex(10);
+      expect(spy).not.to.have.been.called;
+    });
+
+    it("should return whether the index was changed", function() {
+      item = new Item();
+      expect(item.setIndex(10)).to.be.True;
+      expect(item.setIndex(10)).to.be.False;
+      expect(item.setIndex(20)).to.be.True;
+      expect(item.setIndex(20)).to.be.False;
+      expect(item.setIndex(-1)).to.be.True;
+      expect(item.setIndex(-1)).to.be.True;
+      expect(item.setIndex(10)).to.be.False;
+      expect(item.setIndex(10)).to.be.False;
     });
   });
 

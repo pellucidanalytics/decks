@@ -3,7 +3,9 @@ var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("..");
 var Emitter = decks.events.Emitter;
+var Item = decks.Item;
 var ItemCollection = decks.ItemCollection;
+var DecksEvent = decks.events.DecksEvent;
 
 describe("decks.ItemCollection", function() {
   var emitter;
@@ -21,6 +23,7 @@ describe("decks.ItemCollection", function() {
   describe("constructor", function() {
     it("should set sensible defaults", function() {
       itemCollection.items.should.eql({});
+      expect(itemCollection.emitter).to.eql(emitter);
     });
   });
 
@@ -88,31 +91,246 @@ describe("decks.ItemCollection", function() {
   });
 
   describe("addItem", function() {
-    it("should add an plain object item and emit an event", function() {
-      var spy = sinon.spy();
-      var item = { key1: "val1" };
-      emitter.on("item:collection:item:added", spy);
+    it("should throw if item is not specified", function() {
+      expect(function() { itemCollection.addItem(); }).to.Throw;
+    });
 
+    it("should throw for duplicate Item id", function() {
+      var item = { id: 10 };
       itemCollection.addItem(item);
-      //expect(itemCollection.getItems()).to.eql(
+      expect(function() { itemCollection.addItem(item); }).to.Throw;
+    });
+
+    it("should add a plain object item to the internal collection", function() {
+      expect(itemCollection.items).to.eql({});
+      itemCollection.addItem({ id: 10 });
+      expect(itemCollection.items["10"]).to.be.an.instanceOf(Item);
+    });
+
+    it("should add an Item to the internal collection", function() {
+      expect(itemCollection.items).to.eql({});
+      var item = new Item({ id: 10 });
+      itemCollection.addItem(item);
+      expect(itemCollection.items["10"]).to.eql(item);
+    });
+
+    it("should emit events for adding and added", function() {
+      var addingSpy = sinon.spy();
+      var addedSpy = sinon.spy();
+      var item = new Item({ key1: "val1" });
+      itemCollection.on("item:collection:item:adding", addingSpy);
+      itemCollection.on("item:collection:item:added", addedSpy);
+      itemCollection.addItem(item);
+      expect(addingSpy).to.have.been.calledOnce;
+      expect(addedSpy).to.have.been.calledOnce;
+    });
+
+    it("should not emit events if options.silent", function() {
+      var addingSpy = sinon.spy();
+      var addedSpy = sinon.spy();
+      var item = new Item({ key1: "val1" });
+      itemCollection.on("item:collection:item:adding", addingSpy);
+      itemCollection.on("item:collection:item:added", addedSpy);
+      itemCollection.addItem(item, { silent: true });
+      expect(addingSpy).not.to.have.been.called;
+      expect(addedSpy).not.to.have.been.called;
+    });
+
+    it("should bind to the Item events", function() {
+      var spy = sinon.spy(itemCollection, "bindEvents");
+      var item = new Item();
+      itemCollection.addItem(item);
+      expect(spy).to.have.been.calledWith(item, itemCollection.itemEvents);
+      spy.reset();
+    });
+
+    it("should call index", function() {
+      var spy = sinon.spy(itemCollection, "index");
+      itemCollection.addItem({ id: 10 });
+      expect(spy).to.have.been.calledWith({ isAddItem: true });
+      spy.restore();
+    });
+
+    it("should not call index if options.noIndex", function() {
+      var spy = sinon.spy(itemCollection, "index");
+      itemCollection.addItem({ id: 10 }, { noIndex: true });
+      expect(spy).not.to.have.been.called;
+      spy.restore();
     });
   });
 
   describe("addItems", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("removeItem", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("clear", function() {
+    xit("TODO", function() {
+    });
   });
 
-  describe("bindItemEvents", function() {
+  describe("indexing operations", function() {
+    var items;
+
+    beforeEach(function() {
+      items = [
+        {
+          id: 10,
+          prop: 20
+        },
+        {
+          id: 20,
+          prop: 10
+        },
+        {
+          id: 30,
+          prop: 30
+        }
+      ];
+    });
+
+    it("should apply a default index to each item", function() {
+      itemCollection.addItems(items);
+
+      expect(itemCollection.getItem("10").index).to.eql(0);
+      expect(itemCollection.getItem("20").index).to.eql(1);
+      expect(itemCollection.getItem("30").index).to.eql(2);
+    });
+
+    describe("setFilter", function() {
+      it("it should set item indices based on the filter function", function() {
+        itemCollection.addItems(items);
+
+        itemCollection.setFilter(function(item) {
+          return item.getData().prop > 10;
+        });
+
+        expect(itemCollection.getItem("10").index).to.eql(0);
+        expect(itemCollection.getItem("20").index).to.eql(-1);
+        expect(itemCollection.getItem("30").index).to.eql(1);
+
+        itemCollection.setFilter(null);
+
+        expect(itemCollection.getItem("10").index).to.eql(0);
+        expect(itemCollection.getItem("20").index).to.eql(1);
+        expect(itemCollection.getItem("30").index).to.eql(2);
+      });
+    });
+
+    describe("setSortBy", function() {
+      it("should set item indices based on the sortBy function", function() {
+        itemCollection.addItems(items);
+
+        itemCollection.setSortBy(function(item) {
+          return item.getData().prop;
+        });
+
+        expect(itemCollection.getItem("10").index).to.eql(1);
+        expect(itemCollection.getItem("20").index).to.eql(0);
+        expect(itemCollection.getItem("30").index).to.eql(2);
+
+        itemCollection.setSortBy(null);
+
+        expect(itemCollection.getItem("10").index).to.eql(0);
+        expect(itemCollection.getItem("20").index).to.eql(1);
+        expect(itemCollection.getItem("30").index).to.eql(2);
+      });
+    });
+
+    describe("setReversed", function() {
+      it("should set item indices based on the reversed flag", function() {
+        itemCollection.addItems(items);
+
+        itemCollection.setReversed(true);
+
+        expect(itemCollection.getItem("10").index).to.eql(2);
+        expect(itemCollection.getItem("20").index).to.eql(1);
+        expect(itemCollection.getItem("30").index).to.eql(0);
+
+        itemCollection.setReversed(false);
+
+        expect(itemCollection.getItem("10").index).to.eql(0);
+        expect(itemCollection.getItem("20").index).to.eql(1);
+        expect(itemCollection.getItem("30").index).to.eql(2);
+      });
+    });
+
+    describe("index", function() {
+      it("should emit events for addItem", function() {
+        var indexingSpy = sinon.spy();
+        var indexedSpy = sinon.spy();
+
+        itemCollection.addItems(items);
+
+        itemCollection.on("item:collection:indexing", indexingSpy);
+        itemCollection.on("item:collection:indexed", indexedSpy);
+
+        itemCollection.addItem({ id: 40, prop: 0 });
+
+        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, { isAddItem: true }));
+        expect(indexedSpy).to.have.been.calledWith(DecksEvent("item:collection:indexed", itemCollection, {
+          reason: { isAddItem: true },
+          totalCount: 4,
+          referenceCount: 4,
+          changedCount: 1 // "40" added at end
+        }));
+      });
+
+      it("should emit events for addItems", function() {
+        var indexingSpy = sinon.spy();
+        var indexedSpy = sinon.spy();
+
+        itemCollection.on("item:collection:indexing", indexingSpy);
+        itemCollection.on("item:collection:indexed", indexedSpy);
+
+        itemCollection.addItems(items);
+
+        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, { isAddItems: true }));
+        expect(indexedSpy).to.have.been.calledWith(DecksEvent("item:collection:indexed", itemCollection, {
+          reason: { isAddItems: true },
+          totalCount: 3,
+          referenceCount: 3,
+          changedCount: 3 // "10" - 0, "20" - 1, "30" - 2
+        }));
+      });
+
+      it("should emit events for setFilter", function() {
+        var indexingSpy = sinon.spy();
+        var indexedSpy = sinon.spy();
+
+        itemCollection.addItems(items);
+
+        itemCollection.on("item:collection:indexing", indexingSpy);
+        itemCollection.on("item:collection:indexed", indexedSpy);
+
+        itemCollection.setFilter(function(item) {
+          return item.get("prop") > 10;
+        });
+
+        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, { isSetFilter: true }));
+        expect(indexedSpy).to.have.been.calledWith(DecksEvent("item:collection:indexed", itemCollection, {
+          reason: { isSetFilter: true },
+          totalCount: 3,
+          referenceCount: 2,
+          changedCount: 2 // "10": no change, "20": index=-1, "30": index=1
+        }));
+      });
+    });
   });
 
-  describe("unbindItemEvents", function() {
-  });
-
-  describe("onItemChanged", function() {
+  describe("onItemEvent", function() {
+    it("should re-emit the event", function() {
+      var spy = sinon.spy(itemCollection, "emit");
+      var item = new Item();
+      itemCollection.addItem(item);
+      var e = DecksEvent("some:item:event", item, {});
+      item.emit(e);
+      expect(spy).to.have.been.calledWith(e);
+    });
   });
 });
