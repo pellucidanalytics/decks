@@ -64,12 +64,7 @@ describe("decks.events.binder", function() {
 
       expect(target.onTestEvent).to.have.been.calledOnce;
       expect(target.onTestEvent).to.have.been.calledOn(target);
-      expect(target.onTestEvent).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test:event" &&
-          e.sender === source &&
-          e.data === data;
-      });
+      expect(target.onTestEvent).to.have.been.calledWith(DecksEvent("test:event", source, data));
     });
 
     it("should bind to DOM events", function() {
@@ -134,12 +129,7 @@ describe("decks.events.binder", function() {
 
       expect(target.onTestEvent).to.have.been.calledOnce;
       expect(target.onTestEvent).to.have.been.calledOn(target);
-      expect(target.onTestEvent).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test:event" &&
-          e.sender === source &&
-          e.data === data;
-      });
+      expect(target.onTestEvent).to.have.been.calledWith(DecksEvent("test:event", source, data));
     });
 
     it("should unbind from DOM events", function() {

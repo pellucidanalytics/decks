@@ -247,7 +247,7 @@ $(function() {
     },
     layout: layout,
     viewport: {
-      useAnimationSlots: true
+      useAnimationSlots: false
     }
   };
 

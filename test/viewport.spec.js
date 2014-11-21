@@ -166,12 +166,7 @@ describe("decks.Viewport", function() {
       var spy = sinon.spy();
       emitter.on("viewport:item:erased", spy);
       viewport.removeItem(item);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "viewport:item:erased" &&
-          e.sender === viewport &&
-          e.data === item;
-      });
+      expect(spy).to.have.been.calledWith(DecksEvent("viewport:item:erased", viewport, item));
     });
   });
 

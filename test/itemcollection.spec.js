@@ -86,7 +86,20 @@ describe("decks.ItemCollection", function() {
     });
 
     it("should return all items", function() {
-      expect(itemCollection.getItems().length).to.eql(3);
+      var items = itemCollection.getItems();
+      expect(items).to.be.an("array");
+      expect(items.length).to.eql(3);
+    });
+
+    it("should return items based on a filter", function() {
+      var items = itemCollection.getItems(function(item) {
+        return item.get("key2") > 1;
+      });
+
+      expect(items).to.be.an("array");
+      expect(items.length).to.eql(2);
+      expect(items[0].id).to.eql("1");
+      expect(items[1].id).to.eql("2");
     });
   });
 
@@ -157,10 +170,111 @@ describe("decks.ItemCollection", function() {
       expect(spy).not.to.have.been.called;
       spy.restore();
     });
+
+    it("should return the added Item (from options)", function() {
+      var itemOptions = {
+        id: 10,
+        index: 0,
+        key: "val"
+      };
+      var item = itemCollection.addItem(itemOptions);
+      expect(item).to.be.an.instanceOf(Item);
+      expect(item.getData()).to.eql(itemOptions);
+    });
+
+    it("should return the added Item (from options)", function() {
+      var item = new Item({
+        id: 10,
+        index: 0,
+        key: "val"
+      });
+      var returned = itemCollection.addItem(item);
+      expect(returned).to.eql(item);
+    });
   });
 
   describe("addItems", function() {
-    xit("TODO", function() {
+    it("should throw if items is not an array", function() {
+      expect(function() { itemCollection.addItems(); }).to.Throw;
+      expect(function() { itemCollection.addItems({}); }).to.Throw;
+      expect(function() { itemCollection.addItems(1); }).to.Throw;
+      expect(function() { itemCollection.addItems(""); }).to.Throw;
+    });
+
+    it("should do nothing for an empty array", function() {
+      var emitSpy = sinon.spy(itemCollection, "emit");
+      var addItemSpy = sinon.spy(itemCollection, "addItem");
+      var indexSpy = sinon.spy(itemCollection, "index");
+
+      itemCollection.addItems([]);
+
+      expect(emitSpy).not.to.have.been.called;
+      expect(addItemSpy).not.to.have.been.called;
+      expect(indexSpy).not.to.have.been.called;
+    });
+
+    it("should call addItem for each item", function() {
+      var addItemSpy = sinon.spy(itemCollection, "addItem");
+      var item1 = {};
+      var item2 = {};
+      var items = [item1, item2];
+      itemCollection.addItems(items);
+      expect(addItemSpy).to.have.been.calledWith(item1, { silent: true, noIndex: true });
+      expect(addItemSpy).to.have.been.calledWith(item2, { silent: true, noIndex: true });
+    });
+
+    it("should emit events", function(){
+      var spy = sinon.spy(itemCollection, "emit");
+
+      var item1 = new Item({ key: "val" });
+      var item2 = new Item({ key: "val" });
+      var items = [item1, item2];
+      //itemCollection.on("*", function(e) { console.log(e.type); });
+
+      itemCollection.addItems(items);
+
+      expect(spy).to.have.callCount(6);
+      expect(spy).to.have.been.calledWith(DecksEvent("item:collection:items:adding", itemCollection));
+      expect(spy).to.have.been.calledWith(DecksEvent("item:collection:items:added", itemCollection, items));
+      expect(spy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, {
+        reason: { isAddItems: true },
+        totalCount: 2,
+        referenceCount: 2
+      }));
+      expect(spy).to.have.been.calledWith(DecksEvent("item:index:changed", item1, 0));
+      expect(spy).to.have.been.calledWith(DecksEvent("item:index:changed", item2, 1));
+      expect(spy).to.have.been.calledWith(DecksEvent("item:collection:indexed", itemCollection, {
+        reason: { isAddItems: true },
+        totalCount: 2,
+        referenceCount: 2,
+        changedCount: 2
+      }));
+    });
+
+    it("should not emit events if options.silent", function(){
+      var spy = sinon.spy(itemCollection, "emit");
+
+      var item1 = { key: "val" };
+      var item2 = { key: "val" };
+      var items = [item1, item2];
+
+      itemCollection.on("*", console.log);
+
+      itemCollection.addItems(items, { silent: true });
+
+      expect(spy).not.to.have.been.called;
+    });
+
+    it("should index the collection", function() {
+      var spy = sinon.spy(itemCollection, "index");
+      itemCollection.addItems([{}, {}]);
+      expect(spy).to.have.been.calledWith({ isAddItems: true }, { silent: undefined });
+    });
+
+    it("should not index the collection if options.noIndex", function() {
+      var spy = sinon.spy(itemCollection, "index");
+      itemCollection.addItems([{}, {}], { noIndex: true });
+      expect(spy).not.to.have.been.called;
     });
   });
 
@@ -272,7 +386,12 @@ describe("decks.ItemCollection", function() {
 
         itemCollection.addItem({ id: 40, prop: 0 });
 
-        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, { isAddItem: true }));
+        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, {
+          reason: { isAddItem: true },
+          totalCount: 4,
+          referenceCount: 4
+        }));
+
         expect(indexedSpy).to.have.been.calledWith(DecksEvent("item:collection:indexed", itemCollection, {
           reason: { isAddItem: true },
           totalCount: 4,
@@ -290,12 +409,17 @@ describe("decks.ItemCollection", function() {
 
         itemCollection.addItems(items);
 
-        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, { isAddItems: true }));
+        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, {
+          reason: { isAddItems: true },
+          totalCount: 3,
+          referenceCount: 3
+        }));
+
         expect(indexedSpy).to.have.been.calledWith(DecksEvent("item:collection:indexed", itemCollection, {
           reason: { isAddItems: true },
           totalCount: 3,
           referenceCount: 3,
-          changedCount: 3 // "10" - 0, "20" - 1, "30" - 2
+          changedCount: 3 // "10": index=0, "20": index=1, "30": index=2
         }));
       });
 
@@ -312,7 +436,12 @@ describe("decks.ItemCollection", function() {
           return item.get("prop") > 10;
         });
 
-        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, { isSetFilter: true }));
+        expect(indexingSpy).to.have.been.calledWith(DecksEvent("item:collection:indexing", itemCollection, {
+          reason: { isSetFilter: true },
+          totalCount: 3,
+          referenceCount: 2
+        }));
+
         expect(indexedSpy).to.have.been.calledWith(DecksEvent("item:collection:indexed", itemCollection, {
           reason: { isSetFilter: true },
           totalCount: 3,

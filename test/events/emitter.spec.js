@@ -26,12 +26,8 @@ describe("decks.events.Emitter", function() {
       var sender = {};
       var data = {};
       emitter.emit(DecksEvent("test", sender, data));
-      expect(spy).to.have.been.calledWithMatch(function(value) {
-        return (value instanceof DecksEvent) &&
-          (value.type === "test") &&
-          (value.sender === sender) &&
-          (value.data === data);
-      });
+
+      expect(spy).to.have.been.calledWith(DecksEvent("test", sender, data));
     });
 
     it("should pass-through raw event arguments to super prototype emit", function() {
@@ -102,23 +98,10 @@ describe("decks.events.Emitter", function() {
       var data = {};
       emitter.emit(DecksEvent("test:event", sender, data));
 
-      expect(spy1).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test:event" &&
-          e.sender === sender &&
-          e.data === data;
-      });
-
       expect(spy1).to.have.been.calledOn(context1);
-
-      expect(spy2).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test:event" &&
-          e.sender === sender &&
-          e.data === data;
-      });
-
+      expect(spy1).to.have.been.calledWith(DecksEvent("test:event", sender, data));
       expect(spy2).to.have.been.calledOn(context2);
+      expect(spy2).to.have.been.calledWith(DecksEvent("test:event", sender, data));
     });
   });
 
@@ -230,12 +213,7 @@ describe("decks.events.Emitter", function() {
 
       expect(spy).to.have.been.calledOnce;
       expect(spy).to.have.been.calledOn(context);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test" &&
-          e.sender === sender &&
-          e.data === data;
-      });
+      expect(spy).to.have.been.calledWith(DecksEvent("test", sender, data));
     });
   });
 
@@ -290,18 +268,8 @@ describe("decks.events.Emitter", function() {
 
       expect(spy).to.have.been.calledTwice;
       expect(spy).to.have.been.calledOn(context);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test1" &&
-          e.sender === sender1 &&
-          e.data === data1;
-      });
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test2" &&
-          e.sender === sender2 &&
-          e.data === data2;
-      });
+      expect(spy).to.have.been.calledWith(DecksEvent("test1", sender1, data1));
+      expect(spy).to.have.been.calledWith(DecksEvent("test2", sender2, data2));
     });
   });
 
@@ -325,12 +293,7 @@ describe("decks.events.Emitter", function() {
 
       expect(spy).to.have.been.calledOnce;
       expect(spy).to.have.been.calledOn(context);
-      expect(spy).to.have.been.calledWithMatch(function(e) {
-        return e instanceof DecksEvent &&
-          e.type === "test1" &&
-          e.sender === sender1 &&
-          e.data === data1;
-      });
+      expect(spy).to.have.been.calledWith(DecksEvent("test1", sender1, data1));
     });
   });
 });
