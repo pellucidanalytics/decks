@@ -16,6 +16,8 @@ fi
 echo "Fetching origin..."
 git fetch origin
 
+echo "Last publish $(date)" > last-publish.txt
+
 echo "Adding dist files to master..."
 git add -A .
 
