@@ -171,6 +171,38 @@ describe("decks.Deck", function () {
     });
   });
 
+  describe("draw", function() {
+    xit("TODO", function() {
+    });
+  });
+
+  describe("resize", function() {
+    xit("TODO", function() {
+    });
+  });
+
+  describe("panToItem", function() {
+    xit("TODO", function() {
+    });
+  });
+
+  describe("setLayoutAndPanToItem", function() {
+    xit("TODO", function() {
+    });
+  });
+
+  describe("setEmitter", function() {
+    it("should be set by constructor", function() {
+      deckOptions.emitter = new Emitter();
+      deck = new Deck(deckOptions);
+      expect(deck.emitter).to.eql(deckOptions.emitter);
+    });
+
+    it("should throw if already set", function() {
+      expect(function() { deck.setEmitter({}); }).to.Throw(Error);
+    });
+  });
+
   describe("setConfig", function() {
     it("should be set by constructor", function() {
       deckOptions = _.merge(deckOptions, {
@@ -184,18 +216,6 @@ describe("decks.Deck", function () {
 
     it("should throw if already set", function() {
       expect(function() { deck.setConfig({}); }).to.Throw(Error);
-    });
-  });
-
-  describe("setEmitter", function() {
-    it("should be set by constructor", function() {
-      deckOptions.emitter = new Emitter();
-      deck = new Deck(deckOptions);
-      expect(deck.emitter).to.eql(deckOptions.emitter);
-    });
-
-    it("should throw if already set", function() {
-      expect(function() { deck.setEmitter({}); }).to.Throw(Error);
     });
   });
 
@@ -241,24 +261,6 @@ describe("decks.Deck", function () {
     });
   });
 
-  describe("setCanvas", function(){
-    it("should be set by the constructor", function() {
-      deckOptions.emitter = new Emitter();
-      deckOptions.canvas = new Canvas({
-        animator: animator,
-        config: Deck.prototype.defaultOptions.config,
-        emitter: emitter,
-        layout: layout
-      });
-      var deck = new Deck(deckOptions);
-      expect(deck.canvas).to.eql(deckOptions.canvas);
-    });
-
-    it("should throw if already set", function() {
-      expect(function() { deck.setCanvas({}); }).to.Throw(Error);
-    });
-  });
-
   describe("setFrame", function(){
     it("should be set by the constructor", function() {
       deckOptions.emitter = new Emitter();
@@ -274,6 +276,24 @@ describe("decks.Deck", function () {
 
     it("should throw if already set", function() {
       expect(function() { deck.setFrame({}); }).to.Throw(Error);
+    });
+  });
+
+  describe("setCanvas", function(){
+    it("should be set by the constructor", function() {
+      deckOptions.emitter = new Emitter();
+      deckOptions.canvas = new Canvas({
+        animator: animator,
+        config: Deck.prototype.defaultOptions.config,
+        emitter: emitter,
+        layout: layout
+      });
+      var deck = new Deck(deckOptions);
+      expect(deck.canvas).to.eql(deckOptions.canvas);
+    });
+
+    it("should throw if already set", function() {
+      expect(function() { deck.setCanvas({}); }).to.Throw(Error);
     });
   });
 
@@ -305,6 +325,20 @@ describe("decks.Deck", function () {
 
     it("should throw if already set", function() {
       expect(function() { deck.setViewport({}); }).to.Throw(Error);
+    });
+  });
+
+  describe("onAnyEvent", function() {
+    xit("TODO", function() {
+    });
+  });
+
+  describe("onItemCollectionEvent", function() {
+    it("should forward the event on the deck emitter", function() {
+      var spy = sinon.spy(deck, "emit");
+      var e = DecksEvent("", {}, {});
+      deck.onItemCollectionEvent(e);
+      expect(spy).to.have.been.calledWith(e);
     });
   });
 });
