@@ -194,16 +194,20 @@ $(function() {
     deck.addItems(createItems());
   });
 
+  var evensFilter = function(item) {
+    return _.parseInt(item.id) % 2 === 0;
+  };
+
+  var oddsFilter = function(item) {
+    return _.parseInt(item.id) % 2 !== 0;
+  };
+
   $(".filter-evens-button").on("click", function() {
-    deck.setFilter(function(item) {
-      return _.parseInt(item.id) % 2 === 0;
-    });
+    deck.setFilter(evensFilter);
   });
 
   $(".filter-odds-button").on("click", function() {
-    deck.setFilter(function(item) {
-      return _.parseInt(item.id) % 2 !== 0;
-    });
+    deck.setFilter(oddsFilter);
   });
 
   $(".filter-clear-button").on("click", function() {
@@ -231,7 +235,7 @@ $(function() {
   var deckOptions = {
     config: {
       debugEvents: false,
-      debugDrawing: false,
+      debugDrawing: true,
       debugGestures: false
     },
     animator: {
