@@ -53,9 +53,17 @@ function ItemCollection(items, options) {
 }
 
 _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection.prototype */ {
+  /**
+   * Default options for ItemCollection instances
+   */
   defaultOptions: {
   },
 
+  /**
+   * Item events to which to bind for each Item added to the collection.
+   *
+   * @return {undefined}
+   */
   itemEvents: {
     "*": "onItemEvent"
   },
@@ -63,8 +71,8 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
   /**
    * Gets a single item from the collection
    *
-   * @param {String} id Item id to find
-   * @return {Item} Item or null if not found
+   * @param {!String} id - Item id to find
+   * @return {Item} - Item or null if not found
    */
   getItem: function(id) {
     if (_.isNumber(id)) {
@@ -77,9 +85,10 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
   },
 
   /**
-   * Gets multiple items from the collection
+   * Gets all {@link Item}s from the collection, or a subset of {@link Item}s based on an optional filter function.
    *
-   * @return {Item[]} array of items (not a collection instance)
+   * @param {?Function} filter - the filter predicate function (takes an item and should return whether Item passes the filter)
+   * @return {Item[]} - Array of {@link Item}s (not an {@link ItemCollection} instance)
    */
   getItems: function(filter) {
     var items = _.values(this.items);
@@ -92,11 +101,18 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
   },
 
   /**
-   * Adds an item to the collection
+   * Adds an {@link Item} to the {@link ItemCollection}.
    *
-   * @param {(Item|Object)} item item to add
-   * @param {?Object} options additional options
-   * @return {undefined}
+   * An event is emitted just before adding the {@link Item} and just after.
+   *
+   * After adding the {@link Item} the {@link ItemCollection} is re-indexed, based on the current
+   * filter function, sortBy function, and reversed flag.
+   *
+   * @param {!(Item|Object)} item - item instance or options to add
+   * @param {?Object} [options={}] - additional options
+   * @param {?boolean} [options.silent=false] - if true, the {@link ItemCollection} will not emit events
+   * @param {?boolean} [options.noIndex=false] - if true, the {@link ItemCollection} will not be re-indexed after adding the {@link Item}
+   * @return {Item} - the {@link Item} instance that was added
    */
   addItem: function(item, options) {
     validate(item, "item", { isRequired: true });
@@ -123,16 +139,22 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
     }
 
     if (!options.noIndex) {
-      this.index();
+      this.index({ isAddItem: true }, { silent: options.silent });
     }
+
+    return item;
   },
 
   /**
-   * Adds an array of items to the collection
+   * Adds an array of items to the collection.
    *
-   * @param {(Item[]|Object[])} items items to add
-   * @param {?Object} options additional options
-   * @return {undefined}
+   * Events and indexing will be suppressed for each individual {@link Item} added.
+   *
+   * @param {!(Item[]|Object[])} items - Array of {@link Item} instances or options objects to add
+   * @param {?Object} [options={}] - additional options
+   * @param {?boolean} [options.silent=false] - if true, no events will be emitted
+   * @param {?boolean} [options.noIndex=false] - if true, the {@link ItemCollection} will not be re-indexed
+   * @return {Item[]} - Array of {@link Item} instances that were added.
    */
   addItems: function(items, options) {
     validate(items, "items", { isArray: true });
@@ -147,17 +169,19 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
       this.emit(DecksEvent("item:collection:items:adding", this));
     }
 
-    _.each(items, function(item) {
-      this.addItem(item, { noIndex: true });
+    items = _.map(items, function(item) {
+      return this.addItem(item, { silent: true, noIndex: true });
     }, this);
 
     if (!options.silent) {
-      this.emit(DecksEvent("item:collection:items:added", this));
+      this.emit(DecksEvent("item:collection:items:added", this, items));
     }
 
     if (!options.noIndex) {
-      this.index();
+      this.index({ isAddItems: true }, { silent: options.silent });
     }
+
+    return items;
   },
 
   /**
@@ -188,12 +212,16 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
     }
 
     if (!options.noIndex) {
-      this.index();
+      this.index({ isRemoveItem: true }, { silent: options.silent });
     }
+
+    return item;
   },
 
   /**
-   * Clears the collection
+   * Clears the collection by removing all the {@link Item}s one-by-one.
+   *
+   * Events and indexing will be suppressed for each individual {@link Item} removed.
    *
    * @param {?Object} options additional options
    * @return {undefined}
@@ -209,17 +237,36 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
       this.emit(DecksEvent("item:collection:clearing", this));
     }
 
-    _.each(this.items, function(item) {
-      this.removeItem(item, { noIndex: true });
+    var items = _.map(this.items, function(item) {
+      return this.removeItem(item, { silent: true, noIndex: true });
     }, this);
 
-    // No need to re-index the collection, because it's now empty
-
     if (!options.silent) {
-      this.emit(DecksEvent("item:collection:cleared", this));
+      this.emit(DecksEvent("item:collection:cleared", this, items));
     }
+
+    // There's not really a need to re-index the collection, but some things rely
+    // on the indexing events being emitted
+    if (!options.noIndex) {
+      this.index({ isClear: true }, { silent: options.silent });
+    }
+
+    return items;
   },
 
+  /**
+   * Sets or clears the current filter function.
+   *
+   * The filter function is used to filter {@link Item}s out of the {@link ItemCollection} based
+   * on a predicate.  The {@link Item}s are marked as filtered-out by setting the {@link Item} index
+   * to -1 (they are not actually removed from the collection, just flagged in this way).
+   *
+   * @param {?Function} [filter=null] - the filter function (or null to clear the current filter)
+   * @param {?Object} [options={}] - additional options
+   * @param {?boolean} [options.silent=false] - if true, events will not be emitted
+   * @param {?boolean} [options.noIndex=false] - if true, the collection will not be re-indexed with the new filter
+   * @return {undefined}
+   */
   setFilter: function(filter, options) {
     if (!_.isFunction(filter)) {
       filter = null;
@@ -242,10 +289,23 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
     }
 
     if (!options.noIndex) {
-      this.index();
+      this.index({ isSetFilter: true }, { silent: options.silent });
     }
   },
 
+  /**
+   * Sets or clears the current sort by function.
+   *
+   * The sort by function is used to sort the {@link Item}s in the collection.
+   * The sortBy function should return a sortable value for each {@link Item}.
+   * The sort is applied by updating the {@link Item} index values.
+   *
+   * @param {?Function} [sortBy=null] - the sort by function (or null to clear the current sort)
+   * @param {?Object} [options={}] - additional options
+   * @param {?boolean} [options.silent=false] - if true, events will not be emitted
+   * @param {?boolean} [options.noIndex=false] - if true, the collection will not be re-indexed with the new sort
+   * @return {undefined}
+   */
   setSortBy: function(sortBy, options) {
     if (!_.isFunction(sortBy)) {
       sortBy = null;
@@ -268,10 +328,21 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
     }
 
     if (!options.noIndex) {
-      this.index();
+      this.index({ isSetSortBy: true }, { silent: options.silent });
     }
   },
 
+  /**
+   * Reverses the sort on the collection.
+   *
+   * The reversing is applied by re-indexing all the {@link Item}s in the {@link ItemCollection}.
+   *
+   * @param {?boolean} [isReversed=false] - whether the collection should be reversed.
+   * @param {?Object} [options={}] - additional options
+   * @param {?boolean} [options.silent=false] - if true, events will not be emitted
+   * @param {?boolean} [options.noIndex=false] - if true, the collection will not be re-indexed with the new reverse value.
+   * @return {undefined}
+   */
   setReversed: function(isReversed, options) {
     isReversed = !!isReversed;
     options = options || {};
@@ -291,23 +362,30 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
     }
 
     if (!options.noIndex) {
-      this.index();
+      this.index({ isSetReversed: true }, { silent: options.silent });
     }
   },
 
   /**
    * Indexes the {@link ItemCollection} based on the current filter function, sortBy function, and
    * reversed flag.  Each {@link Item} in the collection will have it's index value set based on
-   * the filter/sortBy/reversed version of the {@link ItemCollection} items.
+   * the filter/sortBy/reversed representation of the {@link ItemCollection} items.
+   *
+   * The sorting and filtering is applied to the {@link Item}s by updating the {@link Item} index values.
+   * {@link Item}s are not physically moved or removed from the {@link ItemCollection}.
    *
    * If {@link Item}s are filtered out via the filter function, the {@link Item} index will be set to
    * -1.  The {@link Layout#getRenders} method can check if item.index is -1 to decide if the {@link Item}
    *  should be displayed.
    *
+   * @param {!Object} reason - an object which indicates why the collection is being indexed
+   * @param {?Object} options - additional options
+   * @param {?boolean} [options.silent=false] - if true, no events will be emitted
    * @return {undefined}
    */
-  index: function() {
-    this.emit(DecksEvent("item:collection:indexing", this));
+  index: function(reason, options) {
+    validate(reason, "reason", { isRequired: true });
+    options = options || {};
 
     // Create a list of filtered, sorted, and reversed items, then find the index of each item
     // in the reference list.  If the item is not in the ref list, it will get an index of -1,
@@ -326,12 +404,33 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
 
     var items = this.getItems();
 
-    _.each(items, function(item) {
-      var index = _.indexOf(referenceItems, item);
-      item.setIndex(index);
-    });
+    var totalCount = items.length;
+    var referenceCount = referenceItems.length;
 
-    this.emit(DecksEvent("item:collection:indexed", this));
+    if (!options.silent) {
+      this.emit(DecksEvent("item:collection:indexing", this, {
+        reason: reason,
+        totalCount: totalCount,
+        referenceCount: referenceCount
+      }));
+    }
+
+    var changedCount = _.reduce(items, function(count, item) {
+      var index = _.indexOf(referenceItems, item);
+      if (item.setIndex(index, { silent: options.silent })) {
+        count++;
+      }
+      return count;
+    }, 0);
+
+    if (!options.silent) {
+      this.emit(DecksEvent("item:collection:indexed", this, {
+        reason: reason,
+        totalCount: totalCount,
+        referenceCount: referenceCount,
+        changedCount: changedCount
+      }));
+    }
   },
 
   /**
@@ -363,7 +462,7 @@ module.exports = ItemCollection;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 21 2014 09:55:17 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 21 2014 15:57:30 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>

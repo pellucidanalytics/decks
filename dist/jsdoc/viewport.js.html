@@ -257,6 +257,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     "item:collection:item:removing": "onItemCollectionItemRemoving",
     "item:collection:item:removed": "onItemCollectionItemRemoved",
     "item:collection:clearing": "onItemCollectionClearing",
+    "item:collection:cleared": "onItemCollectionCleared",
     "item:collection:indexing": "onItemCollectionIndexing",
     "item:collection:indexed": "onItemCollectionIndexed",
 
@@ -351,7 +352,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     if (!this.isDeckReady) {
       if (this.config.debugDrawing) {
-        console.warn("Viewport#drawItem: not drawing - deck is not ready");
+        console.warn("Viewport#drawItem: not drawing item - deck is not ready", item);
       }
       return;
     }
@@ -387,7 +388,13 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawItems: function(options) {
-    _.each(this.itemCollection.getItems(), function(item) {
+    var items = this.itemCollection.getItems();
+
+    if (items.length === 0) {
+      return;
+    }
+
+    _.each(items, function(item) {
       this.drawItem(item, options);
     }, this);
   },
@@ -413,8 +420,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  eraseItems: function() {
-    _.each(this.itemCollection.getItems(), function(item) {
+  eraseItems: function(items) {
+    items = _.isArray(items) ? items : this.itemCollection.getItems();
+
+    if (items.length === 0) {
+      return;
+    }
+
+    _.each(items, function(item) {
       this.eraseItem(item);
     }, this);
   },
@@ -530,9 +543,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       self.emit(DecksEvent(eventName, self, render));
 
       raf(function() {
-        if (render.noAnimationNeeded) {
+        if (render.immediateCompleteAnimation) {
           // Simulate animation completion
-          delete render.noAnimationNeeded;
+          render.immediateCompleteAnimation = false;
           self.onRenderAnimationComplete(render);
         } else {
           // Start the animation
@@ -584,9 +597,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
         self.emit(DecksEvent(eventName, self, render));
 
         raf(function() {
-          if (render.noAnimationNeeded) {
+          if (render.immediateCompleteAnimation) {
             // Fake the animation completion
-            delete render.noAnimationNeeded;
+            render.immediateCompleteAnimation = false;
             self.onRenderAnimationComplete(render);
           } else {
             // Start the animation
@@ -648,9 +661,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       // of them have changed.
       if (_.isEqual(previousRender.transform, mergedRender.transform) &amp;&amp; !mergedRender.isLoadNeeded) {
         if (this.config.debugDrawing) {
-          console.warn("Viewport#drawRenders: not redrawing item render (no change to transform)", item, mergedRender);
+          console.warn("Viewport#drawRenders: not animating item render (no change to transform)", item, mergedRender);
         }
-        mergedRender.noAnimationNeeded = true;
+        mergedRender.immediateCompleteAnimation = true;
       }
 
       this.drawRender(mergedRender);
@@ -938,7 +951,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     var customRenders = {};
 
     _.each(layoutCustomRenders, function(customRender, index) {
-      customRender.id = customRender.id || ("" + index);
+      // Since these are not re-used, give each one a unique ID
+      customRender.id = "" + _.uniqueId(); //customRender.id || ("" + index);
       customRender.index = index;
       customRenders[customRender.id] = customRender;
       this.drawCustomRender(customRender);
@@ -996,15 +1010,12 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  createCustomRenderElement: function(id) {
+  createCustomRenderElement: function() {
     var element = dom.create("div");
     dom.addClass(element, this.config.customRenderClassName);
     dom.setStyle(element, "position", "absolute");
     dom.setStyle(element, "top", 0);
     dom.setStyle(element, "left", 0);
-    if (_.isString(id) &amp;&amp; id.length > 0) {
-      dom.setAttr(element, "data-custom-render-id", id);
-    }
     return element;
   },
 
@@ -1035,12 +1046,22 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   onDeckReady: function() {
     this.isDeckReady = true;
-
     if (this.config.debugDrawing) {
-      console.info("Viewport#onDeckReady: draw items");
+      console.info("Viewport#onDeckReady: drawing items (load needed)");
     }
-
     this.drawItems({ isLoadNeeded: true }); // Needs loading because the items haven't been loaded before
+  },
+
+  /**
+   * Called when a draw request is made on the {@link Deck}.  Triggers a redraw/reload cycle.
+   *
+   * @return {undefined}
+   */
+  onDeckDraw: function() {
+    if (this.config.debugDrawing) {
+      console.info("Viewport#onDeckDraw: drawing items (load needed)");
+    }
+    this.drawItems({ isLoadNeeded: true }); // Needs loading because this is a manual, programmatic draw request
   },
 
   /**
@@ -1052,7 +1073,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     if (this.config.debugDrawing) {
       console.info("Viewport#onDeckLayoutSetting: erasing custom renders");
     }
-
     this.eraseCustomRenders();
   },
 
@@ -1063,27 +1083,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   onDeckLayoutSet: function(e) {
     var layout = e.data;
-
     this.setLayout(layout);
-
     if (this.config.debugDrawing) {
-      console.info("Viewport#onDeckLayoutSet: draw items");
+      console.info("Viewport#onDeckLayoutSet: drawing items (load needed)");
     }
-
     this.drawItems({ isLoadNeeded: true }); // Needs loading because different layouts may have different item representations.
-  },
-
-  /**
-   * Called when a draw request is made on the {@link Deck}.  Triggers a redraw/reload cycle.
-   *
-   * @return {undefined}
-   */
-  onDeckDraw: function() {
-    if (this.config.debugDrawing) {
-      console.info("Viewport#onDeckDraw: draw items");
-    }
-
-    this.drawItems({ isLoadNeeded: true }); // Needs loading because this is a manual, programmatic draw request
   },
 
   /**
@@ -1095,7 +1099,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     if (this.config.debugDrawing) {
       console.info("Viewport#onFrameBoundsSetting: erasing custom renders");
     }
-
     this.eraseCustomRenders();
   },
 
@@ -1106,120 +1109,81 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   onFrameBoundsSet: function() {
     if (this.config.debugDrawing) {
-      console.info("Viewport#onFrameBoundsSet: draw items");
+      console.info("Viewport#onFrameBoundsSet: draw items (load not needed)");
     }
-
     this.drawItems({ isLoadNeeded: false }); // Doesn't need loading because we should just be moving things around based on new frame bounds
   },
 
-  onItemCollectionItemAdding: function() {
-    if (this.config.debugDrawing) {
-      console.info("Viewport#onItemCollectionItemAdding: erasing custom renders");
-    }
-
-    this.eraseCustomRenders();
-  },
-
-  onItemCollectionItemAdded: function() {
-    /*
-    if (this.config.debugDrawing) {
-      console.info("Viewport#onItemCollectionItemRemoved: erasing custom renders");
-    }
-
-    this.eraseCustomRenders();
-    */
-  },
-
-  onItemCollectionItemRemoving: function() {
-    if (this.config.debugDrawing) {
-      console.info("Viewport#onItemCollectionItemRemoving: erasing custom renders");
-    }
-
-    this.eraseCustomRenders();
-  },
-
-  /**
-   * Called when an {@link Item} is removed from the {@link ItemCollection}.  Triggers an erase of the {@link Item}.
-   *
-   * @param e
-   * @return {undefined}
-   */
-  onItemCollectionItemRemoved: function(e) {
-    var item = e.data;
-
-    if (this.config.debugDrawing) {
-      console.info("Viewport#onItemCollectionItemRemoved: erase item", item);
-    }
-
-    this.eraseItem(item);
-  },
-
-
-  /**
-   * Called when an {@link Item} is changed.  Triggers a redraw/reload on the {@link Item}.
-   *
-   * @return {undefined}
-   */
   onItemChanged: function(e) {
     var item = e.sender;
-
     if (this.config.debugDrawing) {
-      console.info("Viewport#onItemChanged: draw item", item);
+      console.info("Viewport#onItemChanged: drawing item (load needed)", item);
     }
-
     this.drawItem(item, { isLoadNeeded: true }); // Needs loading because change to item might require new representation.
   },
 
-  /**
-   * Called when a {@link Item} is changed.  Triggers a redraw/reload of the {@link Item}
-   *
-   * @return {undefined}
-   */
   onItemIndexChanged: function(e) {
     var item = e.sender;
     var index = e.data;
-
     if (this.config.debugDrawing) {
-      console.info("Viewport#onItemIndexChanged: draw item", item, index);
+      console.info("Viewport#onItemIndexChanged: drawing item (load needed)", item, index);
     }
-
     this.drawItem(item, { isLoadNeeded: true }); // TODO: not sure if this needs loading
   },
 
-  /**
-   * Called when the {@link ItemCollection} is clearing (before).
-   *
-   * @return {undefined}
-   */
+  onItemCollectionItemAdding: function() {
+    // TODO: remove this event if not needed
+  },
+
+  onItemCollectionItemAdded: function() {
+    // TODO: remove this event if not needed
+  },
+
+  onItemCollectionItemRemoving: function() {
+    // TODO: remove this event if not needed
+  },
+
+  onItemCollectionItemRemoved: function(e) {
+    var item = e.data;
+    if (this.config.debugDrawing) {
+      console.info("Viewport#onItemCollectionItemRemoved: erasing item", item);
+    }
+    this.eraseItem(item);
+  },
+
   onItemCollectionClearing: function() {
-    if (this.config.debugDrawing) {
-      console.info("Viewport#onItemCollectionClearing: erasing custom renders");
-    }
-    this.eraseCustomRenders();
+    // TODO: remove this event if not needed
   },
 
-  /**
-   * Called when the {@link ItemCollection} is indexing (before).
-   *
-   * @return {undefined}
-   */
-  onItemCollectionIndexing: function() {
+  onItemCollectionCleared: function(e) {
+    var items = e.data;
     if (this.config.debugDrawing) {
-      console.info("Viewport#onItemCollectionIndexing: erasing custom renders");
+      console.info("Viewport#onItemCollectionCleared: erasing items", items);
     }
-    this.eraseCustomRenders();
+    this.eraseItems(items);
   },
 
-  /**
-   * Called when the {@link ItemCollection} is indexed (after).
-   *
-   * @return {undefined}
-   */
-  onItemCollectionIndexed: function() {
-    if (this.config.debugDrawing) {
-      console.info("Viewport#onItemCollectionIndexed: erasing custom renders");
+  onItemCollectionIndexing: function(e) {
+    var stats = e.data;
+    if (stats.totalCount > 0 || (stats.totalCount === 0 &amp;&amp; stats.reason.isClear)) {
+      if (this.config.debugDrawing) {
+        console.info("Viewport#onItemCollectionIndexing: erasing custom renders");
+      }
+      this.eraseCustomRenders();
     }
-    this.eraseCustomRenders();
+  },
+
+  onItemCollectionIndexed: function(e) {
+    var stats = e.data;
+    if (stats.totalCount > 0 &amp;&amp; stats.changedCount === 0) {
+      // If there are items in the collection, but no indexes changed, there will be no drawing
+      // operations, so simulate the end of a drawing cycle (so the custom renders can be re-drawn (because
+      // they were erased in onItemCollectionIndexing))
+      if (this.config.debugDrawing) {
+        console.info("Viewport#onItemCollectionIndexed: drawing custom renders");
+      }
+      this.onAllRenderAnimationsComplete();
+    }
   },
 
   /**
@@ -1232,35 +1196,43 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   onRenderAnimationComplete: function(render) {
-    var self = this;
-
     if (render.isErasing) {
-      self.removeRender(render);
-      if (render.item.isErasing &amp;&amp; !self.hasRenders(render.item)) {
-        self.removeItem(render.item);
+      this.removeRender(render);
+      if (render.item.isErasing &amp;&amp; !this.hasRenders(render.item)) {
+        this.removeItem(render.item);
       }
     } else {
-      self.setRender(render);
+      this.setRender(render);
     }
 
-    self.rendersDrawingCount--;
+    this.rendersDrawingCount--;
+    if (this.rendersDrawingCount === 0) {
+      this.onAllRenderAnimationsComplete();
+    }
+  },
 
-    if (self.rendersDrawingCount === 0) {
+  /**
+   * Called when all the animations in a render cycle have been completed.
+   *
+   * @return {undefined}
+   */
+  onAllRenderAnimationsComplete: function() {
+    var self = this;
+
+    setTimeout(function() {
+      self.emit(DecksEvent("viewport:all:renders:drawn", self));
+
       setTimeout(function() {
-        self.emit(DecksEvent("viewport:all:renders:drawn", self));
+        self.loadOrUnloadRenders();
 
         setTimeout(function() {
-          self.loadOrUnloadRenders();
-
-          setTimeout(function() {
-            if (self.config.debugDrawing) {
-              console.info("Viewport#onRenderAnimationComplete: drawing custom renders");
-            }
-            self.drawCustomRenders();
-          }, 0);
+          if (self.config.debugDrawing) {
+            console.info("Viewport#onAllRenderAnimationsComplete: drawing custom renders");
+          }
+          self.drawCustomRenders();
         }, 0);
       }, 0);
-    }
+    }, 0);
   },
 
   /**
@@ -1274,21 +1246,29 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   onCustomRenderAnimationComplete: function(customRender) {
-    var self = this;
-
     if (customRender.isErasing) {
-      self.removeCustomRender(customRender);
+      this.removeCustomRender(customRender);
     } else {
-      self.setCustomRender(customRender);
+      this.setCustomRender(customRender);
     }
 
-    self.customRendersDrawingCount--;
+    this.customRendersDrawingCount--;
 
-    if (self.customRendersDrawingCount === 0) {
-      setTimeout(function() {
-        self.emit(DecksEvent("viewport:all:custom:renders:drawn", self));
-      }, 0);
+    if (this.customRendersDrawingCount === 0) {
+      this.onAllCustomRenderAnimationsComplete();
     }
+  },
+
+  /**
+   * Called when all the custom render animations have been completed.
+   *
+   * @return {undefined}
+   */
+  onAllCustomRenderAnimationsComplete: function() {
+    var self = this;
+    setTimeout(function() {
+      self.emit(DecksEvent("viewport:all:custom:renders:drawn", self));
+    }, 0);
   },
 
   /**
@@ -1331,7 +1311,7 @@ module.exports = Viewport;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 21 2014 09:55:17 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Nov 21 2014 15:57:30 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
