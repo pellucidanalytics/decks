@@ -50,9 +50,9 @@ var validate = require("../utils/validate");
  * @param {!Element} element - the element for which to bind and handle input gestures
  * @param {?Object} options - additional options
  */
-function GestureHandler(element, options) {
+function GestureHandler(options) {
   if (!(this instanceof GestureHandler)) {
-    return new GestureHandler(element, options);
+    return new GestureHandler(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
@@ -62,7 +62,7 @@ function GestureHandler(element, options) {
   this.setAnimator(options.animator);
   this.setConfig(options.config);
   this.setEmitter(options.emitter || {}, this.emitterEvents);
-  this.setElement(element);
+  this.setElement(options.element);
   this.setOptions(options);
 }
 
@@ -104,22 +104,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
         enabled: true
       }
     },
+    containerElement: null,
     bounds: null,
     movement: {
-      /**
-       * If false, gestures will cause movements on the element by changing/animating the element's top and left style.
-       * If true, gestures will cause movements on the element by animating element's scroll position.
-       */
       scroll: false,
-
-      /**
-       * If scroll: true, the container element must be specified.
-       */
-      scrollContainerElement: null,
-
-      /**
-       * Default animation options for moveemnts
-       */
       animateOptions: {
         duration: 500,
         easing: "easeInOutCubic",
@@ -127,6 +115,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       }
     },
     snapping: {
+      toBounds: false,
+      toChildElements: true,
+      childElementSelector: ".decks-item",
       distanceThreshold: 40, // The pixel distance when pulling away from an edge, where movement resistance begins to be applied
       distanceScale: 0.5, // The scale factor for reducing movement when pulling away from an edge
       animateOptions: {
@@ -144,6 +135,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   emitterEvents: {
+    // Pan gestures
     "gesture:pan:start": "onGesturePanStart",
     "gesture:pan:any": "onGesturePanAny",
     "gesture:pan:x": "onGesturePanX",
@@ -151,10 +143,12 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     "gesture:pan:end": "onGesturePanEnd",
     "gesture:pan:cancel": "onGesturePanCancel",
 
+    // Swipe gestures
     "gesture:swipe:any": "onGestureSwipeAny",
     "gesture:swipe:x": "onGestureSwipeX",
     "gesture:swipe:y": "onGestureSwipeY",
 
+    // Other gestures
     "gesture:tap": "onGestureTap",
     "gesture:press": "onGesturePress"
   },
@@ -191,14 +185,26 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   setOptions: function(options) {
     validate(options, "options", { isRequired: true });
 
+    this.containerElement = options.containerElement;
+
+    this.setBounds(options.bounds);
+
     this.movement = options.movement;
 
-    if (this.movement.scroll &amp;&amp; !_.isElement(this.movement.scrollContainerElement)) {
-      throw new Error("GestureHandler#setOptions: for scroll movement, scrollContainerElement is required");
+    if (this.movement.scroll &amp;&amp; !_.isElement(this.containerElement)) {
+      throw new Error("GestureHandler#setOptions: for options.movement.scroll === true, options.containerElement is required");
     }
 
-    this.setBounds(options.bounds || null);
     this.snapping = options.snapping;
+
+    if (this.snapping.toBounds &amp;&amp; !this.bounds) {
+      throw new Error("GestureHandler#setOptions: for options.snapping.toBounds === true, options.bounds is required");
+    }
+
+    if (this.snapping.toChildElements &amp;&amp; !_.isString(this.snapping.childElementSelector)) {
+      throw new Error("GestureHandler#setOptions: for options.snapping.toChildElements === true, options.snapping.childElementSelector is required");
+    }
+
     this.inertia = options.inertia;
 
     _.each(options.gestures, function(gestureEmitterOptions, key) {
@@ -222,10 +228,14 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   setBounds: function(bounds) {
-    validate(bounds, "bounds", { isRequired: true });
+    if (!bounds &amp;&amp; _.isElement(this.containerElement)) {
+      bounds = rect.normalize(this.containerElement);
+    }
+
     if (rect.isEqual(this.bounds, bounds)) {
       return;
     }
+
     this.bounds = bounds;
   },
 
@@ -258,8 +268,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     // If moving by scroll, record the starting scroll top and left, otherwise, record the style top and left
     if (this.movement.scroll) {
       _.extend(this.currentPosition, {
-        scrollTop: this.movement.scrollContainerElement.scrollTop,
-        scrollLeft: this.movement.scrollContainerElement.scrollLeft
+        scrollTop: this.containerElement.scrollTop,
+        scrollLeft: this.containerElement.scrollLeft
       });
     } else {
       _.extend(this.currentPosition, rect.normalize(this.element));
@@ -512,7 +522,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       transform = "scroll";
       animateOptions.offset = value;
       animateOptions.axis = axis;
-      animateOptions.container = self.movement.scrollContainerElement;
+      animateOptions.container = self.containerElement;
     } else {
       transform = {};
       if (axis === "x") {
