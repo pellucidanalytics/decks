@@ -34,8 +34,11 @@ var DecksEvent = require("../events/decksevent");
  *
  * @class
  * @extends GestureEmitter
- * @param element
- * @param options
+ * @param {!Object} options - Additional options
+ * @param {?(Emitter|Object)} [options.emitter={}] - Emitter instance or options on which to emit events
+ * @param {!Element} options.element - Element for which to bind events
+ * @param {!Hammer} options.hammer - Hammer instance for the element (required by base class)
+ * @param {?boolean} [options.enabled=false] - Whether to enable this emitter
  */
 function TapEmitter(options) {
   if (!(this instanceof TapEmitter)) {

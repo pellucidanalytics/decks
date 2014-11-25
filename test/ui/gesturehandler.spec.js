@@ -21,19 +21,26 @@ describe("decks.ui.GestureHandler", function() {
     containerElement = dom.create("div");
     dom.setStyles(containerElement, { position: "absolute", top: 0, left: 0, width: 800, height: 600 });
     dom.append(document.body, containerElement);
+
     element = dom.create("div");
     containerElement.appendChild(element);
+
     emitter = new Emitter();
+
     animator = {
       animate: function() { }
     };
+
     config = Deck.prototype.defaultOptions.config;
+
     options = {
-      element: element,
       emitter: emitter,
       animator: animator,
-      config: config
+      config: config,
+      element: element,
+      containerElement: element
     };
+
     gestureHandler = new GestureHandler(options);
   });
 

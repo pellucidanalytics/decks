@@ -66,8 +66,11 @@ function GestureHandler(options) {
   options = _.merge({}, this.defaultOptions, options);
 
   this.gestureEmitters = {};
-
   this.animationCount = 0;
+
+  if (options.debouncedScrollWait > 0) {
+    this.onGestureScroll = _.debounce(this.onGestureScroll, options.debouncedScrollWait);
+  }
 
   this.setAnimator(options.animator);
   this.setConfig(options.config);
@@ -178,6 +181,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
      */
     movement: {
       scroll: false, // false: move by changing top/left, true: move by changing scrollTop/scrollLeft on container
+      debouncedScrollWait: 200,
       animateOptions: {
         duration: 500,
         easing: "easeInOutCubic"
@@ -298,15 +302,18 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     // Movement options
     this.movement = options.movement;
+
     if (this.movement.scroll &amp;&amp; !_.isElement(this.containerElement)) {
-      throw new Error("GestureHandler#setOptions: for options.movement.scroll === true, options.containerElement is required");
+      throw new Error("GestureHandler#setOptions: for options.movement.scroll === true, options.containerElement must be an element");
     }
 
     // Snapping options
     this.snapping = options.snapping;
+
     if (this.snapping.toBounds &amp;&amp; !this.bounds) {
       throw new Error("GestureHandler#setOptions: for options.snapping.toBounds === true, options.bounds is required");
     }
+
     if (this.snapping.toNearestChildElement &amp;&amp; !_.isString(this.snapping.childElementSelector)) {
       throw new Error("GestureHandler#setOptions: for options.snapping.toNearestChildElement === true, options.snapping.childElementSelector is required");
     }
@@ -318,33 +325,32 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (!_.isFunction(options.getMoveToElementOffsets)) {
       throw new Error("GestureHandler#setOptions: getMoveToElementOffsets must be a function");
     }
+
     this.getMoveToElementOffsets = options.getMoveToElementOffsets;
 
     // Gesture types
     _.each(options.gestures, function(gestureEmitterOptions, key) {
-      if (key === "scroll" &amp;&amp; this.movement.scroll) {
-        gestureEmitterOptions.enabled = true;
-      }
-
-      if (!gestureEmitterOptions.enabled) {
-        return;
-      }
-
       var GestureEmitter = this.gestureEmitterTypes[key];
       if (!GestureEmitter) {
         throw new Error("GestureHandler#setOptions: no gesture emitter component configured to handle gesture type: " + key);
       }
 
       var element = this.element;
+
       if (key === "scroll") {
-        if (!this.containerElement) {
-          throw new Error("GestureHandler#setOptions: for scroll gestures, options.containerElement is required");
-        }
+        // Scroll emitter must be on the container element, not the element itself
         element = this.containerElement;
+        gestureEmitterOptions.enabled = gestureEmitterOptions.enabled &amp;&amp; this.movement.scroll;
+
+        if (gestureEmitterOptions.enabled &amp;&amp; !this.containerElement) {
+          if (!this.containerElement) {
+            throw new Error("GestureHandler#setOptions: for scroll gestures, options.containerElement is required");
+          }
+        }
       }
 
       _.extend(gestureEmitterOptions, {
-        element: element, // Certain events come from the containerElement, rather than the element (e.g. scroll)
+        element: element,
         hammer: this.hammer,
         emitter: this.emitter
       });
@@ -395,12 +401,6 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.hammer.destroy();
     delete this.hammer;
 
-    // Remove the "touch-action" style (hammer doesn't seem to do this)
-    // TODO: the problem is that hammer defaults to touch-action: pan-y, but if the gesture handlers
-    // aren't enabled, none of the options are taken into effect, so hammer doesn't change it to pan-x
-    // when needed.
-    dom.removeStyle(this.element, "touch-action");
-
     this.unbindEvents(this.emitter, this.emitterEvents);
   },
 
@@ -436,11 +436,16 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @return {undefined}
    */
   clearPositionData: function() {
-    //console.log("clear position");
+    console.log("clear position");
     this.startPosition = null;
     this.currentPosition = null;
   },
 
+  /**
+   * Indicates if the element has any animation running currently.
+   *
+   * @return {undefined}
+   */
   isAnimating: function() {
     return this.animationCount > 0;
   },
@@ -500,14 +505,14 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
 
     _.extend(animateOptions, {
-      duration: 0,
+      duration: 0, // Immediate animation for pan movements
       queue: false // Don't queue the pan animation, because it's probably just a pixel or two, and needs to be immediate
     });
 
     _.extend(completeOptions, {
-      snapToBounds: false,
-      snapToNearestChildElement: false,
-      clearPositionData: false
+      snapToBounds: false, // Don't snap to bounds for single pan events (wait for pan end)
+      snapToNearestChildElement: false, // Don't snap for single pan events (wait for pan end)
+      clearPositionData: false // Don't clear position data, because pan events need the past data
     });
 
     this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
@@ -541,14 +546,14 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
 
     _.extend(animateOptions, {
-      duration: 0,
+      duration: 0, // Immediate animation for pan movements
       queue: false // Don't queue the pan animation, because it's probably just a pixel or two, and needs to be immediate
     });
 
     _.extend(completeOptions, {
-      snapToBounds: false,
-      snapToNearestChildElement: false,
-      clearPositionData: false
+      snapToBounds: false, // Don't snap to bounds for pans (do it on pan end)
+      snapToNearestChildElement: false, // Don't snap to bounds for pans (do it on pan end)
+      clearPositionData: false // Don't clear position data - pan movements need past data
     });
 
     this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
@@ -757,7 +762,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     var animateOptions = {};
     var beginOptions = {};
     var completeOptions = {
-      description: "resetPosition",
+      description: "reset position",
       waitForXAndY: true,
       snapToBounds: false,
       snapToNearestChildElement: false,
@@ -786,8 +791,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     var x = left + offsets.x;
     var y = top + offsets.y;
 
-    animateOptions = _.extend({}, animateOptions);
-    beginOptions = _.extend({}, beginOptions);
+    //animateOptions = _.extend({}, animateOptions);
+    //beginOptions = _.extend({}, beginOptions);
     completeOptions = _.extend({
       description: "animateMoveToElement",
       waitForXAndY: true,
@@ -832,8 +837,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     var animateOptions = _.extend({}, this.snapping.animateOptions);
     var beginOptions = {};
     var completeOptions = {
-      description: "snap bounds",
+      description: "snap to bounds",
       snapToBounds: false,
+      snapToNearestChildElement: false,
       clearPositionData: true,
       event: DecksEvent("gesture:snapped:to:container:bounds", this, this.element)
     };
@@ -857,15 +863,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("snap nearest");
+    console.log("snap to nearest child element");
 
     var childElements = dom.query(this.snapping.childElementSelector, this.containerElement);
-    var nearestChildElement = dom.nearest({ x: 0, y: 0 }, childElements);
+    var nearestChildElement = dom.nearest(this.bounds, childElements);
 
     var animateOptions = _.extend({}, this.snapping.animateOptions);
     var beginOptions = {};
     var completeOptions = {
-      description: "snap nearest",
+      description: "snap to nearest child element",
       snapToBounds: true,
       snapToNearestChildElement: false,
       clearPositionData: true,
@@ -885,9 +891,13 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     var self = this;
     console.log("complete: " + options.description);
 
+    // If waitForXAndY, two animations must complete before this method is called,
+    // so decrement by 2.  Otherwise, decrement by 1.
     this.animationCount -= (options.waitForXAndY ? 2 : 1);
 
     _.defer(function() {
+      // Snapping to nearest child gets precedence over snapping to bounds.
+      // Snapping to bounds might be called after snapping to nearest child completes.
       if (options.snapToNearestChildElement) {
         self.snapToNearestChildElement();
       } else if (options.snapToBounds) {
@@ -1106,18 +1116,19 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  onGestureScroll: _.debounce(function(e) {
+  onGestureScroll: function(e) {
     if (e.sender.element !== this.containerElement) {
       return;
     }
+
+    console.log("scroll");
 
     if (this.snapping.toNearestChildElement) {
       this.snapToNearestChildElement();
     } else if (this.snapping.toBounds) {
       this.snapToBounds();
     }
-
-  }, 200) // TODO: configure this wait?
+  }
 });
 
 module.exports = GestureHandler;

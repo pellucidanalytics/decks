@@ -3,20 +3,27 @@ var expect = tools.expect;
 var sinon = tools.sinon;
 var decks = require("../..");
 var GestureEmitter = decks.ui.GestureEmitter;
+var Emitter = decks.events.Emitter;
 var Hammer = require("hammerjs");
 
 describe("decks.ui.GestureEmitter", function() {
+  var emitter;
   var element;
   var hammer;
   var options;
+  var enabled;
   var gestureEmitter;
 
   beforeEach(function() {
+    emitter = new Emitter();
     element = document.createElement("div");
     hammer = new Hammer(element);
+    enabled = true;
     options = {
+      emitter: emitter,
       element: element,
-      hammer: hammer
+      hammer: hammer,
+      enabled: enabled
     };
     gestureEmitter = new GestureEmitter(options);
   });
@@ -29,6 +36,13 @@ describe("decks.ui.GestureEmitter", function() {
     it("should work without new", function() {
       gestureEmitter = GestureEmitter(options);
       expect(gestureEmitter).to.be.an.instanceOf(GestureEmitter);
+    });
+
+    it("should set options", function() {
+      expect(gestureEmitter.emitter).to.equal(emitter);
+      expect(gestureEmitter.element).to.equal(element);
+      expect(gestureEmitter.hammer).to.equal(hammer);
+      expect(gestureEmitter.enabled).to.equal(enabled);
     });
   });
 

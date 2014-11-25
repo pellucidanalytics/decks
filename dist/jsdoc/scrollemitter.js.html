@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: ui/mouseoveroutemitter.js</title>
+    <title>JSDoc: Source: ui/scrollemitter.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: ui/mouseoveroutemitter.js</h1>
+    <h1 class="page-title">Source: ui/scrollemitter.js</h1>
 
     
 
@@ -30,62 +30,58 @@ var GestureEmitter = require("./gestureemitter");
 var DecksEvent = require("../events/decksevent");
 
 /**
- * Class that emits or provides support for mouseover and mouseout events on an element
+ * Gesture emitter which monitors for Element scroll events, and re-emits
+ * them on the {@link Emitter}.  Note that scroll events are fired on a scrollable
+ * container, not an a scrollable element itself.
  *
- * @class
- * @extends GestureEmitter
  * @param {!Object} options - Additional options
  * @param {?(Emitter|Object)} [options.emitter={}] - Emitter instance or options on which to emit events
  * @param {!Element} options.element - Element for which to bind events
  * @param {!Hammer} options.hammer - Hammer instance for the element (required by base class)
  * @param {?boolean} [options.enabled=false] - Whether to enable this emitter
- * @param {?boolean} [options.horizontal=false] - Whether to monitor horizontal pan gestures.
- * @param {?boolean} [options.vertical=true] - Whether to monitor vertical pan gestures.
- * @param {?number} [options.threshold=0] - Threshold distance before pan gestures are detected.
+ * @return {ScrollEmitter}
  */
-function MouseOverOutEmitter(options) {
-  if (!(this instanceof MouseOverOutEmitter)) {
-    return new MouseOverOutEmitter(options);
+function ScrollEmitter(options) {
+  if (!(this instanceof ScrollEmitter)) {
+    return new ScrollEmitter(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
-  GestureEmitter.call(this, options);
 
-  this.over = !!options.over;
-  this.out = !!options.out;
+  GestureEmitter.prototype.constructor.call(this, options);
 
   this.bindElementEvents();
 }
 
-MouseOverOutEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends MouseOverOutEmitter.prototype */ {
-  constructor: MouseOverOutEmitter,
+ScrollEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends ScrollEmitter.prototype */ {
+  constructor: ScrollEmitter,
 
+  /**
+   * Default options
+   */
   defaultOptions: _.merge({}, GestureEmitter.prototype.defaultOptions, {
-    over: true,
-    out: true
   }),
 
   getElementEvents: function() {
-    var map = {};
-    if (this.over) {
-      map.mouseover = "onMouseOver";
-    }
-    if (this.out) {
-      map.mouseout = "onMouseOut";
-    }
-    return map;
+    return {
+      "scroll": "onScroll"
+    };
   },
 
-  onMouseOver: function(e) {
-    this.emit(DecksEvent("gesture:mouse:over", this, e));
-  },
-
-  onMouseOut: function(e) {
-    this.emit(DecksEvent("gesture:mouse:out", this, e));
+  /**
+   * Called when a scroll event occurs on the Element.
+   *
+   * Re-emits the scroll event as a {@link DecksEvent}.
+   *
+   * @param e
+   * @return {undefined}
+   */
+  onScroll: function(e) {
+    this.emit(DecksEvent("gesture:scroll", this, e));
   }
 });
 
-module.exports = MouseOverOutEmitter;
+module.exports = ScrollEmitter;
 </code></pre>
         </article>
     </section>
