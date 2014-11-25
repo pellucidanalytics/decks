@@ -15,9 +15,10 @@ describe("decks.ui.GestureEmitter", function() {
     element = document.createElement("div");
     hammer = new Hammer(element);
     options = {
+      element: element,
       hammer: hammer
     };
-    gestureEmitter = new GestureEmitter(element, options);
+    gestureEmitter = new GestureEmitter(options);
   });
 
   describe("constructor", function() {
@@ -26,7 +27,7 @@ describe("decks.ui.GestureEmitter", function() {
     });
 
     it("should work without new", function() {
-      gestureEmitter = GestureEmitter(element, options);
+      gestureEmitter = GestureEmitter(options);
       expect(gestureEmitter).to.be.an.instanceOf(GestureEmitter);
     });
   });

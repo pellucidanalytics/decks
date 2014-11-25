@@ -101,6 +101,14 @@ describe("decks.Frame", function() {
   });
 
   describe("setBounds", function() {
+    beforeEach(function(){
+      document.body.appendChild(element);
+    });
+
+    afterEach(function(){
+      document.body.removeChild(element);
+    });
+
     it("should set the bounds based on frame element", function() {
       dom.setStyles(element, {
         position: "absolute",
@@ -109,7 +117,6 @@ describe("decks.Frame", function() {
         width: 1000,
         height: 800
       });
-      document.body.appendChild(element);
       var frame = new Frame(frameOptions);
       expect(frame.bounds).to.eql({
         isNormalized: true,
@@ -124,6 +131,14 @@ describe("decks.Frame", function() {
   });
 
   describe("isElementVisible", function() {
+    beforeEach(function(){
+      document.body.appendChild(element);
+    });
+
+    afterEach(function(){
+      document.body.removeChild(element);
+    });
+
     it("should check if an element rect intersects the frame element rect", function() {
       dom.setStyles(element, {
         position: "absolute",
@@ -132,7 +147,6 @@ describe("decks.Frame", function() {
         width: 1024,
         height: 768
       });
-      document.body.appendChild(element);
       var frame = new Frame(frameOptions);
 
       var itemElement = dom.create("div");
@@ -154,13 +168,21 @@ describe("decks.Frame", function() {
         width: 50,
         height: 50
       });
+
       expect(frame.isElementVisible(itemElement)).to.be.False;
     });
   });
 
   describe("onCanvasElementSet", function() {
-    it("should append the canvas element to the Frame, and set the Frame bounds on the Canvas", function() {
+    beforeEach(function(){
       document.body.appendChild(element);
+    });
+
+    afterEach(function(){
+      document.body.removeChild(element);
+    });
+
+    it("should append the canvas element to the Frame, and set the Frame bounds on the Canvas", function() {
       var frame = new Frame(frameOptions);
       var mockCanvas = {
         element: dom.create("div"),

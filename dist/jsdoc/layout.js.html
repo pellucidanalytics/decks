@@ -109,7 +109,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
 
     // Canvas gestures
     "getCanvasGestureOptions",
-    "getPanToItemOffsets",
+    "getMoveToElementOffsets",
 
     // Custom renders
     "getCustomRenders",
@@ -414,11 +414,10 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
   /**
    * Gets extra offsets to apply when panning to an item
    *
-   * @param {Item} item - item being panned to
-   * @param {Object} render - render being panned to
+   * @param {!Element} element - element being moved to
    * @return {undefined}
    */
-  getPanToItemOffsets: function() {
+  getMoveToElementOffsets: function(/*element*/) {
     return { x: 0, y: 0 };
   }
 });

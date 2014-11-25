@@ -69,4 +69,13 @@ describe("decks.utils.rect", function() {
       expect(rect.move(input, 50, 20)).to.eql(expected);
     });
   });
+
+  describe("distance", function() {
+    it("should calculate distance", function() {
+      expect(rect.distance({ top: 0, left: 0}, { top: 0, left: 0 })).to.eql(0);
+      expect(rect.distance({ top: 0, left: 0}, { top: 30, left: 40 })).to.eql(50);
+      expect(rect.distance({ top: 0, left: 0}, { top: -30, left: -40 })).to.eql(50);
+      expect(rect.distance({ top: -10, left: -10}, { top: 20, left: 30 })).to.eql(50);
+    });
+  });
 });

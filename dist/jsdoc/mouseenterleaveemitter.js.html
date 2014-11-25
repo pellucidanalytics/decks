@@ -40,14 +40,14 @@ var DecksEvent = require("../events/decksevent");
  * @param {?boolean} [options.vertical=true] - Whether to monitor vertical pan gestures.
  * @param {?number} [options.threshold=0] - Threshold distance before pan gestures are detected.
  */
-function MouseEnterLeaveEmitter(element, options) {
+function MouseEnterLeaveEmitter(options) {
   if (!(this instanceof MouseEnterLeaveEmitter)) {
-    return new MouseEnterLeaveEmitter(element, options);
+    return new MouseEnterLeaveEmitter(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
 
-  GestureEmitter.call(this, element, options);
+  GestureEmitter.call(this, options);
 
   this.enter = !!options.enter;
   this.leave = !!options.leave;

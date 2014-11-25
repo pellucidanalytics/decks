@@ -9,6 +9,48 @@ describe("decks.ui.dom", function() {
       var element = dom.create("div");
       expect(element.tagName).to.eql("DIV");
     });
+
+    it("should set element id", function() {
+      var element = dom.create("div", { id: "test" });
+      expect(element.id).to.eql("test");
+    });
+
+    it("should set element className", function() {
+      var element = dom.create("div", { className: "test-class" });
+      expect(element.className).to.eql("test-class");
+    });
+
+    it("should set element styles", function() {
+      var element = dom.create("div", { styles: { top: 10, left: 10, width: 100, height: 100, position: "absolute" }});
+      expect(element.style.top).to.eql("10px");
+      expect(element.style.left).to.eql("10px");
+      expect(element.style.width).to.eql("100px");
+      expect(element.style.height).to.eql("100px");
+      expect(element.style.position).to.eql("absolute");
+    });
+
+    it("should set attributes", function() {
+      var element = dom.create("div", { attrs: { "data-id": "test-id", "data-other": "test" }});
+      expect(dom.getAttr(element, "data-id")).to.eql("test-id");
+      expect(dom.getAttr(element, "data-other")).to.eql("test");
+    });
+
+    it("should set all element settings", function() {
+      var element = dom.create("div", {
+        id: "test-id",
+        className: "test-class",
+        styles: {
+          top: 10
+        },
+        attrs: {
+          "data-something": "something"
+        }
+      });
+      expect(element.id).to.eql("test-id");
+      expect(element.className).to.eql("test-class");
+      expect(element.style.top).to.eql("10px");
+      expect(dom.getAttr(element, "data-something")).to.eql("something");
+    });
   });
 
   describe("html", function() {
@@ -293,6 +335,100 @@ describe("decks.ui.dom", function() {
       expect(dom.isPositioned(element)).to.be.True;
       element.style.position = "relative";
       expect(dom.isPositioned(element)).to.be.True;
+    });
+  });
+
+  describe("closest", function() {
+    it("should find the closest element that matches a predicate", function() {
+      var level1 = dom.create("div");
+      level1.className = "level-1";
+
+      var level2 = dom.create("div");
+      level2.className = "level-2";
+      level1.appendChild(level2);
+
+      var level3 = dom.create("div");
+      level3.className = "level-3";
+      level2.appendChild(level3);
+
+      expect(dom.closest(level1, function(el) { return el.className === "level-1"; })).to.equal(level1);
+      expect(dom.closest(level1, function(el) { return el.className === "level-2"; })).to.be.Null;
+      expect(dom.closest(level1, function(el) { return el.className === "level-3"; })).to.be.Null;
+      expect(dom.closest(level1, function(el) { return el.className === "level-x"; })).to.be.Null;
+
+      expect(dom.closest(level2, function(el) { return el.className === "level-1"; })).to.equal(level1);
+      expect(dom.closest(level2, function(el) { return el.className === "level-2"; })).to.equal(level2);
+      expect(dom.closest(level2, function(el) { return el.className === "level-3"; })).to.be.Null;
+      expect(dom.closest(level2, function(el) { return el.className === "level-x"; })).to.be.Null;
+
+      expect(dom.closest(level3, function(el) { return el.className === "level-1"; })).to.equal(level1);
+      expect(dom.closest(level3, function(el) { return el.className === "level-2"; })).to.equal(level2);
+      expect(dom.closest(level3, function(el) { return el.className === "level-3"; })).to.equal(level3);
+      expect(dom.closest(level3, function(el) { return el.className === "level-x"; })).to.be.Null;
+    });
+  });
+
+  describe("closestWithClass", function() {
+    it("should find the closest element that has a class", function() {
+      var level1 = dom.create("div");
+      level1.className = "level-1";
+
+      var level2 = dom.create("div");
+      level2.className = "level-2";
+      level1.appendChild(level2);
+
+      var level3 = dom.create("div");
+      level3.className = "level-3";
+      level2.appendChild(level3);
+
+      expect(dom.closestWithClass(level1, "level-1")).to.equal(level1);
+      expect(dom.closestWithClass(level1, "level-2")).to.be.Null;
+      expect(dom.closestWithClass(level1, "level-3")).to.be.Null;
+      expect(dom.closestWithClass(level1, "level-x")).to.be.Null;
+
+      expect(dom.closestWithClass(level2, "level-1")).to.equal(level1);
+      expect(dom.closestWithClass(level2, "level-2")).to.equal(level2);
+      expect(dom.closestWithClass(level2, "level-3")).to.be.Null;
+      expect(dom.closestWithClass(level2, "level-x")).to.be.Null;
+
+      expect(dom.closestWithClass(level3, "level-1")).to.equal(level1);
+      expect(dom.closestWithClass(level3, "level-2")).to.equal(level2);
+      expect(dom.closestWithClass(level3, "level-3")).to.equal(level3);
+      expect(dom.closestWithClass(level3, "level-x")).to.be.Null;
+    });
+  });
+
+  describe("nearest", function() {
+    it("should find the nearest element to a point by pixel distance", function() {
+      function createChild(container, top, left) {
+        var child = document.createElement("div");
+        child.style.position = "absolute";
+        child.style.top = top;
+        child.style.left = left;
+        child.style.width = "10px";
+        child.style.height = "10px";
+        container.appendChild(child);
+        return child;
+      }
+
+      var container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.top = 0;
+      container.style.left = 0;
+      container.width = "800px";
+      container.height = "600px";
+      document.body.appendChild(container);
+
+      var child1 = createChild(container, "10px", "10px");
+      var child2 = createChild(container, "20px", "10px");
+      var child3 = createChild(container, "-10px", "-10px");
+
+      expect(dom.nearest({ top: 0, left: 0 }, container.children)).to.equal(child1);
+      expect(dom.nearest({ top: 10, left: 0 }, container.children)).to.equal(child1);
+      expect(dom.nearest({ top: 20, left: 0 }, container.children)).to.equal(child2);
+      expect(dom.nearest({ top: -10, left: -10 }, container.children)).to.equal(child3);
+
+      document.body.removeChild(container);
     });
   });
 });

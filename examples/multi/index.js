@@ -72,10 +72,10 @@ function loadRender(render) {
   }
 }
 
-function unloadRender(render) {
+function unloadRender(/*render*/) {
   //console.log("unloadRender");
-  render.element.innerHTML = "<span>Loading...</span>";
-  render.image = null;
+  //render.element.innerHTML = "<span>Loading...</span>";
+  //render.image = null;
 }
 
 
@@ -235,7 +235,7 @@ $(function() {
   var deckOptions = {
     config: {
       debugEvents: false,
-      debugDrawing: true,
+      debugDrawing: false,
       debugGestures: false
     },
     animator: {
@@ -274,7 +274,7 @@ $(function() {
     var itemId = $target.data("item-id");
 
     $target.addClass("panning-to");
-    setTimeout(function() {
+    _.delay(function() {
       $target.removeClass("panning-to");
     }, 2000);
 
@@ -291,7 +291,7 @@ $(function() {
     var itemId = $target.data("item-id");
 
     $target.addClass("panning-to");
-    setTimeout(function() {
+    _.delay(function() {
       $target.removeClass("panning-to");
     }, 2000);
 
@@ -302,5 +302,15 @@ $(function() {
       deck.setLayoutAndPanToItem(layouts.zoom, itemId);
       $layoutSelect.val("zoom");
     }
+  });
+
+  deck.on("gesture:snapped:to:nearest:child:element", function(e) {
+    var element = e.data;
+    var $element = $(element);
+
+    $element.addClass("panning-to");
+    _.delay(function() {
+      $element.removeClass("panning-to");
+    }, 2000);
   });
 });

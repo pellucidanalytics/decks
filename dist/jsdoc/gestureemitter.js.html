@@ -37,19 +37,19 @@ var validate = require("../utils/validate");
  * @abstract
  * @mixes binder
  * @mixes hasEmitter
- * @param {!Element} element - element for which to add gesture support
  * @param {!Object} options - gesture configuration options
+ * @param {!Element} options.element - Element for which to listen for and emit gesture/DOM events
  * @param {!Hammer} options.hammer - Hammer instance for the element
  */
-function GestureEmitter(element, options) {
+function GestureEmitter(options) {
   if (!(this instanceof GestureEmitter)) {
-    return new GestureEmitter(element, options);
+    return new GestureEmitter(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
 
   this.setEmitter(options.emitter || {});
-  this.setElement(element);
+  this.setElement(options.element);
   this.setHammer(options.hammer);
 }
 

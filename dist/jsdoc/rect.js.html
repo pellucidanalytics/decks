@@ -196,6 +196,22 @@ module.exports = {
     r.top = r.top + top;
     r.bottom = r.top + r.height;
     return r;
+  },
+
+  /**
+   * Calculates the distance between two points.  Points can be expressed with top and left values,
+   * or x and y values.
+   *
+   * @param {!Object} point1 - first point
+   * @param {!Object} point2 - second point
+   * @return {number} - the distance between the points
+   */
+  distance: function(point1, point2) {
+    var x1 = point1.left || point1.x || 0;
+    var y1 = point1.top || point1.y || 0;
+    var x2 = point2.left || point2.x || 0;
+    var y2 = point2.top || point2.y || 0;
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   }
 };
 </code></pre>

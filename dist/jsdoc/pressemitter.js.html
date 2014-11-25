@@ -34,17 +34,16 @@ var DecksEvent = require("../events/decksevent");
  *
  * @class
  * @extends GestureEmitter
- * @param {!Element} element - Element to monitor
- * @param {?Object} [options={}] - Additional options
+ * @param {!Object} options - Options
  */
-function PressEmitter(element, options) {
+function PressEmitter(options) {
   if (!(this instanceof PressEmitter)) {
-    return new PressEmitter(element, options);
+    return new PressEmitter(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
 
-  GestureEmitter.call(this, element, options);
+  GestureEmitter.call(this, options);
 
   this.bindHammerEvents();
 }
