@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: layouts/zoomlayout.js</title>
+    <title>JSDoc: Source: ui/scrollemitter.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: layouts/zoomlayout.js</h1>
+    <h1 class="page-title">Source: ui/scrollemitter.js</h1>
 
     
 
@@ -26,106 +26,62 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>var _ = require("lodash");
-var Layout = require("../layout");
-
+var GestureEmitter = require("./gestureemitter");
+var DecksEvent = require("../events/decksevent");
 
 /**
- * Basic zoomed-in layout implementation
+ * Gesture emitter which monitors for Element scroll events, and re-emits
+ * them on the {@link Emitter}.  Note that scroll events are fired on a scrollable
+ * container, not an a scrollable element itself.
  *
- * @class
- * @extends Layout
- * @param {?Object} options - options
+ * @param {!Object} options - Additional options
+ * @param {?(Emitter|Object)} [options.emitter={}] - Emitter instance or options on which to emit events
+ * @param {!Element} options.element - Element for which to bind events
+ * @param {!Hammer} options.hammer - Hammer instance for the element (required by base class)
+ * @param {?boolean} [options.enabled=false] - Whether to enable this emitter
+ * @return {ScrollEmitter}
  */
-function ZoomLayout(options) {
-  if (!(this instanceof ZoomLayout)) {
-    return new ZoomLayout(options);
+function ScrollEmitter(options) {
+  if (!(this instanceof ScrollEmitter)) {
+    return new ScrollEmitter(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
 
-  this.horizontal = options.horizontal;
-  this.vertical = options.vertical;
-  if (this.horizontal &amp;&amp; this.vertical) {
-    throw new Error("ZoomLayout#constructor: cannot be both horizontal and vertical");
-  }
-  if (!this.horizontal &amp;&amp; !this.vertical) {
-    this.horizontal = true; // default to horizontal
-  }
-  this.padding = options.padding || 10;
+  GestureEmitter.prototype.constructor.call(this, options);
 
-  Layout.call(this, options);
+  this.bindElementEvents();
 }
 
-ZoomLayout.prototype = _.create(Layout.prototype, /** @lends ZoomLayout.prototype */ {
-  constructor: ZoomLayout,
+ScrollEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends ScrollEmitter.prototype */ {
+  constructor: ScrollEmitter,
 
-  defaultOptions: _.merge({}, Layout.prototype.defaultOptions, {
-    horizontal: true,
-    vertical: false
+  /**
+   * Default options
+   */
+  defaultOptions: _.merge({}, GestureEmitter.prototype.defaultOptions, {
   }),
 
-  getRenders: function(item, options) {
-    var width = options.frame.bounds.width - (2 * this.padding) - 20;
-    var height = options.frame.bounds.height - (2 * this.padding) - 20;
-
+  getElementEvents: function() {
     return {
-      transform: this.getTransform(item, width, height),
-      animateOptions: this.getAnimateOptions()
+      "scroll": "onScroll"
     };
   },
 
-  getTransform: function(item, width, height) {
-    var transform = {
-      width: width,
-      height: height,
-      rotateZ: 0
-    };
-
-    if (this.horizontal) {
-      transform.top = this.padding;
-      transform.left = item.index * (this.padding + width) + this.padding;
-    } else if (this.vertical) {
-      transform.top = item.index * (this.padding + height) + this.padding;
-      transform.left = this.padding;
-    }
-
-    return transform;
-  },
-
-  getAnimateOptions: function() {
-    return {
-      duration: 600
-    };
-  },
-
-  getCanvasGestureOptions: function() {
-    return {
-      gestures: {
-        pan: {
-          horizontal: this.horizontal,
-          vertical: this.vertical
-        },
-        swipe: {
-          horizontal: this.horizontal,
-          vertical: this.vertical
-        },
-        mouseWheel: {
-          horizontal: this.horizontal,
-          vertical: this.vertical
-        }
-      }
-    };
-  },
-
-  getMoveToElementOffsets: function(/*element*/) {
-    return {
-      x: -this.padding,
-      y: -this.padding
-    };
+  /**
+   * Called when a scroll event occurs on the Element.
+   *
+   * Re-emits the scroll event as a {@link DecksEvent}.
+   *
+   * @param e
+   * @return {undefined}
+   */
+  onScroll: function(e) {
+    this.emit(DecksEvent("gesture:scroll", this, e));
   }
 });
 
-module.exports = ZoomLayout;
+module.exports = ScrollEmitter;
 </code></pre>
         </article>
     </section>

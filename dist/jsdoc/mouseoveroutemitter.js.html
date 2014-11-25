@@ -34,20 +34,22 @@ var DecksEvent = require("../events/decksevent");
  *
  * @class
  * @extends GestureEmitter
- * @param {Element} element - element for which to monitor for pan gestures/events.
- * @param {?Object} options - Additional options
+ * @param {!Object} options - Additional options
+ * @param {?(Emitter|Object)} [options.emitter={}] - Emitter instance or options on which to emit events
+ * @param {!Element} options.element - Element for which to bind events
+ * @param {!Hammer} options.hammer - Hammer instance for the element (required by base class)
+ * @param {?boolean} [options.enabled=false] - Whether to enable this emitter
  * @param {?boolean} [options.horizontal=false] - Whether to monitor horizontal pan gestures.
  * @param {?boolean} [options.vertical=true] - Whether to monitor vertical pan gestures.
  * @param {?number} [options.threshold=0] - Threshold distance before pan gestures are detected.
  */
-function MouseOverOutEmitter(element, options) {
+function MouseOverOutEmitter(options) {
   if (!(this instanceof MouseOverOutEmitter)) {
-    return new MouseOverOutEmitter(element, options);
+    return new MouseOverOutEmitter(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
-
-  GestureEmitter.call(this, element, options);
+  GestureEmitter.call(this, options);
 
   this.over = !!options.over;
   this.out = !!options.out;

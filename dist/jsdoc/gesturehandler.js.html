@@ -39,7 +39,9 @@ var MouseOverOutEmitter = require("./mouseoveroutemitter");
 var MouseEnterLeaveEmitter = require("./mouseoveroutemitter");
 var TapEmitter = require("./tapemitter");
 var PressEmitter = require("./pressemitter");
+var ScrollEmitter = require("./scrollemitter");
 var validate = require("../utils/validate");
+//var raf = require("raf");
 
 /**
  * Object to bind and handle gesture events for a single DOM element.
@@ -47,8 +49,14 @@ var validate = require("../utils/validate");
  * @class
  * @mixes binder
  * @mixes hasEmitter
- * @param {!Element} element - the element for which to bind and handle input gestures
- * @param {?Object} options - additional options
+ * @param {!Object} options - additional options
+ * @param {!Element} options.element - element for which to handle gestures
+ * @param {?Emitter} [options.emitter={}] - {@link Emitter} instance or options
+ * @param {!Object} options.animator - animator object
+ * @param {!Object} options.config - config object
+ * @param {?Object} options.gestures - gesture emitter options
+ * @param {?Element} options.containerElement - container element for this element
+ * @param {?Object} options.bounds - rectangle-like boundary for gestures/animations
  */
 function GestureHandler(options) {
   if (!(this instanceof GestureHandler)) {
@@ -58,6 +66,11 @@ function GestureHandler(options) {
   options = _.merge({}, this.defaultOptions, options);
 
   this.gestureEmitters = {};
+  this.animationCount = 0;
+
+  if (options.debouncedScrollWait > 0) {
+    this.onGestureScroll = _.debounce(this.onGestureScroll, options.debouncedScrollWait);
+  }
 
   this.setAnimator(options.animator);
   this.setConfig(options.config);
@@ -71,60 +84,128 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * Default options to use with a GestureHandler instance.
    */
   defaultOptions: {
+    /**
+     * Gesture types
+     */
     gestures: {
+      /**
+       * Mousewheel events
+       */
       mouseWheel: {
-        enabled: true,
+        enabled: false,
         horizontal: true,
         vertical: true
       },
+
+      /**
+       * Mouse over/out events
+       */
       mouseOverOut: {
-        enabled: true,
+        enabled: false,
         over: true,
         out: true
       },
+
+      /**
+       * Mouse enter/leave events
+       */
       mouseEnterLeave: {
-        enabled: true,
+        enabled: false,
         enter: true,
         leave: true
       },
+
+      /**
+       * Pan events
+       */
       pan: {
-        enabled: true,
+        enabled: false,
         horizontal: true,
         vertical: true
       },
+
+      /**
+       * Swipe events
+       */
       swipe: {
-        enabled: true,
+        enabled: false,
         horizontal: true,
         vertical: true
       },
+
+      /**
+       * Tap events
+       */
       tap: {
-        enabled: true
+        enabled: false
       },
+
+      /**
+       * Press events
+       */
       press: {
-        enabled: true
+        enabled: false
+      },
+
+      /**
+       * Scroll events (on the container)
+       */
+      scroll: {
+        enabled: false
       }
     },
+
+    /**
+     * The container element in which this element resides
+     */
     containerElement: null,
+
+    /**
+     * Boundary for animations/gestures (can be a real element bounds, or just virtual bounds)
+     */
     bounds: null,
+
+    /**
+     * Function which provides additional x/y offsets to apply when animating to a child element
+     * e.g. for snap to nearest child element, or move to element
+     */
+    getMoveToElementOffsets: function() {
+      return {
+        x: 0,
+        y: 0
+      };
+    },
+
+    /**
+     * Movement options
+     */
     movement: {
-      scroll: false,
+      scroll: false, // false: move by changing top/left, true: move by changing scrollTop/scrollLeft on container
+      debouncedScrollWait: 200,
       animateOptions: {
         duration: 500,
-        easing: "easeInOutCubic",
-        queue: false
+        easing: "easeInOutCubic"
       }
     },
+
+    /**
+     * Snapping options
+     */
     snapping: {
       toBounds: false,
-      toChildElements: true,
+      toNearestChildElement: true,
       childElementSelector: ".decks-item",
       distanceThreshold: 40, // The pixel distance when pulling away from an edge, where movement resistance begins to be applied
       distanceScale: 0.5, // The scale factor for reducing movement when pulling away from an edge
       animateOptions: {
-        duration: 200,
+        duration: 500,
         easing: [500, 20] // tension (default 500), friction (default 20)
       }
     },
+
+    /**
+     * Inertial movement options
+     */
     inertia: {
       distanceScale: 500, // 400 used to calculate the movement distance for an inertia-based movement (swipe gesture)
       durationScale: 500, // 60 used to calculate the movement duration for an inertia-based movement (swipe gesture)
@@ -135,7 +216,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   emitterEvents: {
-    // Pan gestures
+    // Pan gestures - linear tracking movement
     "gesture:pan:start": "onGesturePanStart",
     "gesture:pan:any": "onGesturePanAny",
     "gesture:pan:x": "onGesturePanX",
@@ -143,14 +224,17 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     "gesture:pan:end": "onGesturePanEnd",
     "gesture:pan:cancel": "onGesturePanCancel",
 
-    // Swipe gestures
+    // Swipe gestures - inertial movement in swipe direction
     "gesture:swipe:any": "onGestureSwipeAny",
     "gesture:swipe:x": "onGestureSwipeX",
     "gesture:swipe:y": "onGestureSwipeY",
 
-    // Other gestures
+    // Tap/press gestures
     "gesture:tap": "onGestureTap",
-    "gesture:press": "onGesturePress"
+    "gesture:press": "onGesturePress",
+
+    // Scroll
+    "gesture:scroll": "onGestureScroll"
   },
 
   /**
@@ -163,70 +247,124 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     mouseOverOut: MouseOverOutEmitter,
     mouseEnterLeave: MouseEnterLeaveEmitter,
     tap: TapEmitter,
-    press: PressEmitter
+    press: PressEmitter,
+    scroll: ScrollEmitter
   },
 
+  /**
+   * Sets the animator instance
+   *
+   * @param animator
+   * @return {undefined}
+   */
   setAnimator: function(animator) {
     validate(animator, "animator", { isPlainObject: true, isNotSet: this.animator });
     this.animator = animator;
   },
 
+  /**
+   * Sets the config instance
+   *
+   * @param config
+   * @return {undefined}
+   */
   setConfig: function(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = config;
   },
 
+  /**
+   * Sets the element instance
+   *
+   * @param element
+   * @return {undefined}
+   */
   setElement: function(element) {
     validate(element, "element", { isElement: true, isNotSet: this.element });
     this.element = element;
     this.hammer = new Hammer(this.element);
   },
 
+  /**
+   * Sets GestureHandler options
+   *
+   * @param options
+   * @return {undefined}
+   */
   setOptions: function(options) {
     validate(options, "options", { isRequired: true });
 
+    // Container element (optional)
     this.containerElement = options.containerElement;
 
+    // Bounds (optional)
     this.setBounds(options.bounds);
 
+    // Movement options
     this.movement = options.movement;
 
     if (this.movement.scroll &amp;&amp; !_.isElement(this.containerElement)) {
-      throw new Error("GestureHandler#setOptions: for options.movement.scroll === true, options.containerElement is required");
+      throw new Error("GestureHandler#setOptions: for options.movement.scroll === true, options.containerElement must be an element");
     }
 
+    // Snapping options
     this.snapping = options.snapping;
 
     if (this.snapping.toBounds &amp;&amp; !this.bounds) {
       throw new Error("GestureHandler#setOptions: for options.snapping.toBounds === true, options.bounds is required");
     }
 
-    if (this.snapping.toChildElements &amp;&amp; !_.isString(this.snapping.childElementSelector)) {
-      throw new Error("GestureHandler#setOptions: for options.snapping.toChildElements === true, options.snapping.childElementSelector is required");
+    if (this.snapping.toNearestChildElement &amp;&amp; !_.isString(this.snapping.childElementSelector)) {
+      throw new Error("GestureHandler#setOptions: for options.snapping.toNearestChildElement === true, options.snapping.childElementSelector is required");
     }
 
+    // Inertia options
     this.inertia = options.inertia;
 
+    // Other callbacks/etc.
+    if (!_.isFunction(options.getMoveToElementOffsets)) {
+      throw new Error("GestureHandler#setOptions: getMoveToElementOffsets must be a function");
+    }
+
+    this.getMoveToElementOffsets = options.getMoveToElementOffsets;
+
+    // Gesture types
     _.each(options.gestures, function(gestureEmitterOptions, key) {
-      if (!gestureEmitterOptions.enabled) {
-        return;
-      }
-
       var GestureEmitter = this.gestureEmitterTypes[key];
-
       if (!GestureEmitter) {
         throw new Error("GestureHandler#setOptions: no gesture emitter component configured to handle gesture type: " + key);
       }
 
+      var element = this.element;
+
+      if (key === "scroll") {
+        // Scroll emitter must be on the container element, not the element itself
+        element = this.containerElement;
+        gestureEmitterOptions.enabled = gestureEmitterOptions.enabled &amp;&amp; this.movement.scroll;
+
+        if (gestureEmitterOptions.enabled &amp;&amp; !this.containerElement) {
+          if (!this.containerElement) {
+            throw new Error("GestureHandler#setOptions: for scroll gestures, options.containerElement is required");
+          }
+        }
+      }
+
       _.extend(gestureEmitterOptions, {
+        element: element,
         hammer: this.hammer,
         emitter: this.emitter
       });
 
-      this.gestureEmitters[key] = new GestureEmitter(this.element, gestureEmitterOptions);
+      this.gestureEmitters[key] = new GestureEmitter(gestureEmitterOptions);
     }, this);
   },
 
+  /**
+   * Sets the bounds for the gestures/animations
+   *
+   * @param bounds
+   * @return {undefined}
+   */
   setBounds: function(bounds) {
     if (!bounds &amp;&amp; _.isElement(this.containerElement)) {
       bounds = rect.normalize(this.containerElement);
@@ -239,6 +377,11 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.bounds = bounds;
   },
 
+  /**
+   * Destroys the GestureHandler and all GestureEmitter instances
+   *
+   * @return {undefined}
+   */
   destroy: function() {
     _.each(this.gestureEmitters, function(gestureEmitter, key) {
       if (this.config.debugGestures) {
@@ -254,12 +397,19 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       console.log("GestureHandler#destroy: destroying hammer: ", this.hammer);
     }
 
+    // Destory the Hammer instance
     this.hammer.destroy();
     delete this.hammer;
 
     this.unbindEvents(this.emitter, this.emitterEvents);
   },
 
+  /**
+   * Updates the current position data (and sets the start position if not set)
+   *
+   * @param e
+   * @return {undefined}
+   */
   updatePositionData: function(e) {
     this.currentPosition = {
       event: e
@@ -280,42 +430,38 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
+  /**
+   * Clears the current and start position data
+   *
+   * @return {undefined}
+   */
   clearPositionData: function() {
+    console.log("clear position");
     this.startPosition = null;
     this.currentPosition = null;
   },
 
-  resetPosition: function() {
-    var animateOptions = {};
-    var beginOptions = {};
-    var completeOptions = { waitForXAndY: true };
-    this.animateMoveXAndY(0, 0, animateOptions, beginOptions, completeOptions);
+  /**
+   * Indicates if the element has any animation running currently.
+   *
+   * @return {undefined}
+   */
+  isAnimating: function() {
+    return this.animationCount > 0;
   },
 
-  animateMoveToElement: function(element, xOffset, yOffset) {
-    validate(element, "GestureHandler#animateMoveToElement: element", { isElement: true });
-    xOffset = xOffset || 0;
-    yOffset = yOffset || 0;
-
-    var left = dom.getStyle(element, "left", { parseFloat: true });
-    var top = dom.getStyle(element, "top", { parseFloat: true });
-
-    //console.log("left %f, top: %f, xOffset: %f, yOffset: %f", left, top, xOffset, yOffset);
-
-    var x = left + xOffset;
-    var y = top + yOffset;
-
-    var animateOptions = {};
-    var beginOptions = {};
-    var completeOptions = { waitForXAndY: true };
-
-    this.animateMoveXAndY(x, y, animateOptions, beginOptions, completeOptions);
-  },
-
+  /**
+   * Stops the current animation (if possible) and clears the animation queue for the element
+   *
+   * Note: only queued animations can be stopped.  Animations with "queue: false" don't seem
+   * to be stoppable.
+   *
+   * @return {undefined}
+   */
   stopAnimation: function() {
+    console.log("stop");
     this.animator.animate(this.element, "stop", true);
-    this.clearPositionData();
-    this.isAnimating = false;
+    this.animationCount = 0;
   },
 
   /**
@@ -358,9 +504,16 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       }
     }
 
-    animateOptions.duration = 0;
-    completeOptions.snapToContainerBounds = false;
-    completeOptions.clearPositionData = false;
+    _.extend(animateOptions, {
+      duration: 0, // Immediate animation for pan movements
+      queue: false // Don't queue the pan animation, because it's probably just a pixel or two, and needs to be immediate
+    });
+
+    _.extend(completeOptions, {
+      snapToBounds: false, // Don't snap to bounds for single pan events (wait for pan end)
+      snapToNearestChildElement: false, // Don't snap for single pan events (wait for pan end)
+      clearPositionData: false // Don't clear position data, because pan events need the past data
+    });
 
     this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
   },
@@ -392,9 +545,16 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       }
     }
 
-    animateOptions.duration = 0;
-    completeOptions.snapToContainerBounds = false;
-    completeOptions.clearPositionData = false;
+    _.extend(animateOptions, {
+      duration: 0, // Immediate animation for pan movements
+      queue: false // Don't queue the pan animation, because it's probably just a pixel or two, and needs to be immediate
+    });
+
+    _.extend(completeOptions, {
+      snapToBounds: false, // Don't snap to bounds for pans (do it on pan end)
+      snapToNearestChildElement: false, // Don't snap to bounds for pans (do it on pan end)
+      clearPositionData: false // Don't clear position data - pan movements need past data
+    });
 
     this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
   },
@@ -412,6 +572,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.animateMoveForSwipeY(e, animateOptions, beginOptions, completeOptions);
   },
 
+  /**
+   * Starts an animation for a swipe gesture in the horizontal direction.
+   *
+   * @param e
+   * @param animateOptions
+   * @param beginOptions
+   * @param completeOptions
+   * @return {undefined}
+   */
   animateMoveForSwipeX: function(e, animateOptions, beginOptions, completeOptions) {
     var distance = this.getInertiaDistance(e.velocityX);
     var duration = this.getInertiaDuration(e.velocityX);
@@ -423,13 +592,29 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       x = "-=" + distance;
     }
 
-    _.extend(animateOptions, this.inertia.animateOptions, { duration: duration });
-    completeOptions.snapToContainerBounds = true;
-    completeOptions.clearPositionData = true;
+    _.extend(animateOptions, this.inertia.animateOptions, {
+      duration: duration
+    });
+
+    _.extend(completeOptions, {
+      snapToBounds: false,
+      snapToNearestChildElement: true,
+      clearPositionData: true
+    });
+
 
     this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
   },
 
+  /**
+   * Starts an animation for a swipe gestures in the vertical direction.
+   *
+   * @param e
+   * @param animateOptions
+   * @param beginOptions
+   * @param completeOptions
+   * @return {undefined}
+   */
   animateMoveForSwipeY: function(e, animateOptions, beginOptions, completeOptions) {
     var distance = this.getInertiaDistance(e.velocityY);
     var duration = this.getInertiaDuration(e.velocityY);
@@ -441,22 +626,190 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       y = "-=" + distance;
     }
 
-    _.extend(animateOptions, this.inertia.animateOptions, { duration: duration });
-    completeOptions.snapToContainerBounds = true;
-    completeOptions.clearPositionData = true;
+    _.extend(animateOptions, this.inertia.animateOptions, {
+      duration: duration
+    });
+
+    _.extend(completeOptions, {
+      snapToBounds: false,
+      snapToNearestChildElement: true,
+      clearPositionData: true
+    });
 
     this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
   },
 
+  /**
+   * Animates a movement in the horizontal direction.
+   *
+   * @param x
+   * @param animateOptions
+   * @param beginOptions
+   * @param completeOptions
+   * @return {undefined}
+   */
+  animateMoveX: function(x, animateOptions, beginOptions, completeOptions) {
+    this.animateMoveXOrY(x, "x", animateOptions, beginOptions, completeOptions);
+  },
+
+  /**
+   * Animates a movement in the vertical direction.
+   *
+   * @param y
+   * @param animateOptions
+   * @param beginOptions
+   * @param completeOptions
+   * @return {undefined}
+   */
+  animateMoveY: function(y, animateOptions, beginOptions, completeOptions) {
+    this.animateMoveXOrY(y, "y", animateOptions, beginOptions, completeOptions);
+  },
+
+  /**
+   * Animates a movement in the horizontal and vertical directions.
+   *
+   * @param x
+   * @param y
+   * @param animateOptions
+   * @param beginOptions
+   * @param completeOptions
+   * @return {undefined}
+   */
+  animateMoveXAndY: function(x, y, animateOptions, beginOptions, completeOptions) {
+    completeOptions.waitForXAndY = true;
+    this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
+    this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
+  },
+
+  /**
+   * Animates a move in the horizontal or vertical direction (based on axis parameter)
+   *
+   * @param value
+   * @param axis
+   * @param animateOptions
+   * @param beginOptions
+   * @param completeOptions
+   * @return {undefined}
+   */
+  animateMoveXOrY: function(value, axis, animateOptions, beginOptions, completeOptions) {
+    var self = this;
+    var transform;
+
+    if (self.movement.scroll) {
+      transform = "scroll";
+      animateOptions.offset = value;
+      animateOptions.axis = axis;
+      animateOptions.container = self.containerElement;
+    } else {
+      transform = {};
+      if (axis === "x") {
+        transform.left = value;
+      } else {
+        transform.top = value;
+      }
+    }
+
+    // If waiting for x and y, wait for 2 invocations of the complete function
+    // before actually calling it
+    completeOptions.callCount = 0;
+
+    animateOptions = _.extend({
+      complete: function() {
+        if (completeOptions.waitForXAndY) {
+          completeOptions.callCount++;
+          if (completeOptions.callCount &lt; 2) {
+            return;
+          }
+        }
+        self.onAnimationComplete(completeOptions);
+      }
+    }, this.movement.animateOptions, animateOptions);
+
+    if (!beginOptions.silent) {
+      this.emit(DecksEvent("gesture:element:moving", this, this.element));
+    }
+
+    self.animationCount++;
+    self.animator.animate(self.element, transform, animateOptions);
+  },
+
+  /**
+   * Gets the distance to travel for an inertial movement.
+   *
+   * @param velocity
+   * @return {undefined}
+   */
   getInertiaDistance: function(velocity) {
     return this.inertia.distanceScale * velocity;
   },
 
+  /**
+   * Gets the animation duration for an inertial movement.
+   *
+   * @param velocity
+   * @return {undefined}
+   */
   getInertiaDuration: function(velocity) {
     return Math.abs(this.inertia.durationScale * velocity);
   },
 
-  snapToContainerBounds: function() {
+  /**
+   * Animates a movement to reset the element to its origin position (0, 0).
+   *
+   * @return {undefined}
+   */
+  resetPosition: function() {
+    var animateOptions = {};
+    var beginOptions = {};
+    var completeOptions = {
+      description: "reset position",
+      waitForXAndY: true,
+      snapToBounds: false,
+      snapToNearestChildElement: false,
+      clearPositionData: true
+    };
+
+    this.animateMoveXAndY(0, 0, animateOptions, beginOptions, completeOptions);
+  },
+
+  /**
+   * Animates a movement to move the element to a position near the given child element.
+   *
+   * @param element
+   * @param animateOptions
+   * @param beginOptions
+   * @param completeOptions
+   * @return {undefined}
+   */
+  animateMoveToElement: function(element, animateOptions, beginOptions, completeOptions) {
+    validate(element, "GestureHandler#animateMoveToElement: element", { isElement: true });
+
+    var left = dom.getStyle(element, "left", { parseFloat: true });
+    var top = dom.getStyle(element, "top", { parseFloat: true });
+
+    var offsets = this.getMoveToElementOffsets(element);
+    var x = left + offsets.x;
+    var y = top + offsets.y;
+
+    //animateOptions = _.extend({}, animateOptions);
+    //beginOptions = _.extend({}, beginOptions);
+    completeOptions = _.extend({
+      description: "animateMoveToElement",
+      waitForXAndY: true,
+      snapToBounds: true,
+      snapToNearestChildElement: false,
+      clearPositionData: true
+    }, completeOptions);
+
+    this.animateMoveXAndY(x, y, animateOptions, beginOptions, completeOptions);
+  },
+
+  /**
+   * Snaps the element's position back to within its movement boundary.
+   *
+   * @return {undefined}
+   */
+  snapToBounds: function() {
     var self = this;
 
     // If we don't have container bounds, we can't snap to anything.
@@ -464,6 +817,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (!self.bounds || self.movement.scroll) {
       return;
     }
+
+    console.log("snap bounds");
 
     var x;
     if (this.currentPosition.left > self.bounds.left) {
@@ -481,12 +836,16 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     var animateOptions = _.extend({}, this.snapping.animateOptions);
     var beginOptions = {};
-    var completeOptions = { snapToContainerBounds: false, clearPositionData: true };
+    var completeOptions = {
+      description: "snap to bounds",
+      snapToBounds: false,
+      snapToNearestChildElement: false,
+      clearPositionData: true,
+      event: DecksEvent("gesture:snapped:to:container:bounds", this, this.element)
+    };
 
     if (!_.isUndefined(x) &amp;&amp; !_.isUndefined(y)) {
-      completeOptions.waitForXAndY = true;
-      this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
-      this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
+      this.animateMoveXAndY(x, y, animateOptions, beginOptions, completeOptions);
     } else if (!_.isUndefined(x)) {
       this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
     } else if (!_.isUndefined(y)) {
@@ -494,148 +853,192 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  animateMoveX: function(x, animateOptions, beginOptions, completeOptions) {
-    this.animateMoveXOrY(x, "x", animateOptions, beginOptions, completeOptions);
-  },
-
-  animateMoveY: function(y, animateOptions, beginOptions, completeOptions) {
-    this.animateMoveXOrY(y, "y", animateOptions, beginOptions, completeOptions);
-  },
-
-  animateMoveXAndY: function(x, y, animateOptions, beginOptions, completeOptions) {
-    completeOptions.waitForXAndY = true;
-    this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
-    this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
-  },
-
-  animateMoveXOrY: function(value, axis, animateOptions, beginOptions, completeOptions) {
-    var self = this;
-    var transform;
-
-    /*
-    animateOptions = animateOptions || {};
-    beginOptions = beginOptions || {};
-    completeOptions = completeOptions || {};
-    */
-
-    if (self.movement.scroll) {
-      transform = "scroll";
-      animateOptions.offset = value;
-      animateOptions.axis = axis;
-      animateOptions.container = self.containerElement;
-    } else {
-      transform = {};
-      if (axis === "x") {
-        transform.left = value;
-      } else {
-        transform.top = value;
-      }
+  /**
+   * Snaps the element's position to a nearby child element.
+   *
+   * @return {undefined}
+   */
+  snapToNearestChildElement: function() {
+    if (!this.snapping.toNearestChildElement || !_.isString(this.snapping.childElementSelector)) {
+      return;
     }
 
-    completeOptions.count = 0;
+    console.log("snap to nearest child element");
 
-    animateOptions = _.extend({
-      complete: function() {
-        // Wait for two invocations of the callback, which signals that both X and Y animations are complete
-        if (completeOptions.waitForXAndY) {
-          completeOptions.count++;
-          if (completeOptions.count &lt; 2) {
-            return;
-          }
-        }
-        self.onAnimationComplete(completeOptions);
-      }
-    }, this.movement.animateOptions, animateOptions);
+    var childElements = dom.query(this.snapping.childElementSelector, this.containerElement);
+    var nearestChildElement = dom.nearest(this.bounds, childElements);
 
-    this.isAnimating = true;
+    var animateOptions = _.extend({}, this.snapping.animateOptions);
+    var beginOptions = {};
+    var completeOptions = {
+      description: "snap to nearest child element",
+      snapToBounds: true,
+      snapToNearestChildElement: false,
+      clearPositionData: true,
+      event: DecksEvent("gesture:snapped:to:nearest:child:element", this, nearestChildElement)
+    };
 
-    if (!beginOptions.silent) {
-      this.emit(DecksEvent("gesture:element:moving", this, this.element));
-    }
-
-    self.animator.animate(self.element, transform, animateOptions);
+    this.animateMoveToElement(nearestChildElement, animateOptions, beginOptions, completeOptions);
   },
 
+  /**
+   * Called when a movement animation is complete.
+   *
+   * @param options
+   * @return {undefined}
+   */
   onAnimationComplete: function(options) {
-    this.isAnimating = false;
+    var self = this;
+    console.log("complete: " + options.description);
 
-    if (options.snapToContainerBounds) {
-      this.snapToContainerBounds();
-    }
+    // If waitForXAndY, two animations must complete before this method is called,
+    // so decrement by 2.  Otherwise, decrement by 1.
+    this.animationCount -= (options.waitForXAndY ? 2 : 1);
 
-    if (options.clearPositionData) {
-      this.clearPositionData();
-    }
+    _.defer(function() {
+      // Snapping to nearest child gets precedence over snapping to bounds.
+      // Snapping to bounds might be called after snapping to nearest child completes.
+      if (options.snapToNearestChildElement) {
+        self.snapToNearestChildElement();
+      } else if (options.snapToBounds) {
+        self.snapToBounds();
+      }
 
-    if (!options.silent) {
-      this.emit(DecksEvent("gesture:element:moved", this, this.element));
-    }
+      if (options.clearPositionData) {
+        self.clearPositionData();
+      }
+
+      if (!options.silent) {
+        if (options.event) {
+          self.emit(options.event);
+        }
+        self.emit(DecksEvent("gesture:element:moved", self, self.element));
+      }
+    });
   },
 
+  /**
+   * Called when a pan gestures is started.
+   *
+   * @param e
+   * @return {undefined}
+   */
   onGesturePanStart: function(e) {
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("pan start");
+
+    console.log("pan start");
+
     this.updatePositionData(e.data);
   },
 
+  /**
+   * Called when a pan gesture is detected in any direction.
+   *
+   * @param e
+   * @return {undefined}
+   */
   onGesturePanAny: function(e) {
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("pan any");
+
+    console.log("pan any");
+
     this.updatePositionData(e.data);
+
     var animateOptions = {};
     var beginOptions = {};
-    var completeOptions = { waitForXAndY: true };
+    var completeOptions = {
+      description: "pan any",
+      waitForXAndY: true
+    };
     this.animateMoveForPan(e.data, animateOptions, beginOptions, completeOptions);
   },
 
+  /**
+   * Called when a pan gesture is detected in the horizontal direction.
+   *
+   * @param e
+   * @return {undefined}
+   */
   onGesturePanX: function(e) {
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("pan x");
+
+    console.log("pan x");
+
     this.updatePositionData(e.data);
+
     var animateOptions = {};
     var beginOptions = {};
-    var completeOptions = { waitForXAndY: false };
+    var completeOptions = {
+      description: "pan x",
+      waitForXAndY: false
+    };
     this.animateMoveForPanX(e.data, animateOptions, beginOptions, completeOptions);
   },
 
+  /**
+   * Called when a pan gesture is detected in the vertical direction.
+   *
+   * @param e
+   * @return {undefined}
+   */
   onGesturePanY: function(e) {
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("pan y");
+
+    console.log("pan y");
+
     this.updatePositionData(e.data);
+
     var animateOptions = {};
     var beginOptions = {};
-    var completeOptions = { waitForXAndY: false };
+    var completeOptions = {
+      description: "pan y",
+      waitForXAndY: false
+    };
     this.animateMoveForPanY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
   onGesturePanEnd: function(e) {
-    if (e.sender.element !== this.element) {
+    var self = this;
+
+    if (e.sender.element !== self.element) {
       return;
     }
-    //console.log("pan end");
-    // If the user swiped, the element will still be moving when the pan ends, so don't snap to bounds
-    if (!this.isAnimating) {
-      this.snapToContainerBounds();
-    }
-    this.clearPositionData();
+
+
+    // Defer the completion of the pan for one tick, because sometimes the latest animation needs to finish
+    _.defer(function() {
+      console.log("pan end (isAnimating: %s)", self.isAnimating());
+
+      if (!self.isAnimating()) {
+        if (self.snapping.toNearestChildElement) {
+          self.snapToNearestChildElement();
+        } else if (self.snapping.toBounds) {
+          self.snapToBounds();
+        }
+
+        self.clearPositionData();
+      }
+    });
   },
 
   onGesturePanCancel: function(e) {
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("pan cancel");
-    // TODO: not sure what triggers this, or what is appropriate to do to handle it.
-    if (this.isAnimating) {
+
+    console.log("pan cancel");
+
+    if (this.isAnimating()) {
       this.stopAnimation();
+      this.clearPositionData();
     }
   },
 
@@ -643,10 +1046,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("swipe any");
+
+    console.log("swipe any");
+
     var animateOptions = {};
     var beginOptions = {};
-    var completeOptions = { waitForXAndY: true };
+    var completeOptions = {
+      description: "swipe any",
+      waitForXAndY: true
+    };
     this.animateMoveForSwipe(e.data, animateOptions, beginOptions, completeOptions);
   },
 
@@ -654,10 +1062,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("swipe x");
+
+    console.log("swipe x");
+
     var animateOptions = {};
     var beginOptions = {};
-    var completeOptions = { waitForXAndY: false };
+    var completeOptions = {
+      description: "swipe x",
+      waitForXAndY: false
+    };
     this.animateMoveForSwipeX(e.data, animateOptions, beginOptions, completeOptions);
   },
 
@@ -665,10 +1078,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (e.sender.element !== this.element) {
       return;
     }
-    //console.log("swipe y");
+
+    console.log("swipe y");
+
     var animateOptions = {};
     var beginOptions = {};
-    var completeOptions = { waitForXAndY: false };
+    var completeOptions = {
+      description: "swipe y",
+      waitForXAndY: false
+    };
     this.animateMoveForSwipeY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
@@ -676,8 +1094,12 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (e.sender.element !== this.element) {
       return;
     }
-    if (this.isAnimating) {
+
+    console.log("tap");
+
+    if (this.isAnimating()) {
       this.stopAnimation();
+      this.clearPositionData();
     }
   },
 
@@ -685,8 +1107,26 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (e.sender.element !== this.element) {
       return;
     }
-    if (this.isAnimating) {
+
+    console.log("press");
+
+    if (this.isAnimating()) {
       this.stopAnimation();
+      this.clearPositionData();
+    }
+  },
+
+  onGestureScroll: function(e) {
+    if (e.sender.element !== this.containerElement) {
+      return;
+    }
+
+    console.log("scroll");
+
+    if (this.snapping.toNearestChildElement) {
+      this.snapToNearestChildElement();
+    } else if (this.snapping.toBounds) {
+      this.snapToBounds();
     }
   }
 });

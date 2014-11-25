@@ -35,32 +35,48 @@ var DecksEvent = require("../events/decksevent");
  *
  * @class
  * @extends GestureEmitter
- * @param {!Element} element - Element for which to monitor for swipe events.
- * @param {?Object} options - Additional options
+ * @param {!Object} options - Additional options
+ * @param {?(Emitter|Object)} [options.emitter={}] - Emitter instance or options on which to emit events
+ * @param {!Element} options.element - Element for which to bind events
+ * @param {!Hammer} options.hammer - Hammer instance for the element (required by base class)
+ * @param {?boolean} [options.enabled=false] - Whether to enable this emitter
+ * @param {?boolean} [options.horizontal=false] - Whether to detect horizontal swipes
+ * @param {?boolean} [options.vertical=true] - Whether to detect vertical swipes
+ * @param {?number} [options.threshold=0] - Movement distance (px) required before swipe is detected
+ * @param {?number} [options.velocity=0.65] - Movement speed (px/ms) required before swipe is detected
  */
-function SwipeEmitter(element, options) {
+function SwipeEmitter(options) {
   if (!(this instanceof SwipeEmitter)) {
-    return new SwipeEmitter(element, options);
+    return new SwipeEmitter(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
+  GestureEmitter.call(this, options);
 
-  GestureEmitter.call(this, element, options);
-
-  /** Whether to monitor horizontal swipes */
+  /**
+   * Whether to monitor horizontal swipes
+   */
   this.horizontal = options.horizontal;
 
-  /** Whether to monitor vertical swipes */
+  /**
+   * Whether to monitor vertical swipes
+   */
   this.vertical = options.vertical;
 
-  /** Threshold movement before swipe gesture is recognized (px) */
+  /**
+   * Threshold movement before swipe gesture is recognized (px)
+   */
   this.threshold = options.threshold;
 
-  /** Threshold velocity before swipe gesture is recognized (px/ms) */
+  /**
+   * Threshold velocity before swipe gesture is recognized (px/ms)
+   */
   this.velocity = options.velocity;
 
   if (this.horizontal &amp;&amp; this.vertical) {
-    /** Hammer.js direction enum value */
+    /**
+     * Hammer.js direction enum value
+     */
     this.direction = Hammer.DIRECTION_ALL;
   } else if (this.horizontal) {
     this.direction = Hammer.DIRECTION_HORIZONTAL;
@@ -80,11 +96,29 @@ function SwipeEmitter(element, options) {
 SwipeEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends SwipeEmitter.prototype */ {
   constructor: SwipeEmitter,
 
+  /**
+   * Default options
+   */
   defaultOptions: _.merge({}, GestureEmitter.prototype.defaultOptions, {
+    /**
+     * Whether to detect and emit events for horizontal swipes
+     */
     horizontal: false,
+
+    /**
+     * Whether to detect and emit events for vertical swipes
+     */
     vertical: true,
+
+    /**
+     * Minimum distance of movement (px) required before a swipe gesture is recognized.
+     */
     threshold: 0,
-    velocity: 0.64
+
+    /**
+     * Minimum velocity of movement (px/ms) required before a swipe gesture is recognized.
+     */
+    velocity: 0.65
   }),
 
   getHammerEvents: function() {

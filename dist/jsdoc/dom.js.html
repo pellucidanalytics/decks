@@ -26,6 +26,8 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>var _ = require("lodash");
+var rect = require("../utils/rect");
+var validate = require("../utils/validate");
 
 /**
  * DOM manipulation helper module to encapsulate browser and DOM API version
@@ -34,17 +36,45 @@
  * @module decks/ui/dom
  */
 module.exports = {
+  query: function(selector, context) {
+    context = context || document;
+    return context.querySelectorAll(selector);
+  },
+
+  querySingle: function(selector, context) {
+    context = context || document;
+    return context.querySelector(selector);
+  },
+
   /**
    * Creates a DOM element by name (e.g. "div").
    *
    * @param {!String} type - the type of DOM element to create (e.g. "div")
    * @returns {Element} - the DOM element
    */
-  create: function(type) {
-    if (_.isString(type)) {
-      return document.createElement(type);
+  create: function(type, options) {
+    validate(type, "type", { isString: true });
+    options = options || {};
+
+    var element = document.createElement(type);
+
+    if (_.has(options, "id")) {
+      element.id = options.id;
     }
-    throw new Error("dom.create: not implemented for non-string arguments");
+
+    if (_.has(options, "className")) {
+      element.className = options.className;
+    }
+
+    if (_.has(options, "styles")) {
+      this.setStyles(element, options.styles);
+    }
+
+    if (_.has(options, "attrs")) {
+      this.setAttrs(element, options.attrs);
+    }
+
+    return element;
   },
 
   /**
@@ -72,6 +102,14 @@ module.exports = {
     throw new Error("dom.create: cannot set element html");
   },
 
+  /**
+   * Parses an HTML string, and returns the resulting Element or Elements.
+   *
+   * @param {!string} html - the HTML string
+   * @param {?Object} [options={}] - additional options
+   * @param {?boolean} [options.multiple=false] - whether to return a all top-level sibling elements
+   * @return {Element|NodeList} - the resulting Element or NodeList of elements
+   */
   parse: function(html, options) {
     options = options || {};
     var element = this.create("dom");
@@ -85,6 +123,13 @@ module.exports = {
     return element.firstChild;
   },
 
+  /**
+   * Gets or sets the textContent/innerText of the Element
+   *
+   * @param element
+   * @param data
+   * @return {undefined}
+   */
   text: function(element, data) {
     if (!_.isString(data)) {
       return element.textContent || element.innerText;
@@ -97,20 +142,48 @@ module.exports = {
     }
   },
 
+  /**
+   * Empties an element by removing all children
+   *
+   * @param element
+   * @return {undefined}
+   */
   empty: function(element) {
     while (element.firstChild) {
       element.removeChild(element.firstChild);
     }
   },
 
+  /**
+   * Appends a child element to a parent element
+   *
+   * @param parent
+   * @param child
+   * @return {undefined}
+   */
   append: function(parent, child) {
     parent.appendChild(child);
   },
 
+  /**
+   * Prepends a child element in a parent element
+   *
+   * @param parent
+   * @param child
+   * @return {undefined}
+   */
   prepend: function(parent, child) {
     parent.insertBefore(child, parent.firstChild);
   },
 
+  /**
+   * Removes a child element from a parent element, or removes the parent element
+   * from its parent if no child specified.
+   *
+   * @param parent
+   * @param child
+   * @return {undefined}
+   */
   remove: function(parent, child) {
     if (!child) {
       return parent.parentNode.removeChild(parent);
@@ -119,14 +192,57 @@ module.exports = {
     }
   },
 
+  /**
+   * Gets or sets an Element attribute value
+   *
+   * @param element
+   * @param name
+   * @param value
+   * @return {undefined}
+   */
+  attr: function(element, name, value) {
+    if (_.isUndefined(value)) {
+      return this.getAttr(element, name);
+    }
+    this.setAttr(element, name, value);
+  },
+
+  /**
+   * Gets an Element's attribute value by name
+   *
+   * @param element
+   * @param name
+   * @return {undefined}
+   */
   getAttr: function(element, name) {
     return element.getAttribute(name);
   },
 
-  setAttr: function(element, name, value) {
-    element.setAttribute(name, value);
+  /**
+   * Sets an Element's attribute value by name
+   *
+   * @param element
+   * @param name
+   * @param value
+   * @return {undefined}
+   */
+  setAttr: function(element, key, value) {
+    element.setAttribute(key, value);
   },
 
+  setAttrs: function(element, attrs) {
+    _.each(attrs, function(value, key) {
+      this.setAttr(element, key, value);
+    }, this);
+  },
+
+  /**
+   * Indicates if an Element has the given class
+   *
+   * @param element
+   * @param className
+   * @return {undefined}
+   */
   hasClass: function(element, className) {
     if (element.classList) {
       return element.classList.contains(className);
@@ -203,30 +319,70 @@ module.exports = {
     return value;
   },
 
-  setStyle: function(element, name, value, options) {
-    options = options || {};
-
+  setStyle: function(element, name, value) {
     if (_.isNumber(value)) {
       var unit = this.autoUnits[name];
       if (unit) {
         value = value + unit;
       }
     }
-
     element.style[name] = value;
   },
 
-  setStyles: function(element, styles, options) {
-    options = options || {};
-
+  setStyles: function(element, styles) {
     _.each(styles, function(value, key) {
-      this.setStyle(element, key, value, options);
+      this.setStyle(element, key, value);
     }, this);
+  },
+
+  removeStyle: function(element, name) {
+    element.style[name] = "";
   },
 
   isPositioned: function(element) {
     var position = this.getStyle(element, "position");
     return _.contains(["absolute", "relative", "fixed"], position);
+  },
+
+  closest: function(element, predicate) {
+    if (element &amp;&amp; predicate(element)) {
+      return element;
+    }
+
+    if (element.parentNode) {
+      return this.closest(element.parentNode, predicate);
+    }
+
+    return null;
+  },
+
+  closestWithClass: function(element, className) {
+    var self = this;
+    return self.closest(element, function(el) {
+      return self.hasClass(el, className);
+    });
+  },
+
+  /**
+   * Get the element whose bounding rect top/left is nearest to the given point in
+   * distance.
+   *
+   * @param {!Object} point - the point to compare all elements to (in top/left or x/y)
+   * @param {!(Element[]|NodeList)} elements - the elements to check
+   * @return {Element} - the element whose top/left is nearest to point
+   */
+  nearest: function(point, elements) {
+    var minDistance = Infinity;
+
+    return _.reduce(elements, function(nearestElement, element) {
+      var elementRect = rect.normalize(element);
+      var distance = rect.distance(point, elementRect);
+      if (distance &lt; minDistance) {
+        minDistance = distance;
+        return element;
+      }
+      return nearestElement;
+    }, null);
   },
 
   autoUnits: {
