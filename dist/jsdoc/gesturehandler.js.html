@@ -68,8 +68,8 @@ function GestureHandler(options) {
   this.gestureEmitters = {};
   this.animationCount = 0;
 
-  if (options.debouncedScrollWait > 0) {
-    this.onGestureScroll = _.debounce(this.onGestureScroll, options.debouncedScrollWait);
+  if (options.movement.debouncedScrollWait > 0) {
+    this.onGestureScroll = _.debounce(this.onGestureScroll, options.movement.debouncedScrollWait);
   }
 
   this.setAnimator(options.animator);
@@ -436,7 +436,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @return {undefined}
    */
   clearPositionData: function() {
-    console.log("clear position");
+    if (this.config.debugGestures) {
+      console.log("clear position");
+    }
     this.startPosition = null;
     this.currentPosition = null;
   },
@@ -459,7 +461,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @return {undefined}
    */
   stopAnimation: function() {
-    console.log("stop");
+    if (this.config.debugGestures) {
+      console.log("stop");
+    }
     this.animator.animate(this.element, "stop", true);
     this.animationCount = 0;
   },
@@ -818,7 +822,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("snap bounds");
+    if (this.config.debugGestures) {
+      console.log("snap bounds");
+    }
 
     var x;
     if (this.currentPosition.left > self.bounds.left) {
@@ -863,7 +869,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("snap to nearest child element");
+    if (this.config.debugGestures) {
+      console.log("snap to nearest child element");
+    }
 
     var childElements = dom.query(this.snapping.childElementSelector, this.containerElement);
     var nearestChildElement = dom.nearest(this.bounds, childElements);
@@ -889,7 +897,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    */
   onAnimationComplete: function(options) {
     var self = this;
-    console.log("complete: " + options.description);
+
+    if (this.config.debugGestures) {
+      console.log("complete: " + options.description);
+    }
 
     // If waitForXAndY, two animations must complete before this method is called,
     // so decrement by 2.  Otherwise, decrement by 1.
@@ -928,7 +939,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("pan start");
+    if (this.config.debugGestures) {
+      console.log("pan start");
+    }
 
     this.updatePositionData(e.data);
   },
@@ -944,7 +957,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("pan any");
+    if (this.config.debugGestures) {
+      console.log("pan any");
+    }
 
     this.updatePositionData(e.data);
 
@@ -968,7 +983,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("pan x");
+    if (this.config.debugGestures) {
+      console.log("pan x");
+    }
 
     this.updatePositionData(e.data);
 
@@ -992,7 +1009,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("pan y");
+    if (this.config.debugGestures) {
+      console.log("pan y");
+    }
 
     this.updatePositionData(e.data);
 
@@ -1015,7 +1034,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     // Defer the completion of the pan for one tick, because sometimes the latest animation needs to finish
     _.defer(function() {
-      console.log("pan end (isAnimating: %s)", self.isAnimating());
+      if (self.config.debugGestures) {
+        console.log("pan end (isAnimating: %s)", self.isAnimating());
+      }
 
       if (!self.isAnimating()) {
         if (self.snapping.toNearestChildElement) {
@@ -1034,7 +1055,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("pan cancel");
+    if (this.config.debugGestures) {
+      console.log("pan cancel");
+    }
 
     if (this.isAnimating()) {
       this.stopAnimation();
@@ -1047,7 +1070,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("swipe any");
+    if (this.config.debugGestures) {
+      console.log("swipe any");
+    }
 
     var animateOptions = {};
     var beginOptions = {};
@@ -1063,7 +1088,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("swipe x");
+    if (this.config.debugGestures) {
+      console.log("swipe x");
+    }
 
     var animateOptions = {};
     var beginOptions = {};
@@ -1079,7 +1106,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("swipe y");
+    if (this.config.debugGestures) {
+      console.log("swipe y");
+    }
 
     var animateOptions = {};
     var beginOptions = {};
@@ -1095,7 +1124,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("tap");
+    if (this.config.debugGestures) {
+      console.log("tap");
+    }
 
     if (this.isAnimating()) {
       this.stopAnimation();
@@ -1108,7 +1139,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("press");
+    if (this.config.debugGestures) {
+      console.log("press");
+    }
 
     if (this.isAnimating()) {
       this.stopAnimation();
@@ -1121,7 +1154,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       return;
     }
 
-    console.log("scroll");
+    if (this.config.debugGestures) {
+      console.log("scroll");
+    }
 
     if (this.snapping.toNearestChildElement) {
       this.snapToNearestChildElement();
