@@ -350,7 +350,9 @@ gulp.task("serve", function() {
   var app = express();
   app.use(connectLiveReload());
   app.use(express.static(__dirname));
-  app.listen(3001);
+  var port = 3001;
+  console.log("Listening on port " + port);
+  app.listen(port);
 });
 
 ////////////////////////////////////////////////////////////////////////////////

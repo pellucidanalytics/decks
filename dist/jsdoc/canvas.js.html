@@ -52,6 +52,7 @@ function Canvas(options) {
 
   options = _.merge({}, this.defaultOptions, options);
 
+  this.canvasId = _.uniqueId();
   this.padding = options.padding;
 
   this.setAnimator(options.animator);
@@ -89,36 +90,21 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
 
   defaultGestureHandlerOptions: {
     gestures: {
-      mouseWheel: {
-        enabled: browser.isDesktop,
-        horizontal: true,
-        vertical: true
-      },
-      mouseOverOut: {
-        enabled: browser.isDesktop,
-        over: true,
-        out: true
-      },
-      mouseEnterLeave: {
-        enabled: browser.isDesktop,
-        enter: true,
-        leave: true
-      },
       pan: {
+        // Only monitor pan events for desktop - mobile uses native browser touch gestures
         enabled: browser.isDesktop,
-        horizontal: true,
+        horizontal: false,
         vertical: true
       },
       swipe: {
+        // Only monitor swipe events for desktop - mobile uses native browser touch gestures
         enabled: browser.isDesktop,
-        horizontal: true,
+        horizontal: false,
         vertical: true
       },
-      tap: {
-        enabled: true
-      },
-      press: {
-        enabled: true
+      scroll: {
+        // Only monitor scroll events for mobile - the desktop uses Hammer pan/swipe to do gesture-based scrolling
+        enabled: browser.isMobile
       }
     },
     movement: {
@@ -147,6 +133,9 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   setElement: function(element) {
     validate(element, "Canvas#setElement: element", { isElement: true, isNotSet: this.element });
 
+    if (!element.id) {
+      element.id = this.config.canvasClassName + "-" + this.canvasId;
+    }
     dom.addClass(element, this.config.canvasClassName);
     dom.setStyle(element, "position", "absolute");
     dom.setStyle(element, "top", 0);
@@ -316,6 +305,20 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     }
 
     this.gestureHandler = new GestureHandler(gestureHandlerOptions);
+  },
+
+  bindGestures: function() {
+    if (!this.gestureHandler) {
+      return;
+    }
+    this.gestureHandler.bindEvents();
+  },
+
+  unbindGestures: function() {
+    if (!this.gestureHandler) {
+      return;
+    }
+    this.gestureHandler.unbindEvents();
   },
 
   onDeckLayoutSet: function(e) {

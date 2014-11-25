@@ -49,6 +49,39 @@ function TapEmitter(options) {
 
   GestureEmitter.call(this, options);
 
+  /**
+   * Minimum taps required to recognize
+   */
+  this.taps = options.taps;
+
+  /**
+   * Max time in ms between multiple taps
+   */
+  this.interval = options.interval;
+
+  /**
+   * Max press time in ms
+   */
+  this.time = options.time;
+
+  /**
+   * Max movement allowed during tap
+   */
+  this.threshold = options.threshold;
+
+  /**
+   * Max position difference between multiple taps
+   */
+  this.posThreshold = options.posThreshold;
+
+  this.hammer.get("tap").set({
+    taps: this.taps,
+    interval: this.interval,
+    time: this.time,
+    threshold: this.threshold,
+    posThreshold: this.posThreshold
+  });
+
   this.bindHammerEvents();
 }
 
@@ -56,6 +89,11 @@ TapEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends TapEmitter.
   constructor: TapEmitter,
 
   defaultOptions: _.merge({}, GestureEmitter.prototype.defaultOptions, {
+    taps: 1,
+    interval: 300,
+    time: 250,
+    threshold: 2,
+    posThreshold: 10
   }),
 
   getHammerEvents: function() {
