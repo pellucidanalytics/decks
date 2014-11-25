@@ -53,6 +53,7 @@ function Frame(options) {
 
   options = _.merge({}, this.defaultOptions, options);
 
+  this.frameId = _.uniqueId();
   this.position = options.position;
   this.overflow = options.overflow;
 
@@ -95,6 +96,10 @@ _.extend(Frame.prototype, binder, hasEmitter, /** @lends Frame.prototype */ {
     validate(element, "element", { isElement: true, isNotSet: this.element });
 
     this.element = element;
+
+    if (!element.id) {
+      this.element.id = this.config.frameClassName + "-" + this.frameId;
+    }
 
     dom.addClass(this.element, this.config.frameClassName);
 
