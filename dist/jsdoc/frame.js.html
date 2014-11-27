@@ -56,6 +56,8 @@ function Frame(options) {
   this.frameId = _.uniqueId();
   this.position = options.position;
   this.overflow = options.overflow;
+  this.debouncedOnWindowScroll = _.debounce(this.onWindowScroll, options.debouncedWindowScrollWait);
+  this.debouncedOnWindowResize = _.debounce(this.onWindowResize, options.debouncedWindowResizeWait);
 
   this.setConfig(options.config);
   this.setEmitter(options.emitter, this.emitterEvents);
@@ -67,7 +69,9 @@ function Frame(options) {
 _.extend(Frame.prototype, binder, hasEmitter, /** @lends Frame.prototype */ {
   defaultOptions: {
     position: "relative",
-    overflow: "auto"
+    overflow: "auto",
+    debouncedWindowResizeWait: 200,
+    debouncedWindowScrollWait: 200
   },
 
   emitterEvents: {
@@ -76,8 +80,8 @@ _.extend(Frame.prototype, binder, hasEmitter, /** @lends Frame.prototype */ {
   },
 
   windowEvents: {
-    "resize": "onWindowResize", // TODO: might want to debounce
-    "scroll": "onWindowScroll" // TODO: might want to debounce
+    "resize": "debouncedOnWindowResize",
+    "scroll": "debouncedOnWindowScroll"
   },
 
   setConfig: function(config) {
