@@ -68,9 +68,7 @@ function GestureHandler(options) {
   this.gestureEmitters = {};
   this.animationCount = 0;
 
-  if (options.movement.debouncedScrollWait > 0) {
-    this.onGestureScroll = _.debounce(this.onGestureScroll, options.movement.debouncedScrollWait);
-  }
+  this.debouncedOnGestureScroll = _.debounce(this.onGestureScroll, options.movement.debouncedScrollWait);
 
   this.setAnimator(options.animator);
   this.setConfig(options.config);
@@ -234,7 +232,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     "gesture:press": "onGesturePress",
 
     // Scroll
-    "gesture:scroll": "onGestureScroll"
+    "gesture:scroll": "debouncedOnGestureScroll"
   },
 
   /**
@@ -509,8 +507,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
 
     _.extend(animateOptions, {
-      duration: 0, // Immediate animation for pan movements
-      queue: false // Don't queue the pan animation, because it's probably just a pixel or two, and needs to be immediate
+      duration: 0 // Immediate animation for pan movements
     });
 
     _.extend(completeOptions, {
@@ -550,8 +547,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
 
     _.extend(animateOptions, {
-      duration: 0, // Immediate animation for pan movements
-      queue: false // Don't queue the pan animation, because it's probably just a pixel or two, and needs to be immediate
+      duration: 0 // Immediate animation for pan movements
     });
 
     _.extend(completeOptions, {
@@ -718,6 +714,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     completeOptions.callCount = 0;
 
     animateOptions = _.extend({
+      queue: false, // Don't queue any movement animations, they need to be immediate (or in parallel), and not queued to run in series
       complete: function() {
         if (completeOptions.waitForXAndY) {
           completeOptions.callCount++;
