@@ -78,7 +78,6 @@ function unloadRender(/*render*/) {
   //render.image = null;
 }
 
-
 var layouts = {
   grid1: new BasicGridLayout({
     itemWidth: 100,
@@ -304,7 +303,7 @@ $(function() {
     }
   });
 
-  deck.on("gesture:snapped:to:nearest:child:element", function(e) {
+  deck.on("gesture:moved:to:element", function(e) {
     var element = e.data;
     var $element = $(element);
 
