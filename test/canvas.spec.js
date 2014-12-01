@@ -60,7 +60,22 @@ describe("decks.Canvas", function() {
       var spy = sinon.spy(Canvas.prototype, "bindEvents");
       canvas = new Canvas(canvasOptions);
       expect(spy).to.have.been.calledWith(emitter, Canvas.prototype.emitterEvents);
+      Canvas.prototype.bindEvents.restore();
+    });
+
+    it("should bind to window events", function() {
+      var spy = sinon.spy(Canvas.prototype, "bindEvents");
+      canvas = new Canvas(canvasOptions);
       expect(spy).to.have.been.calledWith(window, Canvas.prototype.windowEvents);
+      Canvas.prototype.bindEvents.restore();
+    });
+
+    it("should not bind to window events if options are false", function() {
+      var spy = sinon.spy(Canvas.prototype, "bindEvents");
+      canvasOptions.watchWindowResize = false;
+      canvasOptions.watchWindowScroll = false;
+      canvas = new Canvas(canvasOptions);
+      expect(spy).to.have.been.calledWith(window, {});
       Canvas.prototype.bindEvents.restore();
     });
   });

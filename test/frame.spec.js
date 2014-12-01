@@ -59,6 +59,15 @@ describe("decks.Frame", function() {
       expect(spy).to.have.been.calledWith(window, Frame.prototype.windowEvents);
       Frame.prototype.bindEvents.restore();
     });
+
+    it("should not bind to window events if options are false", function() {
+      var spy = sinon.spy(Frame.prototype, "bindEvents");
+      frameOptions.watchWindowResize = false;
+      frameOptions.watchWindowScroll = false;
+      frame = new Frame(frameOptions);
+      expect(spy).to.have.been.calledWith(window, {});
+      Frame.prototype.bindEvents.restore();
+    });
   });
 
   describe("setElement", function() {
