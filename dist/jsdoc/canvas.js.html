@@ -54,19 +54,19 @@ function Canvas(options) {
 
   this.canvasId = _.uniqueId();
   this.padding = options.padding;
-  this.watchWindowScroll = options.watchWindowScroll;
   this.watchWindowResize = options.watchWindowResize;
-
-  if (this.watchWindowScroll) {
-    this.debouncedOnWindowScroll = _.debounce(this.onWindowScroll, options.debouncedWindowScrollWait);
-  } else {
-    delete this.windowEvents.scroll;
-  }
+  this.watchWindowScroll = options.watchWindowScroll;
 
   if (this.watchWindowResize) {
     this.debouncedOnWindowResize = _.debounce(this.onWindowResize, options.debouncedWindowResizeWait);
   } else {
     delete this.windowEvents.resize;
+  }
+
+  if (this.watchWindowScroll) {
+    this.debouncedOnWindowScroll = _.debounce(this.onWindowScroll, options.debouncedWindowScrollWait);
+  } else {
+    delete this.windowEvents.scroll;
   }
 
   this.setAnimator(options.animator);
