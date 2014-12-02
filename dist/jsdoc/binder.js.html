@@ -27,6 +27,7 @@
         <article>
             <pre class="prettyprint source linenums"><code>var _ = require("lodash");
 var Emitter = require("./emitter");
+var validate = require("../utils/validate");
 var browser = require("../utils/browser");
 
 /**
@@ -47,6 +48,9 @@ var binder = {
    * @return {undefined}
    */
   bindEvents: function(source, eventToMethodMap) {
+    validate(source, "source", { isRequired: true });
+    validate(eventToMethodMap, "eventToMethodMap", { isRequired: true });
+
     _.each(eventToMethodMap, function(methodName, eventName) {
       if (!_.isFunction(this[methodName])) {
         throw new Error("binder#bindEvents: event target object does not have a method named " + methodName);
@@ -87,6 +91,9 @@ var binder = {
    * @return {undefined}
    */
   unbindEvents: function(source, eventToMethodMap) {
+    validate(source, "source", { isRequired: true });
+    validate(eventToMethodMap, "eventToMethodMap", { isRequired: true });
+
     _.each(eventToMethodMap, function(methodName, eventName) {
       var eventNames = this.getEventNames(eventName);
 

@@ -75,6 +75,8 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * notifications when certain decks events occur.
    */
   emitterEvents: {
+    "viewport:item:drawing": "onViewportItemDrawing",
+    "viewport:items:drawing": "onViewportItemsDrawing",
     "viewport:render:drawing": "onViewportRenderDrawing",
     "viewport:render:erasing": "onViewportRenderErasing",
     "viewport:render:drawn": "onViewportRenderDrawn",
@@ -94,27 +96,29 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * properties by subclassing {@link Layout}.
    */
   overridables: [
-    // Renders
+    // Render-related methods
     "getRenders",
     "initializeRender",
     "shouldLoadRender",
     "loadRender",
     "unloadRender",
 
-    // Animations
+    // Animation-related methods
     "getShowAnimation",
     "getHideAnimation",
     "setShowAnimation",
     "setHideAnimation",
 
-    // Canvas gestures
+    // Canvas/Gesture-related methods
     "getCanvasGestureOptions",
     "getMoveToElementOffsets",
 
-    // Custom renders
+    // Custom render-related methods
     "getCustomRenders",
 
-    // Decks events
+    // Emitter event handlers
+    "onViewportItemDrawing",
+    "onViewprotItemsDrawing",
     "onViewportRenderDrawing",
     "onViewportRenderErasing",
     "onViewportRenderDrawn",
@@ -223,6 +227,30 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
   unloadRender: function(/*render, options*/) {
     throw new Error("Layout#unloadRender not implemented");
   },
+
+  /**
+   * Event handler which informs the {@link Layout} that a render cycle is about to start for a
+   * single {@link Item}.
+   *
+   * @param {DecksEvent} e - event object
+   * @param {string} e.type - the event type
+   * @param {Viewport} e.sender - the sender of the event (Viewport instance)
+   * @param {Item} e.data - the {@link Item} that is about to be drawn (animated)
+   * @return {undefined}
+   */
+  onViewportItemDrawing: _.noop,
+
+  /**
+   * Event handler which informs the {@link Layout} that a render cycle is about to start for a
+   * multiple {@link Item}s.
+   *
+   * @param {DecksEvent} e - event object
+   * @param {string} e.type - the event type
+   * @param {Viewport} e.sender - the sender of the event (Viewport instance)
+   * @param {Item[]} e.data - the {@link Item}s that are about to be drawn (animated)
+   * @return {undefined}
+   */
+  onViewportItemsDrawing: _.noop,
 
   /**
    * Event handler which informs the {@link Layout} that a render is about to start drawing (animating).

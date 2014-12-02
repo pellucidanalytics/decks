@@ -180,8 +180,8 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param filter
    * @return {undefined}
    */
-  setFilter: function(filter) {
-    this.itemCollection.setFilter(filter);
+  setFilter: function(filter, options) {
+    this.itemCollection.setFilter(filter, options);
   },
 
   /**
@@ -192,8 +192,8 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param sortBy
    * @return {undefined}
    */
-  setSortBy: function(sortBy) {
-    this.itemCollection.setSortBy(sortBy);
+  setSortBy: function(sortBy, options) {
+    this.itemCollection.setSortBy(sortBy, options);
   },
 
   /**
@@ -203,8 +203,8 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param isReversed
    * @return {undefined}
    */
-  setReversed: function(isReversed) {
-    this.itemCollection.setReversed(isReversed);
+  setReversed: function(isReversed, options) {
+    this.itemCollection.setReversed(isReversed, options);
   },
 
   /**
@@ -239,7 +239,14 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @return {undefined}
    */
   panToItem: function(itemOrItemId, renderIdOrIndex) {
-    var item = (itemOrItemId instanceof Item) ? itemOrItemId : this.getItem(itemOrItemId);
+    var item;
+    if (itemOrItemId instanceof Item) {
+      item = itemOrItemId;
+    } else if (_.isString(itemOrItemId)) {
+      item = this.getItem(itemOrItemId);
+    } else if (_.has(itemOrItemId, "id")) {
+      item = this.getItem(itemOrItemId.id);
+    }
     this.viewport.panToItem(item, renderIdOrIndex);
   },
 
@@ -263,12 +270,12 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     self.setLayout(layout);
   },
 
-  bindCanvasGestures: function() {
-    this.canvas.bindGestures();
+  bindCanvasGestureHandlerEmitterEvents: function() {
+    this.canvas.bindGestureHandlerEmitterEvents();
   },
 
-  unbindCanvasGestures: function() {
-    this.canvas.unbindGestures();
+  unbindCanvasGestureHandlerEmitterEvents: function() {
+    this.canvas.unbindGestureHandlerEmitterEvents();
   },
 
   setConfig: function(config) {

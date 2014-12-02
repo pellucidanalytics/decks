@@ -113,4 +113,28 @@ describe("decks.events.hasEmitter", function() {
       emitter.once.restore();
     });
   });
+
+  describe("bindEmitterEvents", function() {
+    it("should bind to emitter events if emitterEvents exists", function() {
+      source.onMyEvent = function() {};
+      source.emitterEvents = {
+        "my:event": "onMyEvent"
+      };
+      var spy = sinon.spy(source, "bindEvents");
+      source.bindEmitterEvents();
+      expect(spy).to.have.been.calledWith(source.emitter, source.emitterEvents);
+    });
+  });
+
+  describe("unbindEmitterEvents", function() {
+    it("should unbind to emitter events if emitterEvents exists", function() {
+      source.onMyEvent = function() {};
+      source.emitterEvents = {
+        "my:event": "onMyEvent"
+      };
+      var spy = sinon.spy(source, "unbindEvents");
+      source.unbindEmitterEvents();
+      expect(spy).to.have.been.calledWith(source.emitter, source.emitterEvents);
+    });
+  });
 });

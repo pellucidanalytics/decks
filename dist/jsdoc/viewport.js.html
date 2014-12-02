@@ -357,6 +357,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
+    this.emit(DecksEvent("viewport:item:drawing", this, item));
+
     var layoutRenders = this.layout.getRenders(item, this.layoutMethodOptions) || [];
 
     if (!_.isArray(layoutRenders)) {
@@ -394,6 +396,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
+    this.emit(DecksEvent("viewport:items:drawing", this, items));
+
     _.each(items, function(item) {
       this.drawItem(item, options);
     }, this);
@@ -411,6 +415,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   eraseItem: function(item) {
     validate(item, "item", { isInstanceOf: Item });
+
+    this.emit(DecksEvent("viewport:item:erasing", this, item));
+
     item.isErasing = true;
     this.eraseRenders(item);
   },
@@ -427,6 +434,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
+    this.emit(DecksEvent("viewport:items:erasing", this, items));
+
     _.each(items, function(item) {
       this.eraseItem(item);
     }, this);
@@ -442,7 +451,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   removeItem: function(item) {
     validate(item, "item", { isInstanceOf: Item });
+
     delete this.renders[item.id];
+
     this.emit(DecksEvent("viewport:item:erased", this, item));
   },
 
@@ -474,9 +485,18 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     return this.renders[item.id];
   },
 
+  /**
+   * Gets a single render object for an {@link Item}.
+   *
+   * @param {!Item} item - Item for which t o get render
+   * @param {!(String|Number)} [renderIdOrIndex=0] - render id or index
+   * @return {Object} - the render object (if exists)
+   */
   getRender: function(item, renderIdOrIndex) {
     validate(item, "item", { isInstanceOf: Item });
+
     var renderId = "" + (renderIdOrIndex || 0);
+
     return this.getRenders(item)[renderId];
   },
 
@@ -953,8 +973,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     var customRenders = {};
 
     _.each(layoutCustomRenders, function(customRender, index) {
-      // Since these are not re-used, give each one a unique ID
-      customRender.id = customRender.element.id || "" + _.uniqueId();
+      validate(customRender.element, "Viewport#drawCustomRenders: customRender.element", { isElement: true });
+      customRender.id = customRender.element.id || ("" + _.uniqueId());
       customRender.index = index;
       customRenders[customRender.id] = customRender;
       this.drawCustomRender(customRender);
@@ -1001,6 +1021,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     validate(customRender, "customRender", { isRequired: true });
 
+    customRender.animateOptions = customRender.animateOptions || {};
     customRender.animateOptions.complete = function(/*elements*/) {
       self.onCustomRenderAnimationComplete(customRender);
     };
