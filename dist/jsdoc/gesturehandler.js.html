@@ -255,8 +255,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param animator
    * @return {undefined}
    */
-  setAnimator: function(animator) {
-    validate(animator, "animator", { isPlainObject: true, isNotSet: this.animator });
+  setAnimator: function setAnimator(animator) {
+    validate(animator, "GestureHandler#setAnimator: animator", { isPlainObject: true, isNotSet: this.animator });
     this.animator = animator;
   },
 
@@ -266,8 +266,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param config
    * @return {undefined}
    */
-  setConfig: function(config) {
-    validate(config, "config", { isPlainObject: true, isNotSet: this.config });
+  setConfig: function setConfig(config) {
+    validate(config, "GestureHandler#setConfig: config", { isPlainObject: true, isNotSet: this.config });
     this.config = config;
   },
 
@@ -277,8 +277,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param element
    * @return {undefined}
    */
-  setElement: function(element) {
-    validate(element, "element", { isElement: true, isNotSet: this.element });
+  setElement: function setElement(element) {
+    validate(element, "GestureHandler#setElement: element", { isElement: true, isNotSet: this.element });
     this.element = element;
     this.hammer = new Hammer(this.element);
   },
@@ -289,8 +289,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param options
    * @return {undefined}
    */
-  setOptions: function(options) {
-    validate(options, "options", { isRequired: true });
+  setOptions: function setOptions(options) {
+    validate(options, "GestureHandler#setOptions: options", { isRequired: true });
 
     // Container element (optional)
     this.containerElement = options.containerElement;
@@ -337,7 +337,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
       if (key === "scroll") {
         // Scroll emitter must be on the container element, not the element itself
-        element = this.containerElement;
+        element = this.containerElement || this.element;
         gestureEmitterOptions.enabled = gestureEmitterOptions.enabled &amp;&amp; this.movement.scroll;
 
         if (gestureEmitterOptions.enabled &amp;&amp; !this.containerElement) {
@@ -363,7 +363,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param bounds
    * @return {undefined}
    */
-  setBounds: function(bounds) {
+  setBounds: function setBounds(bounds) {
     if (!bounds &amp;&amp; _.isElement(this.containerElement)) {
       bounds = rect.normalize(this.containerElement);
     }
@@ -380,7 +380,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    *
    * @return {undefined}
    */
-  destroy: function() {
+  destroy: function destroy() {
     _.each(this.gestureEmitters, function(gestureEmitter, key) {
       if (this.config.debugGestures) {
         console.log("GestureHandler#destroy: destroying gesture emitter: " + key);
@@ -408,7 +408,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  updatePositionData: function(e) {
+  updatePositionData: function updatePositionData(e) {
     this.currentPosition = {
       event: e
     };
@@ -433,7 +433,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    *
    * @return {undefined}
    */
-  clearPositionData: function() {
+  clearPositionData: function clearPositionData() {
     if (this.config.debugGestures) {
       console.log("clear position");
     }
@@ -446,7 +446,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    *
    * @return {undefined}
    */
-  isAnimating: function() {
+  isAnimating: function isAnimating() {
     return this.animationCount > 0;
   },
 
@@ -458,7 +458,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    *
    * @return {undefined}
    */
-  stopAnimation: function() {
+  stopAnimation: function stopAnimation() {
     if (this.config.debugGestures) {
       console.log("stop");
     }
@@ -473,7 +473,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param elementRect - the bounding client rect of the element
    * @return {undefined}
    */
-  animateMoveForPan: function(e, animateOptions, beginOptions, completeOptions) {
+  animateMoveForPan: function animateMoveForPan(e, animateOptions, beginOptions, completeOptions) {
     completeOptions.waitForXAndY = true;
     this.animateMoveForPanX(e, animateOptions, beginOptions, completeOptions);
     this.animateMoveForPanY(e, animateOptions, beginOptions, completeOptions);
@@ -486,7 +486,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param elementRect
    * @return {undefined}
    */
-  animateMoveForPanX: function(e, animateOptions, beginOptions, completeOptions) {
+  animateMoveForPanX: function animateMoveForPanX(e, animateOptions, beginOptions, completeOptions) {
     var x;
 
     if (this.movement.scroll) {
@@ -526,7 +526,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param elementRect
    * @return {undefined}
    */
-  animateMoveForPanY: function(e, animateOptions, beginOptions, completeOptions) {
+  animateMoveForPanY: function animateMoveForPanY(e, animateOptions, beginOptions, completeOptions) {
     var y;
 
     if (this.movement.scroll) {
@@ -566,7 +566,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  animateMoveForSwipe: function(e, animateOptions, beginOptions, completeOptions) {
+  animateMoveForSwipe: function animateMoveForSwipe(e, animateOptions, beginOptions, completeOptions) {
     completeOptions.waitForXAndY = true;
     this.animateMoveForSwipeX(e, animateOptions, beginOptions, completeOptions);
     this.animateMoveForSwipeY(e, animateOptions, beginOptions, completeOptions);
@@ -581,7 +581,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param completeOptions
    * @return {undefined}
    */
-  animateMoveForSwipeX: function(e, animateOptions, beginOptions, completeOptions) {
+  animateMoveForSwipeX: function animateMoveForSwipeX(e, animateOptions, beginOptions, completeOptions) {
     var distance = this.getInertiaDistance(e.velocityX);
     var duration = this.getInertiaDuration(e.velocityX);
     var x;
@@ -615,7 +615,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param completeOptions
    * @return {undefined}
    */
-  animateMoveForSwipeY: function(e, animateOptions, beginOptions, completeOptions) {
+  animateMoveForSwipeY: function animateMoveForSwipeY(e, animateOptions, beginOptions, completeOptions) {
     var distance = this.getInertiaDistance(e.velocityY);
     var duration = this.getInertiaDuration(e.velocityY);
     var y;
@@ -648,7 +648,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param completeOptions
    * @return {undefined}
    */
-  animateMoveX: function(x, animateOptions, beginOptions, completeOptions) {
+  animateMoveX: function animateMoveX(x, animateOptions, beginOptions, completeOptions) {
     this.animateMoveXOrY(x, "x", animateOptions, beginOptions, completeOptions);
   },
 
@@ -661,7 +661,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param completeOptions
    * @return {undefined}
    */
-  animateMoveY: function(y, animateOptions, beginOptions, completeOptions) {
+  animateMoveY: function animateMoveY(y, animateOptions, beginOptions, completeOptions) {
     this.animateMoveXOrY(y, "y", animateOptions, beginOptions, completeOptions);
   },
 
@@ -675,7 +675,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param completeOptions
    * @return {undefined}
    */
-  animateMoveXAndY: function(x, y, animateOptions, beginOptions, completeOptions) {
+  animateMoveXAndY: function animateMoveXAndY(x, y, animateOptions, beginOptions, completeOptions) {
     completeOptions.waitForXAndY = true;
     this.animateMoveX(x, animateOptions, beginOptions, completeOptions);
     this.animateMoveY(y, animateOptions, beginOptions, completeOptions);
@@ -691,7 +691,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param completeOptions
    * @return {undefined}
    */
-  animateMoveXOrY: function(value, axis, animateOptions, beginOptions, completeOptions) {
+  animateMoveXOrY: function animateMoveXOrY(value, axis, animateOptions, beginOptions, completeOptions) {
     var self = this;
     var transform;
 
@@ -740,7 +740,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param velocity
    * @return {undefined}
    */
-  getInertiaDistance: function(velocity) {
+  getInertiaDistance: function getInertiaDistance(velocity) {
     return this.inertia.distanceScale * velocity;
   },
 
@@ -750,7 +750,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param velocity
    * @return {undefined}
    */
-  getInertiaDuration: function(velocity) {
+  getInertiaDuration: function getInertiaDuration(velocity) {
     return Math.abs(this.inertia.durationScale * velocity);
   },
 
@@ -759,7 +759,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    *
    * @return {undefined}
    */
-  resetPosition: function() {
+  resetPosition: function resetPosition() {
     var animateOptions = {};
     var beginOptions = {};
     var completeOptions = {
@@ -782,7 +782,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param completeOptions
    * @return {undefined}
    */
-  animateMoveToElement: function(element, animateOptions, beginOptions, completeOptions) {
+  animateMoveToElement: function animateMoveToElement(element, animateOptions, beginOptions, completeOptions) {
     validate(element, "GestureHandler#animateMoveToElement: element", { isElement: true });
 
     var left = dom.getStyle(element, "left", { parseFloat: true });
@@ -811,7 +811,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    *
    * @return {undefined}
    */
-  snapToBounds: function() {
+  snapToBounds: function snapToBounds() {
     var self = this;
 
     // If we don't have container bounds, we can't snap to anything.
@@ -862,8 +862,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    *
    * @return {undefined}
    */
-  snapToNearestChildElement: function() {
-    if (!this.snapping.toNearestChildElement || !_.isString(this.snapping.childElementSelector)) {
+  snapToNearestChildElement: function snapToNearestChildElement() {
+    if (!this.snapping.toNearestChildElement || !_.isString(this.snapping.childElementSelector) || !this.bounds) {
       return;
     }
 
@@ -892,7 +892,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param options
    * @return {undefined}
    */
-  onAnimationComplete: function(options) {
+  onAnimationComplete: function onAnimationComplete(options) {
     var self = this;
 
     if (this.config.debugGestures) {
@@ -931,7 +931,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanStart: function(e) {
+  onGesturePanStart: function onGesturePanStart(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -949,7 +949,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanAny: function(e) {
+  onGesturePanAny: function onGesturePanAny(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -975,7 +975,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanX: function(e) {
+  onGesturePanX: function onGesturePanX(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1001,7 +1001,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanY: function(e) {
+  onGesturePanY: function onGesturePanY(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1021,7 +1021,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.animateMoveForPanY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGesturePanEnd: function(e) {
+  onGesturePanEnd: function onGesturePanEnd(e) {
     var self = this;
 
     if (e.sender.element !== self.element) {
@@ -1047,7 +1047,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     });
   },
 
-  onGesturePanCancel: function(e) {
+  onGesturePanCancel: function onGesturePanCancel(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1062,7 +1062,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  onGestureSwipeAny: function(e) {
+  onGestureSwipeAny: function onGestureSwipeAny(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1080,7 +1080,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.animateMoveForSwipe(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGestureSwipeX: function(e) {
+  onGestureSwipeX: function onGestureSwipeX(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1098,7 +1098,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.animateMoveForSwipeX(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGestureSwipeY: function(e) {
+  onGestureSwipeY: function onGestureSwipeY(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1116,7 +1116,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.animateMoveForSwipeY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGestureTap: function(e) {
+  onGestureTap: function onGestureTap(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1131,7 +1131,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  onGesturePress: function(e) {
+  onGesturePress: function onGesturePress(e) {
     if (e.sender.element !== this.element) {
       return;
     }
@@ -1146,7 +1146,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  onGestureScroll: function(e) {
+  onGestureScroll: function onGestureScroll(e) {
     if (e.sender.element !== this.containerElement) {
       return;
     }
@@ -1174,7 +1174,7 @@ module.exports = GestureHandler;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">

@@ -8,6 +8,7 @@ var Deck = decks.Deck;
 var BasicGridLayout = decks.layouts.BasicGridLayout;
 var BasicStackLayout = decks.layouts.BasicStackLayout;
 var ZoomLayout = decks.layouts.ZoomLayout;
+var RowLayout = decks.layouts.RowLayout;
 
 var id = 0;
 var imageWidth = 800;
@@ -147,6 +148,14 @@ var layouts = {
     padding: 10,
     loadRender: loadRender,
     unloadRender: unloadRender
+  }),
+  row: new RowLayout({
+    itemWidth: 150,
+    itemHeight: 120,
+    itemPadding: 15,
+    itemsPerRow: 20,
+    loadRender: loadRender,
+    unloadRender: unloadRender
   })
 };
 
@@ -235,7 +244,7 @@ $(function() {
     config: {
       debugEvents: false,
       debugDrawing: false,
-      debugGestures: false
+      debugGestures: true
     },
     animator: {
       animate: Velocity
