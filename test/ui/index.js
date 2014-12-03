@@ -1,6 +1,7 @@
 require("./dom.spec");
 require("./gestureemitter.spec");
 require("./gesturehandler.spec");
+require("./gesturehandlergroup.spec");
 require("./mouseenterleaveemitter.spec");
 require("./mouseoveroutemitter.spec");
 require("./mousewheelemitter.spec");

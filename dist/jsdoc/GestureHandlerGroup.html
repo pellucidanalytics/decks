@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: utils/index.js</title>
+    <title>JSDoc: Class: GestureHandlerGroup</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,38 +17,200 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: utils/index.js</h1>
+    <h1 class="page-title">Class: GestureHandlerGroup</h1>
 
     
 
 
+
+<section>
+
+<header>
+    <h2>
+    GestureHandlerGroup
+    </h2>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * Index module for utility modules/classes/mixins/etc.
- *
- * @module decks/utils
- */
-module.exports = {
-  /**
-   * Provides access to the {@link module:decks/utils/browser} module.
-   */
-  browser: require("./browser"),
+</header>
 
-  /**
-   * Provides access to the {@link module:decks/utils/rect} module.
-   */
-  rect: require("./rect"),
+<article>
+    <div class="container-overview">
+    
 
-  /**
-   * Provides access to the {@link module:decks/utils/validate} module.
-   */
-  validate: require("./validate")
-};
-</code></pre>
-        </article>
-    </section>
+    
+        
+<dt>
+    <h4 class="name" id="GestureHandlerGroup"><span class="type-signature"></span>new GestureHandlerGroup<span class="signature">(options)</span><span class="type-signature"> &rarr; {<a href="GestureHandlerGroup.html">GestureHandlerGroup</a>}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Manages a group of <a href="GestureHandler.html">GestureHandler</a>s.  When some types of gesture events are emitted
+by any <a href="GestureHandler.html">GestureHandler</a> in the group, the event will be applied to all over <a href="GestureHandler.html">GestureHandler</a>s
+in the group.  E.g. if you pan or swipe one element 10 pixels to the left, all the other gesture handlers
+in the group will also be instructed to pan 10 pixels to the left.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Argument</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">options</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="gesturehandlergroup.js.html">ui/gesturehandlergroup.js</a>, <a href="gesturehandlergroup.js.html#line17">line 17</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

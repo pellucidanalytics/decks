@@ -67,9 +67,7 @@ function GestureHandler(options) {
 
   this.gestureEmitters = {};
   this.animationCount = 0;
-
   this.debouncedOnGestureScroll = _.debounce(this.onGestureScroll, options.movement.debouncedScrollWait);
-
   this.setAnimator(options.animator);
   this.setConfig(options.config);
   this.setEmitter(options.emitter || {}, this.emitterEvents);
@@ -931,13 +929,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanStart: function onGesturePanStart(e) {
-    if (e.sender.element !== this.element) {
+  onGesturePanStart: function onGesturePanStart(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("pan start");
+      console.log("pan start", this.element.id);
     }
 
     this.updatePositionData(e.data);
@@ -949,13 +949,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanAny: function onGesturePanAny(e) {
-    if (e.sender.element !== this.element) {
+  onGesturePanAny: function onGesturePanAny(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("pan any");
+      console.log("pan any", this.element.id);
     }
 
     this.updatePositionData(e.data);
@@ -966,6 +968,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       description: "pan any",
       waitForXAndY: true
     };
+
     this.animateMoveForPan(e.data, animateOptions, beginOptions, completeOptions);
   },
 
@@ -975,13 +978,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanX: function onGesturePanX(e) {
-    if (e.sender.element !== this.element) {
+  onGesturePanX: function onGesturePanX(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("pan x");
+      console.log("pan x", this.element.id);
     }
 
     this.updatePositionData(e.data);
@@ -992,6 +997,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       description: "pan x",
       waitForXAndY: false
     };
+
     this.animateMoveForPanX(e.data, animateOptions, beginOptions, completeOptions);
   },
 
@@ -1001,13 +1007,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    * @param e
    * @return {undefined}
    */
-  onGesturePanY: function onGesturePanY(e) {
-    if (e.sender.element !== this.element) {
+  onGesturePanY: function onGesturePanY(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("pan y");
+      console.log("pan y", this.element.id);
     }
 
     this.updatePositionData(e.data);
@@ -1018,21 +1026,22 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       description: "pan y",
       waitForXAndY: false
     };
+
     this.animateMoveForPanY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGesturePanEnd: function onGesturePanEnd(e) {
+  onGesturePanEnd: function onGesturePanEnd(e, options) {
     var self = this;
-
-    if (e.sender.element !== self.element) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== self.element) {
       return;
     }
-
 
     // Defer the completion of the pan for one tick, because sometimes the latest animation needs to finish
     _.defer(function() {
       if (self.config.debugGestures) {
-        console.log("pan end (isAnimating: %s)", self.isAnimating());
+        console.log("pan end: %s (is animating: %s)", this.element.id, self.isAnimating());
       }
 
       if (!self.isAnimating()) {
@@ -1047,13 +1056,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     });
   },
 
-  onGesturePanCancel: function onGesturePanCancel(e) {
-    if (e.sender.element !== this.element) {
+  onGesturePanCancel: function onGesturePanCancel(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("pan cancel");
+      console.log("pan cancel", this.element.id);
     }
 
     if (this.isAnimating()) {
@@ -1062,13 +1073,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  onGestureSwipeAny: function onGestureSwipeAny(e) {
-    if (e.sender.element !== this.element) {
+  onGestureSwipeAny: function onGestureSwipeAny(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("swipe any");
+      console.log("swipe any", this.element.id);
     }
 
     var animateOptions = {};
@@ -1077,16 +1090,19 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       description: "swipe any",
       waitForXAndY: true
     };
+
     this.animateMoveForSwipe(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGestureSwipeX: function onGestureSwipeX(e) {
-    if (e.sender.element !== this.element) {
+  onGestureSwipeX: function onGestureSwipeX(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("swipe x");
+      console.log("swipe x", this.element.id);
     }
 
     var animateOptions = {};
@@ -1095,16 +1111,19 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       description: "swipe x",
       waitForXAndY: false
     };
+
     this.animateMoveForSwipeX(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGestureSwipeY: function onGestureSwipeY(e) {
-    if (e.sender.element !== this.element) {
+  onGestureSwipeY: function onGestureSwipeY(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("swipe y");
+      console.log("swipe y", this.element.id);
     }
 
     var animateOptions = {};
@@ -1116,13 +1135,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.animateMoveForSwipeY(e.data, animateOptions, beginOptions, completeOptions);
   },
 
-  onGestureTap: function onGestureTap(e) {
-    if (e.sender.element !== this.element) {
+  onGestureTap: function onGestureTap(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("tap");
+      console.log("tap", this.element.id);
     }
 
     if (this.isAnimating()) {
@@ -1131,13 +1152,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  onGesturePress: function onGesturePress(e) {
-    if (e.sender.element !== this.element) {
+  onGesturePress: function onGesturePress(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.element) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("press");
+      console.log("press", this.element.id);
     }
 
     if (this.isAnimating()) {
@@ -1146,13 +1169,15 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  onGestureScroll: function onGestureScroll(e) {
-    if (e.sender.element !== this.containerElement) {
+  onGestureScroll: function onGestureScroll(e, options) {
+    options = options || {};
+    var element = options.elementOverride || e.sender.element;
+    if (element !== this.containerElement) {
       return;
     }
 
     if (this.config.debugGestures) {
-      console.log("scroll");
+      console.log("scroll", this.containerElement);
     }
 
     if (this.snapping.toNearestChildElement) {
@@ -1174,7 +1199,7 @@ module.exports = GestureHandler;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">
