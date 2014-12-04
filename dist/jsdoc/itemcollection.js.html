@@ -74,7 +74,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {!String} id - Item id to find
    * @return {Item} - Item or null if not found
    */
-  getItem: function(id) {
+  getItem: function getItem(id) {
     if (_.isNumber(id)) {
       id = "" + id;
     }
@@ -90,7 +90,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?Function} filter - the filter predicate function (takes an item and should return whether Item passes the filter)
    * @return {Item[]} - Array of {@link Item}s (not an {@link ItemCollection} instance)
    */
-  getItems: function(filter) {
+  getItems: function getItems(filter) {
     var items = _.values(this.items);
 
     if (filter) {
@@ -114,7 +114,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?boolean} [options.noIndex=false] - if true, the {@link ItemCollection} will not be re-indexed after adding the {@link Item}
    * @return {Item} - the {@link Item} instance that was added
    */
-  addItem: function(item, options) {
+  addItem: function addItem(item, options) {
     validate(item, "item", { isRequired: true });
 
     options = options || {};
@@ -156,7 +156,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?boolean} [options.noIndex=false] - if true, the {@link ItemCollection} will not be re-indexed
    * @return {Item[]} - Array of {@link Item} instances that were added.
    */
-  addItems: function(items, options) {
+  addItems: function addItems(items, options) {
     validate(items, "items", { isArray: true });
 
     options = options || {};
@@ -191,7 +191,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?Object} options additional options
    * @return {undefined}
    */
-  removeItem: function(item, options) {
+  removeItem: function removeItem(item, options) {
     validate(item, "item", { isInstanceOf: Item });
 
     options = options || {};
@@ -226,7 +226,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?Object} options additional options
    * @return {undefined}
    */
-  clear: function(options) {
+  clear: function clear(options) {
     options = options || {};
 
     if (_.isEmpty(this.items)) {
@@ -267,7 +267,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?boolean} [options.noIndex=false] - if true, the collection will not be re-indexed with the new filter
    * @return {undefined}
    */
-  setFilter: function(filter, options) {
+  setFilter: function setFilter(filter, options) {
     if (!_.isFunction(filter)) {
       filter = null;
     }
@@ -306,7 +306,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?boolean} [options.noIndex=false] - if true, the collection will not be re-indexed with the new sort
    * @return {undefined}
    */
-  setSortBy: function(sortBy, options) {
+  setSortBy: function setSortBy(sortBy, options) {
     if (!_.isFunction(sortBy)) {
       sortBy = null;
     }
@@ -343,7 +343,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?boolean} [options.noIndex=false] - if true, the collection will not be re-indexed with the new reverse value.
    * @return {undefined}
    */
-  setReversed: function(isReversed, options) {
+  setReversed: function setReversed(isReversed, options) {
     isReversed = !!isReversed;
     options = options || {};
 
@@ -383,7 +383,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param {?boolean} [options.silent=false] - if true, no events will be emitted
    * @return {undefined}
    */
-  index: function(reason, options) {
+  index: function index(reason, options) {
     validate(reason, "reason", { isRequired: true });
     options = options || {};
 
@@ -415,7 +415,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
       }));
     }
 
-    var changedCount = _.reduce(items, function(count, item) {
+    var changedCount = _.reduce(items, function indexItem(count, item) {
       var index = _.indexOf(referenceItems, item);
       if (item.setIndex(index, { silent: options.silent })) {
         count++;
@@ -440,7 +440,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param e
    * @return {undefined}
    */
-  onItemEvent: function(e) {
+  onItemEvent: function onItemEvent(e) {
     this.emit(e);
   }
 });

@@ -146,7 +146,7 @@ describe("decks.Canvas", function() {
 
   describe("setBounds", function() {
     it("should set an instance bounds property and element size", function() {
-      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
+      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30, isNormalized: true };
       canvas.setBounds(bounds);
       expect(canvas.bounds).to.eql(bounds);
       expect(canvas.element.style.width).to.eql(bounds.width + "px");
@@ -159,11 +159,155 @@ describe("decks.Canvas", function() {
       canvasOptions.emitter.on("canvas:bounds:setting", settingSpy);
       canvasOptions.emitter.on("canvas:bounds:set", setSpy);
 
-      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
+      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30, isNormalized: true };
       canvas.setBounds(bounds);
 
       expect(settingSpy).to.have.been.calledWith(DecksEvent("canvas:bounds:setting", canvas, { oldBounds: undefined, newBounds: bounds }));
       expect(setSpy).to.have.been.calledWith(DecksEvent("canvas:bounds:set", canvas, bounds));
+    });
+
+    describe("layout bounds options", function() {
+      var canvasBoundsOptions;
+      var bounds;
+      var expectedBounds;
+
+      beforeEach(function() {
+        // Stub layout method that provides the callback function used by Canvas
+        canvas.layout = {
+          getCanvasBoundsOptions: function() { return canvasBoundsOptions; }
+        };
+
+        // Stub for current frame bounds -- 100x100 square at (10, 10)
+        canvas.frameBounds = {
+          left: 10,
+          right: 110,
+          top: 10,
+          bottom: 110,
+          width: 100,
+          height: 100
+        };
+
+        // New bounds we are going to try to set 200x200 square at (10, 10)
+        bounds = {
+          left: 10,
+          right: 210,
+          top: 10,
+          bottom: 210,
+          width: 200,
+          height: 200
+        };
+
+        // Margin options
+        canvasBoundsOptions = {
+          marginRight: 0,
+          marginBottom: 0,
+          preventOverflowHorizontal: false,
+          preventOverflowVertical: false,
+          preventScrollbarHorizontal: false,
+          preventScrollbarVertical: false,
+          scrollbarSize: 20
+        };
+      });
+
+      it("should resize the canvas with extra marginRight and marginBottom", function() {
+        canvasBoundsOptions.marginRight = 20;
+        canvasBoundsOptions.marginBottom = 40;
+        expectedBounds = {
+          isNormalized: true,
+          left: 10,
+          right: 230, // +marginRight
+          top: 10,
+          bottom: 250, // +marginBottom
+          width: 220,
+          height: 240
+        };
+        canvas.setBounds(bounds);
+        expect(canvas.bounds).to.eql(expectedBounds);
+      });
+
+      it("should prevent horizontal overflow by resizing the canvas width to the frame width", function() {
+        // Overflow options
+        canvasBoundsOptions.preventOverflowHorizontal = true;
+        expectedBounds = {
+          isNormalized: true,
+          left: 10,
+          right: 110,
+          top: 10,
+          bottom: 210,
+          width: 100,
+          height: 200
+        };
+        canvas.setBounds(bounds);
+        expect(canvas.bounds).to.eql(expectedBounds);
+      });
+
+      it("should prevent vertical overflow by resizing the canvas height to the frame height", function() {
+        canvasBoundsOptions.preventOverflowVertical = true;
+        expectedBounds = {
+          isNormalized: true,
+          left: 10,
+          right: 210,
+          top: 10,
+          bottom: 110,
+          width: 200,
+          height: 100
+        };
+        canvas.setBounds(bounds);
+        expect(canvas.bounds).to.eql(expectedBounds);
+      });
+
+      it("should prevent a horizontal scrollbar by resizing the canvas minus a scrollbar width", function() {
+        canvasBoundsOptions.preventScrollbarHorizontal = true;
+        canvasBoundsOptions.scrollbarSize = 17;
+        expectedBounds = {
+          isNormalized: true,
+          left: 10,
+          right: 193,
+          top: 10,
+          bottom: 210,
+          width: 183,
+          height: 200
+        };
+        canvas.setBounds(bounds);
+        expect(canvas.bounds).to.eql(expectedBounds);
+      });
+
+      it("should prevent a vertical scrollbar by resizing the canvas minus a scrollbar height", function() {
+        canvasBoundsOptions.preventScrollbarVertical = true;
+        canvasBoundsOptions.scrollbarSize = 17;
+        expectedBounds = {
+          isNormalized: true,
+          left: 10,
+          right: 210,
+          top: 10,
+          bottom: 193,
+          width: 200,
+          height: 183
+        };
+        canvas.setBounds(bounds);
+        expect(canvas.bounds).to.eql(expectedBounds);
+      });
+
+      it("should apply margin, then overflow, then scrollbar adjustments", function() {
+        canvasBoundsOptions.marginRight = 30;
+        canvasBoundsOptions.marginBottom = 30;
+        canvasBoundsOptions.preventOverflowHorizontal = true;
+        canvasBoundsOptions.preventOverflowVertical = true;
+        canvasBoundsOptions.preventScrollbarHorizontal = true;
+        canvasBoundsOptions.preventScrollbarVertical = true;
+        canvasBoundsOptions.scrollbarSize = 15;
+        expectedBounds = {
+          isNormalized: true,
+          left: 10,
+          right: 95,
+          top: 10,
+          bottom: 95,
+          width: 85,
+          height: 85
+        };
+        canvas.setBounds(bounds);
+        expect(canvas.bounds).to.eql(expectedBounds);
+      });
     });
   });
 
@@ -173,20 +317,20 @@ describe("decks.Canvas", function() {
     });
 
     it("should set frame bounds", function() {
-      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
+      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30, isNormalized: true };
       canvas.setFrameBounds(bounds);
       expect(canvas.frameBounds).to.eql(bounds);
     });
 
     it("should set the Canvas's bounds if not already set", function() {
-      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
+      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30, isNormalized: true };
       canvas.setFrameBounds(bounds);
       expect(canvas.bounds).to.eql(bounds);
     });
 
     it("should configure gestures if gestures are not configured", function() {
       var spy = sinon.spy(canvas, "configureGestures");
-      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
+      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30, isNormalized: true };
       canvas.setFrameBounds(bounds);
       expect(spy).to.have.been.calledOnce;
     });
@@ -198,7 +342,7 @@ describe("decks.Canvas", function() {
       };
       var spy = sinon.spy(gestureHandler, "setBounds");
       canvas.gestureHandler = gestureHandler;
-      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
+      var bounds = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30, isNormalized: true };
       canvas.setFrameBounds(bounds);
       expect(spy).to.have.been.calledWith(bounds);
       spy.restore();

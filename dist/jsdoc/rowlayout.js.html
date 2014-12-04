@@ -213,6 +213,13 @@ RowLayout.prototype = _.create(Layout.prototype, /** @lends RowLayout.prototype 
         toNearestChildElement: false
       }
     };
+  },
+
+  getCanvasBoundsOptions: function() {
+    var options = Layout.prototype.getCanvasBoundsOptions();
+    options.preventOverflowHorizontal = true;
+    options.preventScrollbarHorizontal = true;
+    return options;
   }
 });
 

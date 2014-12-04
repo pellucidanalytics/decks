@@ -7,6 +7,7 @@ var dom = decks.ui.dom;
 var DecksEvent = decks.events.DecksEvent;
 var Emitter = decks.events.Emitter;
 var Deck = decks.Deck;
+var Item = decks.Item;
 var ItemCollection = decks.ItemCollection;
 var Layout = decks.Layout;
 var Canvas = decks.Canvas;
@@ -172,22 +173,99 @@ describe("decks.Deck", function () {
   });
 
   describe("draw", function() {
-    xit("TODO", function() {
+    it("should emit an event", function() {
+      var spy = sinon.spy();
+      deck.on("deck:draw", spy);
+      deck.draw();
+      expect(spy).to.have.been.calledWith(DecksEvent("deck:draw", deck));
     });
   });
 
   describe("resize", function() {
-    xit("TODO", function() {
+    it("should emit an event", function() {
+      var spy = sinon.spy();
+      deck.on("deck:resize", spy);
+      deck.resize();
+      expect(spy).to.have.been.calledWith(DecksEvent("deck:resize", deck));
     });
   });
 
   describe("panToItem", function() {
-    xit("TODO", function() {
+    var itemId;
+    var item;
+    var renderId;
+
+    beforeEach(function() {
+      itemId = "123";
+      item = new Item({ id: itemId });
+      deck.addItem(item, { silent: true });
+      renderId = "0";
+      deck.viewport.renders = {
+        "123": {
+          "0": {
+            element: document.createElement("div")
+          }
+        }
+      };
+    });
+
+    it("should accept an Item instance and renderId", function() {
+      var spy = sinon.spy(deck.viewport, "panToItem");
+      deck.panToItem(item, renderId);
+      expect(spy).to.have.been.calledWith(item, renderId);
+      deck.viewport.panToItem.restore();
+    });
+
+    it("should accept an Item id string", function() {
+      var spy = sinon.spy(deck.viewport, "panToItem");
+      deck.panToItem(itemId, renderId);
+      expect(spy).to.have.been.calledWith(item, renderId);
+      deck.viewport.panToItem.restore();
+    });
+
+    it("should accept an Item id number", function() {
+      var spy = sinon.spy(deck.viewport, "panToItem");
+      deck.panToItem(123, renderId);
+      expect(spy).to.have.been.calledWith(item, renderId);
+      deck.viewport.panToItem.restore();
+    });
+
+    it("should accept a plain object with an id", function() {
+      var spy = sinon.spy(deck.viewport, "panToItem");
+      deck.panToItem({ id: 123 }, renderId);
+      expect(spy).to.have.been.calledWith(item, renderId);
+      deck.viewport.panToItem.restore();
     });
   });
 
   describe("setLayoutAndPanToItem", function() {
-    xit("TODO", function() {
+    var itemId;
+    var item;
+    var renderId;
+    var newLayout;
+
+    beforeEach(function() {
+      itemId = "123";
+      item = new Item({ id: itemId });
+      deck.addItem(item, { silent: true });
+      renderId = "0";
+      deck.viewport.renders = {
+        "123": {
+          "0": {
+            element: document.createElement("div")
+          }
+        }
+      };
+      newLayout = new Layout();
+    });
+
+    xit("TODO: should set the layout then pan to the item when all renders are drawn", function() {
+      /*
+      var panToItemSpy = sinon.spy(deck, "panToItem");
+      deckLayout.setLayoutAndPanToItem(newLayout, item, renderId);
+
+      expect(onceSpy).to.have.been.calledWith
+      */
     });
   });
 

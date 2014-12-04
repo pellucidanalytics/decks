@@ -51,7 +51,7 @@
     "shelljs": "^0.3.0",
     "sinon": "^1.11.1",
     "sinon-chai": "^2.6.0",
-    "velocity-animate": "^1.1.0",
+    "velocity-animate": "pellucidanalytics/velocity",
     "vinyl-source-stream": "^1.0.0",
     "watchify": "^2.1.0"
   },

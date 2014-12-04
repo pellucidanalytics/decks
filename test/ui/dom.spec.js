@@ -431,4 +431,103 @@ describe("decks.ui.dom", function() {
       document.body.removeChild(container);
     });
   });
+
+  describe("overflow methods", function() {
+    var parent;
+    var child;
+
+    beforeEach(function() {
+      parent = document.createElement("div");
+      parent.style.position = "absolute";
+      parent.style.top = 0;
+      parent.style.left = 0;
+      parent.style.width = "100px";
+      parent.style.height = "100px";
+
+      child = document.createElement("div");
+      child.style.top = 0;
+      child.style.left = 0;
+      child.style.width = "100px";
+      child.style.height = "100px";
+
+      parent.appendChild(child);
+    });
+
+    describe("isOverflowedX", function() {
+      it("should return true if the child overflows the parent", function() {
+        child.style.width = "99px";
+        expect(dom.isOverflowedX(child)).to.be.False;
+
+        child.style.width = "100px";
+        expect(dom.isOverflowedX(child)).to.be.False;
+
+        child.style.width = "101px";
+        expect(dom.isOverflowedX(child)).to.be.True;
+      });
+    });
+
+    describe("isOverflowedY", function() {
+      it("should return true if the child overflows the parent", function() {
+        child.style.height = "99px";
+        expect(dom.isOverflowedY(child)).to.be.False;
+        child.style.height = "100px";
+        expect(dom.isOverflowedY(child)).to.be.False;
+        child.style.height = "101px";
+        expect(dom.isOverflowedY(child)).to.be.True;
+      });
+    });
+
+    describe("isOverflowed", function() {
+      it("should return true if the child overflows the parent", function() {
+        child.style.width = "99px";
+        child.style.height = "99px";
+        expect(dom.isOverflowed(child)).to.be.False;
+
+        child.style.width = "99px";
+        child.style.height = "100px";
+        expect(dom.isOverflowed(child)).to.be.False;
+
+        child.style.width = "100px";
+        child.style.height = "100px";
+        expect(dom.isOverflowed(child)).to.be.False;
+
+        child.style.width = "100px";
+        child.style.height = "101px";
+        expect(dom.isOverflowed(child)).to.be.True;
+
+        child.style.width = "101px";
+        child.style.height = "100px";
+        expect(dom.isOverflowed(child)).to.be.True;
+
+        child.style.width = "101px";
+        child.style.height = "101px";
+        expect(dom.isOverflowed(child)).to.be.True;
+      });
+    });
+
+    describe("tolerance", function() {
+      it("should support a tolerance value", function() {
+        child.style.width = "99px";
+        child.style.height = "99px";
+
+        expect(dom.isOverflowed(child, 0)).to.be.False;
+        expect(dom.isOverflowed(child, 1)).to.be.False;
+        expect(dom.isOverflowed(child, 2)).to.be.False;
+        expect(dom.isOverflowed(child, 3)).to.be.True;
+      });
+    });
+  });
+
+  describe("autoUnits", function() {
+    it("should specify automatic units to apply to some styles", function() {
+      expect(dom.autoUnits).to.eql({
+        top: "px",
+        bottom: "px",
+        left: "px",
+        right: "px",
+        width: "px",
+        height: "px"
+      });
+    });
+  });
 });

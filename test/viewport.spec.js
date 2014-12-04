@@ -257,47 +257,90 @@ describe("decks.Viewport", function() {
   });
 
   describe("drawRenders", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("eraseRender", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("eraseRenders", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("getAnimateOptions", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("createRenderElement", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("loadOrUnloadRender", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onDeckReady", function() {
+    it("should run a draw cycle", function() {
+      var spy = sinon.spy(viewport, "drawItems");
+      viewport.onDeckReady();
+      expect(spy).to.have.been.calledWith({ isLoadNeeded: true });
+      viewport.drawItems.restore();
+    });
+
+    it("should not run a draw cycle if drawOnDeckReady is false", function() {
+      viewportOptions.drawOnDeckReady = false;
+      viewport = new Viewport(viewportOptions);
+      var spy = sinon.spy(viewport, "drawItems");
+      viewport.onDeckReady();
+      expect(spy).not.to.have.been.called;
+      viewport.drawItems.restore();
+    });
   });
 
   describe("onDeckLayoutSet", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onFrameBoundsSet", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onItemChanged", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onItemIndexChanged", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onItemCollectionItemRemoved", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onAnimationBegin", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onAnimationComplete", function() {
+    xit("TODO", function() {
+    });
   });
 
   describe("onAnimationProgress", function() {
+    xit("TODO", function() {
+    });
   });
 });

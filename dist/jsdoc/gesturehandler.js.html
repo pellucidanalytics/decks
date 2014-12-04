@@ -952,8 +952,13 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   onGesturePanAny: function onGesturePanAny(e, options) {
     options = options || {};
     var element = options.elementOverride || e.sender.element;
-    if (element !== this.element) {
+    if (element !== this.element || this.isSwiping) {
       return;
+    }
+
+    if (this.isAnimating()) {
+      this.stopAnimation();
+      this.clearPositionData();
     }
 
     if (this.config.debugGestures) {
@@ -981,8 +986,13 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   onGesturePanX: function onGesturePanX(e, options) {
     options = options || {};
     var element = options.elementOverride || e.sender.element;
-    if (element !== this.element) {
+    if (element !== this.element || this.isSwiping) {
       return;
+    }
+
+    if (this.isAnimating()) {
+      this.stopAnimation();
+      this.clearPositionData();
     }
 
     if (this.config.debugGestures) {
@@ -1010,8 +1020,13 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   onGesturePanY: function onGesturePanY(e, options) {
     options = options || {};
     var element = options.elementOverride || e.sender.element;
-    if (element !== this.element) {
+    if (element !== this.element || this.isSwiping) {
       return;
+    }
+
+    if (this.isAnimating()) {
+      this.stopAnimation();
+      this.clearPositionData();
     }
 
     if (this.config.debugGestures) {
@@ -1034,7 +1049,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     var self = this;
     options = options || {};
     var element = options.elementOverride || e.sender.element;
-    if (element !== self.element) {
+    if (element !== this.element || this.isSwiping) {
       return;
     }
 
@@ -1073,12 +1088,22 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
+  setSwiping: function setSwiping() {
+    var self = this;
+    this.isSwiping = true;
+    setTimeout(function() {
+      self.isSwiping = false;
+    }, 30);
+  },
+
   onGestureSwipeAny: function onGestureSwipeAny(e, options) {
     options = options || {};
     var element = options.elementOverride || e.sender.element;
     if (element !== this.element) {
       return;
     }
+    this.setSwiping();
+    this.stopAnimation();
 
     if (this.config.debugGestures) {
       console.log("swipe any", this.element.id);
@@ -1100,6 +1125,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (element !== this.element) {
       return;
     }
+    this.setSwiping();
+    this.stopAnimation();
 
     if (this.config.debugGestures) {
       console.log("swipe x", this.element.id);
@@ -1121,6 +1148,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (element !== this.element) {
       return;
     }
+    this.setSwiping();
+    this.stopAnimation();
 
     if (this.config.debugGestures) {
       console.log("swipe y", this.element.id);
@@ -1146,10 +1175,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       console.log("tap", this.element.id);
     }
 
-    if (this.isAnimating()) {
-      this.stopAnimation();
-      this.clearPositionData();
-    }
+    this.stopAnimation();
+    this.clearPositionData();
   },
 
   onGesturePress: function onGesturePress(e, options) {
@@ -1163,10 +1190,8 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       console.log("press", this.element.id);
     }
 
-    if (this.isAnimating()) {
-      this.stopAnimation();
-      this.clearPositionData();
-    }
+    this.stopAnimation();
+    this.clearPositionData();
   },
 
   onGestureScroll: function onGestureScroll(e, options) {

@@ -54,19 +54,206 @@ describe("decks.utils.rect", function() {
     });
   });
 
-  describe("resize", function() {
-    it("should modify right, bottom, width and height", function() {
-      var input = { top: 10, bottom: 90, left: 10, right: 110, width: 100, height: 80 };
-      var expected = { isNormalized: true, top: 10, bottom: 30, left: 10, right: 60, width: 50, height: 20 };
-      expect(rect.resize(input, 50, 20)).to.eql(expected);
-    });
-  });
+  describe("resizing and movement", function() {
+    var input;
+    var deltaWidth;
+    var deltaHeight;
+    var deltaX;
+    var deltaY;
 
-  describe("move", function() {
-    it("should modify top, bottom, left, and right", function() {
-      var input = { top: 10, bottom: 90, left: 10, right: 110, width: 100, height: 80 };
-      var expected = { isNormalized: true, top: 30, bottom: 110, left: 60, right: 160, width: 100, height: 80 };
-      expect(rect.move(input, 50, 20)).to.eql(expected);
+    beforeEach(function() {
+      input = {
+        top: 10,
+        bottom: 90,
+        left: 10,
+        right: 110,
+        width: 100,
+        height: 80
+      };
+      deltaWidth = 50;
+      deltaHeight = 20;
+      deltaX = 15;
+      deltaY = 25;
+    });
+
+    describe("resize", function() {
+      it("should modify right, bottom, width and height", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 110,
+          left: 10,
+          right: 160,
+          width: 150,
+          height: 100
+        };
+        expect(rect.resize(input, deltaWidth, deltaHeight)).to.eql(expected);
+      });
+    });
+
+    describe("resizeWidth", function() {
+      it("should modify width and right", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 90,
+          left: 10,
+          right: 160,
+          width: 150,
+          height: 80
+        };
+        expect(rect.resizeWidth(input, deltaWidth)).to.eql(expected);
+      });
+    });
+
+    describe("resizeHeight", function() {
+      it("should modify height and bottom", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 110,
+          left: 10,
+          right: 110,
+          width: 100,
+          height: 100
+        };
+        expect(rect.resizeHeight(input, deltaHeight)).to.eql(expected);
+      });
+    });
+
+    describe("resizeTo", function() {
+      it("should modify width, height, right, and bottom", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 75,
+          left: 10,
+          right: 65,
+          width: 55,
+          height: 65
+        };
+        expect(rect.resizeTo(input, 55, 65)).to.eql(expected);
+      });
+    });
+
+    describe("resizeToWidth", function() {
+      it("should modify width and right", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 90,
+          left: 10,
+          right: 65,
+          width: 55,
+          height: 80
+        };
+        expect(rect.resizeToWidth(input, 55)).to.eql(expected);
+      });
+    });
+
+    describe("resizeToHeight", function() {
+      it("should modify height and bottom", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 65,
+          left: 10,
+          right: 110,
+          width: 100,
+          height: 55
+        };
+        expect(rect.resizeToHeight(input, 55)).to.eql(expected);
+      });
+    });
+
+    describe("move", function() {
+      it("should modify top, bottom, left, and right", function() {
+        var expected = {
+          isNormalized: true,
+          top: 30,
+          bottom: 110,
+          left: 60,
+          right: 160,
+          width: 100,
+          height: 80
+        };
+        expect(rect.move(input, 50, 20)).to.eql(expected);
+      });
+    });
+
+    describe("moveX", function() {
+      it("should modify left and right", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 90,
+          left: 60,
+          right: 160,
+          width: 100,
+          height: 80
+        };
+        expect(rect.moveX(input, 50)).to.eql(expected);
+      });
+    });
+
+    describe("moveY", function() {
+      it("should modify top and bottom", function() {
+        var expected = {
+          isNormalized: true,
+          top: 60,
+          bottom: 140,
+          left: 10,
+          right: 110,
+          width: 100,
+          height: 80
+        };
+        expect(rect.moveY(input, 50)).to.eql(expected);
+      });
+    });
+
+    describe("moveTo", function() {
+      it("should modify left, right, top and bottom", function() {
+        var expected = {
+          isNormalized: true,
+          top: 60,
+          bottom: 140,
+          left: 50,
+          right: 150,
+          width: 100,
+          height: 80
+        };
+        expect(rect.moveTo(input, 50, 60)).to.eql(expected);
+      });
+    });
+
+    describe("moveToX", function() {
+      it("should modify left and right", function() {
+        var expected = {
+          isNormalized: true,
+          top: 10,
+          bottom: 90,
+          left: 50,
+          right: 150,
+          width: 100,
+          height: 80
+        };
+        expect(rect.moveToX(input, 50)).to.eql(expected);
+      });
+    });
+
+    describe("moveToY", function() {
+      it("should modify top and bottom", function() {
+        var expected = {
+          isNormalized: true,
+          top: 50,
+          bottom: 130,
+          left: 10,
+          right: 110,
+          width: 100,
+          height: 80
+        };
+        expect(rect.moveToY(input, 50)).to.eql(expected);
+      });
     });
   });
 

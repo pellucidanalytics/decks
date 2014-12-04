@@ -115,7 +115,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param {?Function} [filter=undefined] - optional filter function which takes an {@link Item}
    * @return {undefined}
    */
-  getItems: function(filter) {
+  getItems: function getItems(filter) {
     return this.itemCollection.getItems(filter);
   },
 
@@ -125,7 +125,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param id
    * @return {undefined}
    */
-  getItem: function(id) {
+  getItem: function getItem(id) {
     return this.itemCollection.getItem(id);
   },
 
@@ -136,7 +136,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param options
    * @return {undefined}
    */
-  addItem: function(item, options) {
+  addItem: function addItem(item, options) {
     this.itemCollection.addItem(item, options);
   },
 
@@ -147,7 +147,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param options
    * @return {undefined}
    */
-  addItems: function(items, options) {
+  addItems: function addItems(items, options) {
     this.itemCollection.addItems(items, options);
   },
 
@@ -158,7 +158,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param options
    * @return {undefined}
    */
-  removeItem: function(item, options) {
+  removeItem: function removeItem(item, options) {
     this.itemCollection.removeItem(item, options);
   },
 
@@ -168,7 +168,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param options
    * @return {undefined}
    */
-  clear: function(options) {
+  clear: function clear(options) {
     this.itemCollection.clear(options);
   },
 
@@ -180,7 +180,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param filter
    * @return {undefined}
    */
-  setFilter: function(filter, options) {
+  setFilter: function setFilter(filter, options) {
     this.itemCollection.setFilter(filter, options);
   },
 
@@ -192,7 +192,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param sortBy
    * @return {undefined}
    */
-  setSortBy: function(sortBy, options) {
+  setSortBy: function setSortBy(sortBy, options) {
     this.itemCollection.setSortBy(sortBy, options);
   },
 
@@ -203,7 +203,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param isReversed
    * @return {undefined}
    */
-  setReversed: function(isReversed, options) {
+  setReversed: function setReversed(isReversed, options) {
     this.itemCollection.setReversed(isReversed, options);
   },
 
@@ -215,7 +215,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    *
    * @return {undefined}
    */
-  draw: function() {
+  draw: function draw() {
     this.emit(DecksEvent("deck:draw", this));
   },
 
@@ -226,7 +226,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    *
    * @return {undefined}
    */
-  resize: function() {
+  resize: function resize() {
     this.emit(DecksEvent("deck:resize", this));
   },
 
@@ -238,7 +238,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * * (defaults to the first render element for the item)
    * @return {undefined}
    */
-  panToItem: function(itemOrItemId, renderIdOrIndex) {
+  panToItem: function panToItem(itemOrItemId, renderIdOrIndex) {
     var item;
     if (itemOrItemId instanceof Item) {
       item = itemOrItemId;
@@ -247,7 +247,11 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     } else if (_.isNumber(itemOrItemId)) {
       item = this.getItem("" + itemOrItemId);
     } else if (_.has(itemOrItemId, "id")) {
-      item = this.getItem(itemOrItemId.id);
+      var id = itemOrItemId.id;
+      if (_.isNumber(id)) {
+        id = "" + id;
+      }
+      item = this.getItem(id);
     }
     this.viewport.panToItem(item, renderIdOrIndex);
   },
@@ -260,7 +264,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    * @param {?(string|number)} [renderIdOrIndex=0] - render id or index (defaults to the first render for the {@link Item})
    * @return {undefined}
    */
-  setLayoutAndPanToItem: function(layout, itemOrItemId, renderIdOrIndex) {
+  setLayoutAndPanToItem: function setLayoutAndPanToItem(layout, itemOrItemId, renderIdOrIndex) {
     var self = this;
 
     // Listen for the completion of the next drawing cycle (this should be emitted when
@@ -272,27 +276,27 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     self.setLayout(layout);
   },
 
-  bindCanvasGestureHandlerEmitterEvents: function() {
+  bindCanvasGestureHandlerEmitterEvents: function bindCanvasGestureHandlerEmitterEvents() {
     this.canvas.bindGestureHandlerEmitterEvents();
   },
 
-  unbindCanvasGestureHandlerEmitterEvents: function() {
+  unbindCanvasGestureHandlerEmitterEvents: function unbindCanvasGestureHandlerEmitterEvents() {
     this.canvas.unbindGestureHandlerEmitterEvents();
   },
 
-  setConfig: function(config) {
+  setConfig: function setConfig(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = config;
     this.emit(DecksEvent("deck:config:set", this, this.config));
   },
 
-  setAnimator: function(animator) {
+  setAnimator: function setAnimator(animator) {
     validate(animator, "animator", { isPlainObject: true, isNotSet: this.animator });
     this.animator = animator;
     this.emit(DecksEvent("deck:animator:set", this, this.animator));
   },
 
-  setItemCollection: function(itemCollection) {
+  setItemCollection: function setItemCollection(itemCollection) {
     validate(itemCollection, "itemCollection", { isRequired: true, isNotSet: this.itemCollection });
 
     if (!(itemCollection instanceof ItemCollection)) {
@@ -310,7 +314,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:item:collection:set", this, this.layout));
   },
 
-  setLayout: function(layout) {
+  setLayout: function setLayout(layout) {
     validate(layout, "layout", { isRequired: true });
 
     if (this.layout === layout) {
@@ -335,7 +339,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:layout:set", this, this.layout));
   },
 
-  setFrame: function(frame) {
+  setFrame: function setFrame(frame) {
     validate(frame, "frame", { isRequired: true, isNotSet: this.frame });
 
     if (!(frame instanceof Frame)) {
@@ -352,7 +356,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:frame:set", this, this.frame));
   },
 
-  setCanvas: function(canvas) {
+  setCanvas: function setCanvas(canvas) {
     validate(canvas, "canvas", { isRequired: true, isNotSet: this.canvas });
 
     if (!(canvas instanceof Canvas)) {
@@ -370,7 +374,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:canvas:set", this, this.canvas));
   },
 
-  setViewport: function(viewport) {
+  setViewport: function setViewport(viewport) {
     validate(viewport, "viewport", { isRequired: true, isNotSet: this.viewport });
 
     if (!(viewport instanceof Viewport)) {
@@ -391,13 +395,13 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:viewport:set", this, this.viewport));
   },
 
-  onAnyEvent: function(e) {
+  onAnyEvent: function onAnyEvent(e) {
     if (this.config.debugEvents) {
       console.log("Deck#onAnyEvent:", e);
     }
   },
 
-  onItemCollectionEvent: function(e) {
+  onItemCollectionEvent: function onItemCollectionEvent(e) {
     // Forward itemCollection events on the main Deck emitter
     this.emit(e);
   }
