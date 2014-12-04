@@ -46,7 +46,8 @@ module.exports = {
     validate(r, "rect#normalize: r (rectangle object)", { isRequired: true });
 
     if (r.isNormalized) {
-      return r;
+      // Clone the element, to avoid the chance that we modify the source object somewhere downstream
+      return _.clone(r);
     }
 
     if (_.isElement(r)) {
@@ -59,8 +60,8 @@ module.exports = {
       bottom: r.bottom,
       left: r.left,
       right: r.right,
-      width: r.width || (r.right - r.left),
-      height: r.height || (r.bottom - r.top)
+      width: _.isNumber(r.width) ? r.width : (r.right - r.left),
+      height: _.isNumber(r.height) ? r.height : (r.bottom - r.top)
     };
   },
 
@@ -182,7 +183,6 @@ module.exports = {
    * @return {undefined}
    */
   resizeWidth: function resizeWidth(r, deltaWidth) {
-    r = this.normalize(r);
     return this.resize(r, deltaWidth, 0);
   },
 
@@ -194,7 +194,6 @@ module.exports = {
    * @return {undefined}
    */
   resizeHeight: function resizeHeight(r, deltaHeight) {
-    r = this.normalize(r);
     return this.resize(r, 0, deltaHeight);
   },
 
