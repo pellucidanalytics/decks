@@ -75,6 +75,8 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * notifications when certain decks events occur.
    */
   emitterEvents: {
+    "viewport:item:drawing": "onViewportItemDrawing",
+    "viewport:items:drawing": "onViewportItemsDrawing",
     "viewport:render:drawing": "onViewportRenderDrawing",
     "viewport:render:erasing": "onViewportRenderErasing",
     "viewport:render:drawn": "onViewportRenderDrawn",
@@ -94,27 +96,29 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * properties by subclassing {@link Layout}.
    */
   overridables: [
-    // Renders
+    // Render-related methods
     "getRenders",
     "initializeRender",
     "shouldLoadRender",
     "loadRender",
     "unloadRender",
 
-    // Animations
+    // Animation-related methods
     "getShowAnimation",
     "getHideAnimation",
     "setShowAnimation",
     "setHideAnimation",
 
-    // Canvas gestures
+    // Canvas/Gesture-related methods
     "getCanvasGestureOptions",
     "getMoveToElementOffsets",
 
-    // Custom renders
+    // Custom render-related methods
     "getCustomRenders",
 
-    // Decks events
+    // Emitter event handlers
+    "onViewportItemDrawing",
+    "onViewprotItemsDrawing",
     "onViewportRenderDrawing",
     "onViewportRenderErasing",
     "onViewportRenderDrawn",
@@ -175,7 +179,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    *   someLayoutSpecificProperty: "some value",
    * }
    */
-  getRenders: function(/*item, options*/) {
+  getRenders: function getRenders(/*item, options*/) {
     throw new Error("Layout#getRenders not implemented");
   },
 
@@ -186,7 +190,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * @param {Object} render - The render object that was just created
    * @returns {undefined}
    */
-  initializeRender: function(render, options) {
+  initializeRender: function initializeRender(render, options) {
     // Call unloadRender for this by default, as these methods are probably similar
     this.unloadRender(render, options);
   },
@@ -199,7 +203,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * @param render
    * @return {undefined}
    */
-  shouldLoadRender: function(/*render, options*/) {
+  shouldLoadRender: function shouldLoadRender(/*render, options*/) {
     return false;
   },
 
@@ -209,7 +213,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * @param {Object} render - The render object to load
    * @returns {undefined}
    */
-  loadRender: function(/*render, options*/) {
+  loadRender: function loadRender(/*render, options*/) {
     throw new Error("Layout#loadRender not implemented");
   },
 
@@ -220,9 +224,33 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * @param {Object} options
    * @returns {undefined}
    */
-  unloadRender: function(/*render, options*/) {
+  unloadRender: function unloadRender(/*render, options*/) {
     throw new Error("Layout#unloadRender not implemented");
   },
+
+  /**
+   * Event handler which informs the {@link Layout} that a render cycle is about to start for a
+   * single {@link Item}.
+   *
+   * @param {DecksEvent} e - event object
+   * @param {string} e.type - the event type
+   * @param {Viewport} e.sender - the sender of the event (Viewport instance)
+   * @param {Item} e.data - the {@link Item} that is about to be drawn (animated)
+   * @return {undefined}
+   */
+  onViewportItemDrawing: _.noop,
+
+  /**
+   * Event handler which informs the {@link Layout} that a render cycle is about to start for a
+   * multiple {@link Item}s.
+   *
+   * @param {DecksEvent} e - event object
+   * @param {string} e.type - the event type
+   * @param {Viewport} e.sender - the sender of the event (Viewport instance)
+   * @param {Item[]} e.data - the {@link Item}s that are about to be drawn (animated)
+   * @return {undefined}
+   */
+  onViewportItemsDrawing: _.noop,
 
   /**
    * Event handler which informs the {@link Layout} that a render is about to start drawing (animating).
@@ -329,7 +357,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * Override this method in a {@link Layout} subclass or with {@link Layout} options
    * to provide a custom "show" animation.
    */
-  getShowAnimation: function() {
+  getShowAnimation: function getShowAnimation() {
     return {
       transform: {
         opacity: 1,
@@ -352,7 +380,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * Override this method in a {@link Layout} subclass or with {@link Layout} options
    * to provide a custom "hide" animation.
    */
-  getHideAnimation: function() {
+  getHideAnimation: function getHideAnimation() {
     return {
       transform: {
         opacity: 0,
@@ -373,7 +401,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * @param {!Object} render - render on which to add the show animation
    * @returns {undefined}
    */
-  setShowAnimation: function(render) {
+  setShowAnimation: function setShowAnimation(render) {
     _.merge(render, this.getShowAnimation());
   },
 
@@ -384,7 +412,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * @param {!Object} render render on which to set animation
    * @return {undefined}
    */
-  setHideAnimation: function(render) {
+  setHideAnimation: function setHideAnimation(render) {
     _.merge(render, this.getHideAnimation());
   },
 
@@ -393,10 +421,40 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * with items.  This can be used to draw custom elements on the {@link Canvas}, like divider lines,
    * non-item-associated labels, etc.
    *
-   * @param {Object} options - object off all decks objects (viewport, frame, etc.)
-   * @return {undefined}
+   * @param {Object} options - standard layout method options (viewport, frame, etc.)
+   * @return {Object[]} - array of custom render objects
    */
-  getCustomRenders: _.noop,
+  getCustomRenders: function getCustomRenders(/*options*/) {
+    return {};
+  },
+
+  /**
+   * Gets the default gesture handler options to apply to render elements
+   *
+   * @param {!Object} render - render object
+   * @param {!Object} options - standard {@link Layout} method options
+   * @return {Object} - {@link GestureHandler} options to apply to the render
+   */
+  getRenderGestureOptions: function getRenderGestureOptions() {
+    return {
+      gestures: {
+        pan: {
+          enabled: false,
+          horizontal: true,
+          vertical: false
+        },
+        swipe: {
+          enabled: false,
+          horizontal: true,
+          vertical: false
+        }
+      },
+      snapping: {
+        toBounds: true,
+        toNearestChildElement: false
+      }
+    };
+  },
 
   /**
    * Gets the gesture handler options to use for the {@link Canvas} for this {@link Layout}.
@@ -407,8 +465,26 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    *
    * Override this method in a {@link Layout} subclass or {@link Layout} options.
    */
-  getCanvasGestureOptions: function() {
+  getCanvasGestureOptions: function getCanvasGestureOptions() {
     return {};
+  },
+
+  /**
+   * Gets the {@link Layout}s preferences for how the canvas is resized when elements are added
+   * or removed.
+   *
+   * @return {Object} - the resize options
+   */
+  getCanvasBoundsOptions: function getCanvasBoundsOptions() {
+    return {
+      marginRight: 0,
+      marginBottom: 0,
+      preventOverflowHorizontal: false,
+      preventOverflowVertical: false,
+      preventScrollbarHorizontal: false,
+      preventScrollbarVertical: false,
+      scrollbarSize: 20
+    };
   },
 
   /**
@@ -417,7 +493,7 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * @param {!Element} element - element being moved to
    * @return {undefined}
    */
-  getMoveToElementOffsets: function(/*element*/) {
+  getMoveToElementOffsets: function getMoveToElementOffsets(/*element*/) {
     return { x: 0, y: 0 };
   }
 });
@@ -433,7 +509,7 @@ module.exports = Layout;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">

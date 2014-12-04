@@ -37,6 +37,8 @@ var Frame = require("./frame");
 var Canvas = require("./canvas");
 var validate = require("./utils/validate");
 var raf = require("raf");
+var GestureHandler = require("./ui/gesturehandler");
+var GestureHandlerGroup = require("./ui/gesturehandlergroup");
 
 /**
  * Viewport - manages visual (DOM) components
@@ -69,6 +71,11 @@ function Viewport(options) {
    * Wait time for debounced drawItems method
    */
   this.debouncedDrawItemsWait = options.debouncedDrawItemsWait;
+
+  /**
+   * Whether to run a draw cycle when the deck:ready event is handled
+   */
+  this.drawOnDeckReady = options.drawOnDeckReady;
 
   /**
    * Whether to use animation slots
@@ -187,6 +194,8 @@ function Viewport(options) {
    */
   this.customRendersDrawingCount = 0;
 
+  this.gestureHandlerGroups = {};
+
   /**
    * Flag that indicates if the deck is ready.  Drawing actions are suppressed
    * until the deck is signaled as ready
@@ -209,6 +218,8 @@ function Viewport(options) {
   this.setFrame(options.frame);
   this.setCanvas(options.canvas);
 
+  this.layoutMethodOptions.emitter = this.emitter;
+
   // Optionally use animation slots for drawing renders (better performance at the expense of number
   // of animations allowed.
   if (this.useAnimationSlots) {
@@ -226,7 +237,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   defaultOptions: {
     debouncedLoadOrUnloadRendersWait: 1000,
     debouncedDrawItemsWait: 1000,
-    allRendersDrawnEventDelay: 2500,
+    drawOnDeckReady: true,
     useAnimationSlots: false, /* Whether to forcefully run animations in small, staggered slots */
     itemsPerRenderSlot: 15, /* number of items created and animated in each rendering slot */
     maxSlotsWithAnimations: 3, /* animations are applied for total items = itemsPerRenderSlot * maxSlotsWithAnimations */
@@ -271,7 +282,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param animator
    * @return {undefined}
    */
-  setAnimator: function(animator) {
+  setAnimator: function setAnimator(animator) {
     validate(animator, "animator", { isPlainObject: true, isNotSet: this.animate });
     this.animator = this.layoutMethodOptions.animator = animator;
   },
@@ -282,7 +293,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param config
    * @return {undefined}
    */
-  setConfig: function(config) {
+  setConfig: function setConfig(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = this.layoutMethodOptions.config = config;
   },
@@ -293,7 +304,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param itemCollection
    * @return {undefined}
    */
-  setItemCollection: function(itemCollection) {
+  setItemCollection: function setItemCollection(itemCollection) {
     validate(itemCollection, "itemCollection", { isInstanceOf: ItemCollection, isNotSet: this.itemCollection });
     this.itemCollection = this.layoutMethodOptions.itemCollection = itemCollection;
   },
@@ -304,7 +315,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param layout
    * @return {undefined}
    */
-  setLayout: function(layout) {
+  setLayout: function setLayout(layout) {
     validate(layout, "layout", { isInstanceOf: Layout });
     this.layout = this.layoutMethodOptions.layout = layout;
   },
@@ -315,7 +326,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param frame
    * @return {undefined}
    */
-  setFrame: function(frame) {
+  setFrame: function setFrame(frame) {
     validate(frame, "frame", { isInstanceOf: Frame, isNotSet: this.frame });
     this.frame = this.layoutMethodOptions.frame = frame;
   },
@@ -326,7 +337,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param canvas
    * @return {undefined}
    */
-  setCanvas: function(canvas) {
+  setCanvas: function setCanvas(canvas) {
     validate(canvas, "canvas", { isInstanceOf: Canvas, isNotSet: this.canvas });
     this.canvas = this.layoutMethodOptions.canvas = canvas;
   },
@@ -347,7 +358,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {boolean} options.isLoadNeeded - indicates if the item should be re-loaded after the animation completes.
    * @return {undefined}
    */
-  drawItem: function(item, options) {
+  drawItem: function drawItem(item, options) {
     validate(item, "item", { isInstanceOf: Item });
 
     if (!this.isDeckReady) {
@@ -356,6 +367,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       }
       return;
     }
+
+    this.emit(DecksEvent("viewport:item:drawing", this, item));
 
     var layoutRenders = this.layout.getRenders(item, this.layoutMethodOptions) || [];
 
@@ -387,12 +400,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  drawItems: function(options) {
+  drawItems: function drawItems(options) {
     var items = this.itemCollection.getItems();
 
     if (items.length === 0) {
       return;
     }
+
+    this.emit(DecksEvent("viewport:items:drawing", this, items));
 
     _.each(items, function(item) {
       this.drawItem(item, options);
@@ -409,8 +424,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {Item} item item for which to remove renders
    * @return {undefined}
    */
-  eraseItem: function(item) {
+  eraseItem: function eraseItem(item) {
     validate(item, "item", { isInstanceOf: Item });
+
+    this.emit(DecksEvent("viewport:item:erasing", this, item));
+
     item.isErasing = true;
     this.eraseRenders(item);
   },
@@ -420,12 +438,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  eraseItems: function(items) {
+  eraseItems: function eraseItems(items) {
     items = _.isArray(items) ? items : this.itemCollection.getItems();
 
     if (items.length === 0) {
       return;
     }
+
+    this.emit(DecksEvent("viewport:items:erasing", this, items));
 
     _.each(items, function(item) {
       this.eraseItem(item);
@@ -440,9 +460,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Item} item Item to remove
    * @return {undefined}
    */
-  removeItem: function(item) {
+  removeItem: function removeItem(item) {
     validate(item, "item", { isInstanceOf: Item });
+
     delete this.renders[item.id];
+
     this.emit(DecksEvent("viewport:item:erased", this, item));
   },
 
@@ -455,7 +477,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {?Item} item item for which to get renders, or if not specified, get all renders
    * @return {Object[]} array of renders for the given item
    */
-  getRenders: function(item) {
+  getRenders: function getRenders(item) {
     // If no item specified, return all current renders
     if (!item) {
       return _(this.renders) // object with item ids as keys, with values of objects with render ids as keys
@@ -474,9 +496,18 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     return this.renders[item.id];
   },
 
-  getRender: function(item, renderIdOrIndex) {
+  /**
+   * Gets a single render object for an {@link Item}.
+   *
+   * @param {!Item} item - Item for which t o get render
+   * @param {!(String|Number)} [renderIdOrIndex=0] - render id or index
+   * @return {Object} - the render object (if exists)
+   */
+  getRender: function getRender(item, renderIdOrIndex) {
     validate(item, "item", { isInstanceOf: Item });
+
     var renderId = "" + (renderIdOrIndex || 0);
+
     return this.getRenders(item)[renderId];
   },
 
@@ -487,7 +518,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {?Item} item - Item for which to check for the existence of renders (or undefined to see if any renders exist)
    * @return {boolean} true if the Item has renders, otherwise false
    */
-  hasRenders: function(item) {
+  hasRenders: function hasRenders(item) {
     return !_.isEmpty(this.getRenders(item));
   },
 
@@ -500,7 +531,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} render render to store
    * @return {undefined}
    */
-  setRender: function(render) {
+  setRender: function setRender(render) {
     validate(render, "render", { isRequired: true });
 
     var renders = this.getRenders(render.item);
@@ -526,9 +557,10 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} options.render.animateOptions animation options
    * @return {undefined}
    */
-  drawRender: function(render) {
+  drawRender: function drawRender(render) {
     var self = this;
     validate(render, "render", { isRequired: true });
+    validate(render.element, "render.element", { isElement: true });
 
     self.setDefaultRenderAnimateOptions(render);
     self.rendersDrawingCount++;
@@ -563,7 +595,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * Alternate version of drawRender which forcibly slots out the animations, disables animations
    * after a certain threshold, and staggers small groups of them to gain better animation performance.
    */
-  drawRenderWithAnimationSlots: function(render) {
+  drawRenderWithAnimationSlots: function drawRenderWithAnimationSlots(render) {
     var self = this;
     validate(render, "render", { isRequired: true });
 
@@ -628,7 +660,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} renders keyed object of renders to draw for the item
    * @return {undefined}
    */
-  drawRenders: function(item, renders) {
+  drawRenders: function drawRenders(item, renders) {
     validate(item, "item", { isInstanceOf: Item });
     validate(renders, "renders", { isPlainObject: true });
 
@@ -690,7 +722,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {?Object} options additional options
    * @return {undefined}
    */
-  eraseRender: function(render) {
+  eraseRender: function eraseRender(render) {
     validate(render, "render", { isRequired: true });
 
     render.isErasing = true;
@@ -707,7 +739,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {?Object} options additional options
    * @return {undefined}
    */
-  eraseRenders: function(item) {
+  eraseRenders: function eraseRenders(item) {
     _.each(this.getRenders(item), function(render) {
       this.eraseRender(render);
     }, this);
@@ -722,7 +754,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} render render to remove
    * @return {undefined}
    */
-  removeRender: function(render) {
+  removeRender: function removeRender(render) {
     validate(render, "render", { isRequired: true });
 
     var renders = this.getRenders(render.item);
@@ -737,7 +769,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} options object to pass to callback methods, like complete
    * @return {Object} hash of animation options
    */
-  setDefaultRenderAnimateOptions: function(render) {
+  setDefaultRenderAnimateOptions: function setDefaultRenderAnimateOptions(render) {
     var self = this;
 
     validate(render, "render", { isRequired: true });
@@ -752,7 +784,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {HTMLElement} detached DOM element which will become the container for a render element.
    */
-  createRenderElement: function(item, render) {
+  createRenderElement: function createRenderElement(item, render) {
     validate(item, "item", { isInstanceOf: Item });
     validate(render, "render", { isRequired: true });
 
@@ -773,7 +805,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * the opportunity to customize the initial state of the render.  If an element already exists for
    * a previous render, and the element will be re-used for a transition, this method is not called.
    */
-  initializeRender: function(render) {
+  initializeRender: function initializeRender(render) {
     validate(render, "render", { isRequired: true });
     this.layout.initializeRender(render, this.layoutMethodOptions);
   },
@@ -784,7 +816,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} render - render to load
    * @return {undefined}
    */
-  loadRender: function(render) {
+  loadRender: function loadRender(render) {
     validate(render, "render", { isRequired: true });
 
     this.layout.loadRender(render, this.layoutMethodOptions);
@@ -800,7 +832,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} render - render to unload
    * @return {undefined}
    */
-  unloadRender: function(render) {
+  unloadRender: function unloadRender(render) {
     validate(render, "render", { isRequired: true });
     this.layout.unloadRender(render, this.layoutMethodOptions);
   },
@@ -816,7 +848,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} render - render to check whether it needs to be loaded
    * @return {boolean}
    */
-  shouldLoadRender: function(render) {
+  shouldLoadRender: function shouldLoadRender(render) {
     validate(render, "render", { isRequired: true });
 
     return this.layout.shouldLoadRender(render) ||
@@ -831,7 +863,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Object} render render to load or unload
    * @return {undefined}
    */
-  loadOrUnloadRender: function(render) {
+  loadOrUnloadRender: function loadOrUnloadRender(render) {
     if (this.shouldLoadRender(render)) {
       this.loadRender(render);
     } else {
@@ -844,7 +876,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  loadOrUnloadRenders: function() {
+  loadOrUnloadRenders: function loadOrUnloadRenders() {
     _.each(this.getRenders(), function(render) {
       this.loadOrUnloadRender(render);
     }, this);
@@ -855,7 +887,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  getCustomRenders: function() {
+  getCustomRenders: function getCustomRenders() {
     return this.customRenders;
   },
 
@@ -865,7 +897,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param id
    * @return {undefined}
    */
-  getCustomRender: function(id) {
+  getCustomRender: function getCustomRender(id) {
     return this.customRenders[id];
   },
 
@@ -875,7 +907,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  setCustomRender: function(customRender) {
+  setCustomRender: function setCustomRender(customRender) {
     validate(customRender, "customRender", { isRequired: true });
 
     this.customRenders[customRender.id] = customRender;
@@ -889,7 +921,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  removeCustomRender: function(customRender) {
+  removeCustomRender: function removeCustomRender(customRender) {
     validate(customRender, "customRender", { isRequired: true });
 
     delete this.customRenders[customRender.id];
@@ -902,7 +934,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  hasCustomRenders: function() {
+  hasCustomRenders: function hasCustomRenders() {
     return !_.isEmpty(this.customRenders);
   },
 
@@ -912,7 +944,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  drawCustomRender: function(customRender) {
+  drawCustomRender: function drawCustomRender(customRender) {
     var self = this;
 
     validate(customRender, "customRender", { isRequired: true });
@@ -943,7 +975,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  drawCustomRenders: function() {
+  drawCustomRenders: function drawCustomRenders() {
     var layoutCustomRenders = this.layout.getCustomRenders(this.layoutMethodOptions) || [];
 
     if (!_.isArray(layoutCustomRenders)) {
@@ -953,8 +985,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     var customRenders = {};
 
     _.each(layoutCustomRenders, function(customRender, index) {
-      // Since these are not re-used, give each one a unique ID
-      customRender.id = customRender.element.id || "" + _.uniqueId();
+      validate(customRender.element, "Viewport#drawCustomRenders: customRender.element", { isElement: true });
+      customRender.id = customRender.element.id || ("" + _.uniqueId());
       customRender.index = index;
       customRenders[customRender.id] = customRender;
       this.drawCustomRender(customRender);
@@ -967,7 +999,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  eraseCustomRender: function(customRender) {
+  eraseCustomRender: function eraseCustomRender(customRender) {
     validate(customRender, "customRender", { isRequired: true });
 
     if (customRender.isErasing) {
@@ -984,7 +1016,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  eraseCustomRenders: function() {
+  eraseCustomRenders: function eraseCustomRenders() {
     _.each(this.getCustomRenders(), function(customRender) {
       this.eraseCustomRender(customRender);
     }, this);
@@ -996,11 +1028,12 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  setDefaultCustomRenderAnimateOptions: function(customRender) {
+  setDefaultCustomRenderAnimateOptions: function setDefaultCustomRenderAnimateOptions(customRender) {
     var self = this;
 
     validate(customRender, "customRender", { isRequired: true });
 
+    customRender.animateOptions = customRender.animateOptions || {};
     customRender.animateOptions.complete = function(/*elements*/) {
       self.onCustomRenderAnimationComplete(customRender);
     };
@@ -1012,7 +1045,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  createCustomRenderElement: function() {
+  createCustomRenderElement: function createCustomRenderElement() {
     var element = dom.create("div");
     element.id = this.config.customRenderClassName + "-" + _.uniqueId();
     dom.addClass(element, this.config.customRenderClassName);
@@ -1029,24 +1062,39 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {?(string|number)} [renderIdOrIndex=0] - render id or index to pan to
    * @return {undefined}
    */
-  panToItem: function(item, renderIdOrIndex) {
-    validate(item, "item", { isInstanceOf: Item });
+  panToItem: function panToItem(item, renderIdOrIndex) {
+    validate(item, "Viewport#panToItem: item", { isInstanceOf: Item });
+
     var render = this.getRender(item, renderIdOrIndex);
-    validate(render, "render", { isRequired: true });
-    validate(render.element, "render.element", { isRequired: true });
+
+    validate(render, "Viewport#panToItem: render", { isRequired: true });
+    validate(render.element, "Viewport#panToItem: render.element", { isRequired: true });
+
     this.canvas.panToElement(render.element);
   },
 
   /**
    * Called when the {@link Deck} is ready.  Triggers a draw/load cycle.
    *
+   * This draw cycle can be prevented from happening by setting the drawOnDeckReady to false in the
+   * {@link Viewport} options.
+   *
    * @return {undefined}
    */
-  onDeckReady: function() {
+  onDeckReady: function onDeckReady() {
     this.isDeckReady = true;
+
+    if (!this.drawOnDeckReady) {
+      if (this.config.debugDrawing) {
+        console.info("Viewport#onDeckReady: not drawing items (drawOnDeckReady is false)");
+      }
+      return;
+    }
+
     if (this.config.debugDrawing) {
       console.info("Viewport#onDeckReady: drawing items (load needed)");
     }
+
     this.drawItems({ isLoadNeeded: true }); // Needs loading because the items haven't been loaded before
   },
 
@@ -1055,7 +1103,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onDeckDraw: function() {
+  onDeckDraw: function onDeckDraw() {
     if (this.config.debugDrawing) {
       console.info("Viewport#onDeckDraw: drawing items (load needed)");
     }
@@ -1067,7 +1115,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onDeckLayoutSetting: function() {
+  onDeckLayoutSetting: function onDeckLayoutSetting() {
     if (this.config.debugDrawing) {
       console.info("Viewport#onDeckLayoutSetting: erasing custom renders");
     }
@@ -1079,7 +1127,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onDeckLayoutSet: function(e) {
+  onDeckLayoutSet: function onDeckLayoutSet(e) {
     var layout = e.data;
     this.setLayout(layout);
     if (this.config.debugDrawing) {
@@ -1093,7 +1141,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onFrameBoundsSetting: function() {
+  onFrameBoundsSetting: function onFrameBoundsSetting() {
     if (this.config.debugDrawing) {
       console.info("Viewport#onFrameBoundsSetting: erasing custom renders");
     }
@@ -1105,14 +1153,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onFrameBoundsSet: function() {
+  onFrameBoundsSet: function onFrameBoundsSet() {
     if (this.config.debugDrawing) {
       console.info("Viewport#onFrameBoundsSet: draw items (load not needed)");
     }
     this.drawItems({ isLoadNeeded: false }); // Doesn't need loading because we should just be moving things around based on new frame bounds
   },
 
-  onItemChanged: function(e) {
+  onItemChanged: function onItemChanged(e) {
     var item = e.sender;
     if (this.config.debugDrawing) {
       console.info("Viewport#onItemChanged: drawing item (load needed)", item);
@@ -1120,7 +1168,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.drawItem(item, { isLoadNeeded: true }); // Needs loading because change to item might require new representation.
   },
 
-  onItemIndexChanged: function(e) {
+  onItemIndexChanged: function onItemIndexChanged(e) {
     var item = e.sender;
     var index = e.data;
     if (this.config.debugDrawing) {
@@ -1129,19 +1177,19 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.drawItem(item, { isLoadNeeded: true }); // TODO: not sure if this needs loading
   },
 
-  onItemCollectionItemAdding: function() {
+  onItemCollectionItemAdding: function onItemCollectionItemAdding() {
     // TODO: remove this event if not needed
   },
 
-  onItemCollectionItemAdded: function() {
+  onItemCollectionItemAdded: function onItemCollectionItemAdded() {
     // TODO: remove this event if not needed
   },
 
-  onItemCollectionItemRemoving: function() {
+  onItemCollectionItemRemoving: function onItemCollectionItemRemoving() {
     // TODO: remove this event if not needed
   },
 
-  onItemCollectionItemRemoved: function(e) {
+  onItemCollectionItemRemoved: function onItemCollectionItemRemoved(e) {
     var item = e.data;
     if (this.config.debugDrawing) {
       console.info("Viewport#onItemCollectionItemRemoved: erasing item", item);
@@ -1149,11 +1197,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.eraseItem(item);
   },
 
-  onItemCollectionClearing: function() {
+  onItemCollectionClearing: function onItemCollectionClearing() {
     // TODO: remove this event if not needed
   },
 
-  onItemCollectionCleared: function(e) {
+  onItemCollectionCleared: function onItemCollectionCleared(e) {
     var items = e.data;
     if (this.config.debugDrawing) {
       console.info("Viewport#onItemCollectionCleared: erasing items", items);
@@ -1161,7 +1209,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.eraseItems(items);
   },
 
-  onItemCollectionIndexing: function(e) {
+  onItemCollectionIndexing: function onItemCollectionIndexing(e) {
     var stats = e.data;
     if (stats.totalCount > 0 || (stats.totalCount === 0 &amp;&amp; stats.reason.isClear)) {
       if (this.config.debugDrawing) {
@@ -1171,7 +1219,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     }
   },
 
-  onItemCollectionIndexed: function(e) {
+  onItemCollectionIndexed: function onItemCollectionIndexed(e) {
     var stats = e.data;
     if (stats.totalCount > 0 &amp;&amp; stats.changedCount === 0) {
       // If there are items in the collection, but no indexes changed, there will be no drawing
@@ -1193,7 +1241,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param render
    * @return {undefined}
    */
-  onRenderAnimationComplete: function(render) {
+  onRenderAnimationComplete: function onRenderAnimationComplete(render) {
     if (render.isErasing) {
       this.removeRender(render);
       if (render.item.isErasing &amp;&amp; !this.hasRenders(render.item)) {
@@ -1202,6 +1250,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     } else {
       this.setRender(render);
     }
+
+    this.configureRenderGestures(render);
 
     this.rendersDrawingCount--;
     if (this.rendersDrawingCount === 0) {
@@ -1214,7 +1264,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onAllRenderAnimationsComplete: function() {
+  onAllRenderAnimationsComplete: function onAllRenderAnimationsComplete() {
     var self = this;
 
     _.defer(function() {
@@ -1243,7 +1293,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param customRender
    * @return {undefined}
    */
-  onCustomRenderAnimationComplete: function(customRender) {
+  onCustomRenderAnimationComplete: function onCustomRenderAnimationComplete(customRender) {
     if (customRender.isErasing) {
       this.removeCustomRender(customRender);
     } else {
@@ -1262,11 +1312,81 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onAllCustomRenderAnimationsComplete: function() {
+  onAllCustomRenderAnimationsComplete: function onAllCustomRenderAnimationsComplete() {
     var self = this;
     _.defer(function() {
       self.emit(DecksEvent("viewport:all:custom:renders:drawn", self));
     });
+  },
+
+  configureRenderGestures: function configureRenderGestures(render) {
+    if (render.isErasing) {
+      this.removeRenderGestureHandler(render);
+    } else {
+      this.addRenderGestureHandler(render);
+    }
+  },
+
+  addRenderGestureHandler: function addRenderGestureHandler(render) {
+    var gestureHandlerGroupId = render.gestureHandlerGroupId;
+
+    if (!gestureHandlerGroupId) {
+      // No group id, don't add gesture handler
+      return;
+    }
+
+    if (!this.gestureHandlerGroups[gestureHandlerGroupId]) {
+      console.log("Viewport#addRenderGestureHandler: creating gesture group: " + gestureHandlerGroupId);
+      this.gestureHandlerGroups[gestureHandlerGroupId] = new GestureHandlerGroup({
+        config: this.config,
+        emitter: this.emitter
+      });
+    }
+
+    var gestureHandlerGroup = this.gestureHandlerGroups[gestureHandlerGroupId];
+
+    if (gestureHandlerGroup.hasGestureHandlerForElement(render.element)) {
+      // Already has element in a group
+      return;
+    }
+
+    var defaultGestureHandlerOptions = {
+      animator: this.animator,
+      config: this.config,
+      emitter: this.emitter,
+      element: render.element,
+      bounds: this.frame.bounds,
+      snapping: {
+        toBounds: true,
+        toNearestChildElement: false
+      }
+    };
+    var layoutGestureHandlerOptions = this.layout.getRenderGestureOptions(render, this.layoutMethodOptions);
+    var gestureHandlerOptions = _.merge(defaultGestureHandlerOptions, layoutGestureHandlerOptions);
+
+    var gestureHandler = new GestureHandler(gestureHandlerOptions);
+
+    console.log("Viewport#addRenderGestureHandler: adding gesture handler", render);
+    gestureHandlerGroup.addGestureHandler(gestureHandler);
+  },
+
+  removeRenderGestureHandler: function removeRenderGestureHandler(render) {
+    var gestureHandlerGroupId = render.gestureHandlerGroupId;
+
+    if (!gestureHandlerGroupId) {
+      // No gesture handler group id specified
+      return;
+    }
+
+    if (!this.gestureHandlerGroups[gestureHandlerGroupId]) {
+      // No gesture handler group exists for this id
+      return;
+    }
+
+    var gestureHandlerGroup = this.gestureHandlerGroups[gestureHandlerGroupId];
+
+    console.log("Viewport#removeRenderGestureHandler: remove gesture handler", render);
+    gestureHandlerGroup.removeGestureHandlerForElement(render.element);
   },
 
   /**
@@ -1275,7 +1395,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param e
    * @return {undefined}
    */
-  onGestureElementMoved: function(e) {
+  onGestureElementMoved: function onGestureElementMoved(e) {
     var element = e.data;
     if (element === this.canvas.element) {
       this.onCanvasElementMoved(e);
@@ -1287,7 +1407,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  onCanvasElementMoved: function() {
+  onCanvasElementMoved: function onCanvasElementMoved() {
     this.debouncedLoadOrUnloadRenders();
   }
 });
@@ -1303,7 +1423,7 @@ module.exports = Viewport;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">
