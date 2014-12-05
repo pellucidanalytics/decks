@@ -77,7 +77,7 @@ function PanEmitter(options) {
     threshold: this.threshold
   });
 
-  this.bindHammerEvents();
+  this.bind();
 }
 
 PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.prototype */ {
@@ -95,7 +95,7 @@ PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.
   /**
    * Returns the map of Hammer.js events to which to bind.
    */
-  getHammerEvents: function() {
+  getHammerEvents: function getHammerEvents() {
     var map = {
       "panstart": "onPanStart",
       "panend": "onPanEnd",
@@ -111,7 +111,7 @@ PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.
     return map;
   },
 
-  onPanStart: function(e) {
+  onPanStart: function onPanStart(e) {
     /**
      * Event for a pan start.
      *
@@ -132,7 +132,7 @@ PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.
    * @param e - Hammer event object
    * @returns {undefined}
    */
-  onPanMove: function(e) {
+  onPanMove: function onPanMove(e) {
     // TODO: might want to emit pan:x and pan:y here too (if direction is applicable)
 
     /**
@@ -148,7 +148,7 @@ PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.
     this.emit(DecksEvent("gesture:pan:any", this, e));
   },
 
-  onPanX: function(e) {
+  onPanX: function onPanX(e) {
     // TODO: might want to emit pan:any here too
 
     /**
@@ -163,7 +163,7 @@ PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.
     this.emit(DecksEvent("gesture:pan:x", this, e));
   },
 
-  onPanY: function(e) {
+  onPanY: function onPanY(e) {
     // TODO: might want to emit pan:any here too
 
     /**
@@ -178,7 +178,7 @@ PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.
     this.emit(DecksEvent("gesture:pan:y", this, e));
   },
 
-  onPanEnd: function(e) {
+  onPanEnd: function onPanEnd(e) {
     /**
      * Event for a pan end.
      *
@@ -191,7 +191,7 @@ PanEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends PanEmitter.
     this.emit(DecksEvent("gesture:pan:end", this, e));
   },
 
-  onPanCancel: function(e) {
+  onPanCancel: function onPanCancel(e) {
     /**
      * Event for a pan cancel.
      *

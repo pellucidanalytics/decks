@@ -62,9 +62,12 @@ function Deck(options) {
   if (!(this instanceof Deck)) {
     return new Deck(options);
   }
+
   options = _.merge({}, this.defaultOptions, options);
+
   validate.isEnabled = !!options.config.validation;
-  this.setEmitter(options.emitter || {}, this.emitterEvents);
+
+  this.setEmitter(options.emitter || {});
   this.setConfig(options.config || {});
   this.setAnimator(options.animator);
   this.setItemCollection(options.itemCollection || options.items || []);
@@ -75,6 +78,9 @@ function Deck(options) {
   this.setFrame(options.frame);
   this.setCanvas(options.canvas || {});
   this.setViewport(options.viewport || {});
+
+  this.bind();
+
   this.emit(DecksEvent("deck:ready", this));
 }
 
@@ -98,15 +104,45 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
   /**
    * Events to bind to on the shared {@link Emitter}.
    */
-  emitterEvents: {
-    "*": "onAnyEvent"
+  getEmitterEvents: function() {
+    return {
+      "*": "onAnyEmitterEvent"
+    };
   },
 
   /**
    * Events to bind to on the {@link ItemCollection}
    */
-  itemCollectionEvents: {
-    "*": "onItemCollectionEvent"
+  getItemCollectionEvents: function() {
+    return {
+      "*": "onAnyItemCollectionEvent"
+    };
+  },
+
+  /**
+   * Binds the {@link Emitter} and {@link ItemCollection} event handlers.
+   *
+   * @return {undefined}
+   */
+  bind: function() {
+    this.bindEvents(this.emitter, this.getEmitterEvents());
+
+    if (this.itemCollection.emitter !== this.emitter) {
+      this.bindEvents(this.itemCollection, this.getItemCollectionEvents());
+    }
+  },
+
+  /**
+   * Unbinds the {@link Emitter} and {@link ItemCollection} event handlers.
+   *
+   * @return {undefined}
+   */
+  unbind: function() {
+    this.unbindEvents(this.emitter, this.getEmitterEvents());
+
+    if (this.itemCollection.emitter !== this.emitter) {
+      this.unbindEvents(this.itemCollection, this.getItemCollectionEvents());
+    }
   },
 
   /**
@@ -276,26 +312,54 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     self.setLayout(layout);
   },
 
-  bindCanvasGestureHandlerEmitterEvents: function bindCanvasGestureHandlerEmitterEvents() {
-    this.canvas.bindGestureHandlerEmitterEvents();
+  /**
+   * Binds the {@link Canvas}'s {@link GestureHandler} events.
+   *
+   * @return {undefined}
+   */
+  bindCanvasGestureHandler: function bindCanvasGestureHandler() {
+    this.canvas.bindGestureHandler();
   },
 
-  unbindCanvasGestureHandlerEmitterEvents: function unbindCanvasGestureHandlerEmitterEvents() {
-    this.canvas.unbindGestureHandlerEmitterEvents();
+  /**
+   * Unbinds the {@link Canvas}'s {@link GestureHandler} events.
+   *
+   * @return {undefined}
+   */
+  unbindCanvasGestureHandler: function unbindCanvasGestureHandler() {
+    this.canvas.unbindGestureHandler();
   },
 
+  /**
+   * Sets the config object.
+   *
+   * @param config
+   * @return {undefined}
+   */
   setConfig: function setConfig(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = config;
     this.emit(DecksEvent("deck:config:set", this, this.config));
   },
 
+  /**
+   * Sets the animator object.
+   *
+   * @param animator
+   * @return {undefined}
+   */
   setAnimator: function setAnimator(animator) {
     validate(animator, "animator", { isPlainObject: true, isNotSet: this.animator });
     this.animator = animator;
     this.emit(DecksEvent("deck:animator:set", this, this.animator));
   },
 
+  /**
+   * Sets the {@link ItemCollection}.
+   *
+   * @param itemCollection
+   * @return {undefined}
+   */
   setItemCollection: function setItemCollection(itemCollection) {
     validate(itemCollection, "itemCollection", { isRequired: true, isNotSet: this.itemCollection });
 
@@ -305,15 +369,15 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
 
     this.itemCollection = itemCollection;
 
-    // If the ItemCollection has a different emitter, bind to the item collection emitter and
-    // forward all events on the main Deck emitter.
-    if (this.emitter !== itemCollection.emitter) {
-      this.bindEvents(itemCollection, this.itemCollectionEvents);
-    }
-
     this.emit(DecksEvent("deck:item:collection:set", this, this.layout));
   },
 
+  /**
+   * Sets the {@link Layout}
+   *
+   * @param layout
+   * @return {undefined}
+   */
   setLayout: function setLayout(layout) {
     validate(layout, "layout", { isRequired: true });
 
@@ -323,9 +387,9 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
 
     this.emit(DecksEvent("deck:layout:setting", this, { oldLayout: this.layout, newLayout: layout }));
 
-    // Unbind events from the old layout
+    // Unbind the previous layout from emitter events
     if (this.layout) {
-      this.layout.unbindEvents(this.emitter, this.layout.emitterEvents);
+      this.layout.unbindEvents(this.emitter, this.layout.getEmitterEvents());
     }
 
     if (!(layout instanceof Layout)) {
@@ -333,12 +397,17 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     }
 
     this.layout = layout;
-
-    this.layout.bindEvents(this.emitter, this.layout.emitterEvents);
+    this.layout.bindEvents(this.emitter, this.layout.getEmitterEvents());
 
     this.emit(DecksEvent("deck:layout:set", this, this.layout));
   },
 
+  /**
+   * Sets the {@link Frame}
+   *
+   * @param frame
+   * @return {undefined}
+   */
   setFrame: function setFrame(frame) {
     validate(frame, "frame", { isRequired: true, isNotSet: this.frame });
 
@@ -356,6 +425,12 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:frame:set", this, this.frame));
   },
 
+  /**
+   * Sets the {@link Canvas}
+   *
+   * @param canvas
+   * @return {undefined}
+   */
   setCanvas: function setCanvas(canvas) {
     validate(canvas, "canvas", { isRequired: true, isNotSet: this.canvas });
 
@@ -374,6 +449,12 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:canvas:set", this, this.canvas));
   },
 
+  /**
+   * Sets the {@link Viewport}
+   *
+   * @param viewport
+   * @return {undefined}
+   */
   setViewport: function setViewport(viewport) {
     validate(viewport, "viewport", { isRequired: true, isNotSet: this.viewport });
 
@@ -395,13 +476,25 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:viewport:set", this, this.viewport));
   },
 
-  onAnyEvent: function onAnyEvent(e) {
+  /**
+   * Called on any {@link Emitter} event.
+   *
+   * @param e
+   * @return {undefined}
+   */
+  onAnyEmitterEvent: function onAnyEmitterEvent(e) {
     if (this.config.debugEvents) {
-      console.log("Deck#onAnyEvent:", e);
+      console.log("Deck#onAnyEmitterEvent:", e);
     }
   },
 
-  onItemCollectionEvent: function onItemCollectionEvent(e) {
+  /**
+   * Called on any {@link ItemCollection} event.
+   *
+   * @param e
+   * @return {undefined}
+   */
+  onAnyItemCollectionEvent: function onAnyItemCollectionEvent(e) {
     // Forward itemCollection events on the main Deck emitter
     this.emit(e);
   }

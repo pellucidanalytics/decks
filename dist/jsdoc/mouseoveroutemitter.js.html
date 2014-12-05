@@ -54,7 +54,7 @@ function MouseOverOutEmitter(options) {
   this.over = !!options.over;
   this.out = !!options.out;
 
-  this.bindElementEvents();
+  this.bind();
 }
 
 MouseOverOutEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends MouseOverOutEmitter.prototype */ {
@@ -65,7 +65,7 @@ MouseOverOutEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends Mo
     out: true
   }),
 
-  getElementEvents: function() {
+  getElementEvents: function getElementEvents() {
     var map = {};
     if (this.over) {
       map.mouseover = "onMouseOver";
@@ -76,11 +76,11 @@ MouseOverOutEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends Mo
     return map;
   },
 
-  onMouseOver: function(e) {
+  onMouseOver: function onMouseOver(e) {
     this.emit(DecksEvent("gesture:mouse:over", this, e));
   },
 
-  onMouseOut: function(e) {
+  onMouseOut: function onMouseOut(e) {
     this.emit(DecksEvent("gesture:mouse:out", this, e));
   }
 });

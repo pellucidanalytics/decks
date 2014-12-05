@@ -61,6 +61,8 @@ function GestureEmitter(options) {
   this.setEmitter(options.emitter || {});
   this.setElement(options.element);
   this.setHammer(options.hammer);
+
+  // Note: don't this.bind() here - let subclass bind after setting up other options
 }
 
 _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter.prototype */ {
@@ -80,7 +82,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    * @param {!Element} element - element to monitor
    * @return {undefined}
    */
-  setElement: function(element) {
+  setElement: function setElement(element) {
     validate(element, "element", { isElement: true, isNotSet: this.element });
     this.element = element;
   },
@@ -93,7 +95,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    * @param hammer
    * @return {undefined}
    */
-  setHammer: function(hammer) {
+  setHammer: function setHammer(hammer) {
     validate(hammer, "hammer", { isRequired: true, isNotSet: this.hammer });
     this.hammer = hammer;
   },
@@ -106,7 +108,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  getElementEvents: function() {
+  getElementEvents: function getElementEvents() {
     return {};
   },
 
@@ -115,14 +117,11 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  bindElementEvents: function() {
+  bindElementEvents: function bindElementEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getElementEvents();
-    if (!_.isEmpty(map)) {
-      this.bindEvents(this.element, map);
-    }
+    this.bindEvents(this.element, this.getElementEvents());
   },
 
   /**
@@ -130,14 +129,11 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  unbindElementEvents: function() {
+  unbindElementEvents: function unbindElementEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getElementEvents();
-    if (!_.isEmpty(map)) {
-      this.unbindEvents(this.element, map);
-    }
+    this.unbindEvents(this.element, this.getElementEvents());
   },
 
   /**
@@ -148,7 +144,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  getHammerEvents: function() {
+  getHammerEvents: function getHammerEvents() {
     return {};
   },
 
@@ -157,14 +153,11 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  bindHammerEvents: function() {
+  bindHammerEvents: function bindHammerEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getHammerEvents();
-    if (!_.isEmpty(map)) {
-      this.bindEvents(this.hammer, map);
-    }
+    this.bindEvents(this.hammer, this.getHammerEvents());
   },
 
   /**
@@ -172,14 +165,31 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  unbindHammerEvents: function() {
+  unbindHammerEvents: function unbindHammerEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getHammerEvents();
-    if (!_.isEmpty(map)) {
-      this.unbindEvents(this.hammer, map);
-    }
+    this.unbindEvents(this.hammer, this.getHammerEvents());
+  },
+
+  /**
+   * Binds all events (element and Hammer)
+   *
+   * @return {undefined}
+   */
+  bind: function bind() {
+    this.bindElementEvents();
+    this.bindHammerEvents();
+  },
+
+  /**
+   * Unbinds all events (element and Hammer)
+   *
+   * @return {undefined}
+   */
+  unbind: function unbind() {
+    this.unbindElementEvents();
+    this.unbindHammerEvents();
   },
 
   /**
@@ -187,9 +197,8 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  destroy: function() {
-    this.unbindElementEvents();
-    this.unbindHammerEvents();
+  destroy: function destroy() {
+    this.unbind();
   }
 });
 

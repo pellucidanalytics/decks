@@ -85,7 +85,7 @@ describe("decks.Viewport", function() {
     it("should bind emitter events", function() {
       var spy = sinon.spy(Viewport.prototype, "bindEvents");
       viewport = new Viewport(viewportOptions);
-      expect(spy).to.have.been.calledWith(emitter, Viewport.prototype.emitterEvents);
+      expect(spy).to.have.been.calledWith(emitter, viewport.getEmitterEvents());
       Viewport.prototype.bindEvents.restore();
     });
   });

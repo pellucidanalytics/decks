@@ -82,7 +82,7 @@ function TapEmitter(options) {
     posThreshold: this.posThreshold
   });
 
-  this.bindHammerEvents();
+  this.bind();
 }
 
 TapEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends TapEmitter.prototype */ {
@@ -96,13 +96,13 @@ TapEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends TapEmitter.
     posThreshold: 10
   }),
 
-  getHammerEvents: function() {
+  getHammerEvents: function getHammerEvents() {
     return {
       "tap": "onTap"
     };
   },
 
-  onTap: function(e) {
+  onTap: function onTap(e) {
     /**
      * Event for a tap (click/touch) event
      *

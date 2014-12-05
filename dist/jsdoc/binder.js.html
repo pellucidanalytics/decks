@@ -47,9 +47,9 @@ var binder = {
    * @param {!Object} eventToMethodMap hash of event name to method name of this.
    * @return {undefined}
    */
-  bindEvents: function(source, eventToMethodMap) {
+  bindEvents: function bindEvents(source, eventToMethodMap) {
     validate(source, "source", { isRequired: true });
-    validate(eventToMethodMap, "eventToMethodMap", { isRequired: true });
+    validate(eventToMethodMap, "eventToMethodMap", { isPlainObject: true });
 
     _.each(eventToMethodMap, function(methodName, eventName) {
       if (!_.isFunction(this[methodName])) {
@@ -90,9 +90,9 @@ var binder = {
    * @param {!Object} eventToMethodMap hash of event names to method names of 'this'
    * @return {undefined}
    */
-  unbindEvents: function(source, eventToMethodMap) {
+  unbindEvents: function unbindEvents(source, eventToMethodMap) {
     validate(source, "source", { isRequired: true });
-    validate(eventToMethodMap, "eventToMethodMap", { isRequired: true });
+    validate(eventToMethodMap, "eventToMethodMap", { isPlainObject: true });
 
     _.each(eventToMethodMap, function(methodName, eventName) {
       var eventNames = this.getEventNames(eventName);
@@ -106,7 +106,6 @@ var binder = {
         } else {
           // Not assuming the off method supports a context arg, get the _.bind copy of the method
           var boundMethodName = this.getBoundMethodName(methodName);
-
           if (!this[boundMethodName]) {
             return;
           }
@@ -129,7 +128,7 @@ var binder = {
    * @param {!*} source object that emits events
    * @return {String} first method name that could be used to bind events.
    */
-  getOnMethodName: function(source) {
+  getOnMethodName: function getOnMethodName(source) {
     var name = _.find(["on", "addListener", "addEventListener", "attachEvent"], function(name) {
       // "attachEvent" is not a "function" in IE8 (WTF)
       return _.isFunction(source[name]) || (browser.isIE8 &amp;&amp; source[name]);
@@ -149,7 +148,7 @@ var binder = {
    * @param {!*} source object which emits events
    * @return {String} first method name that could be used to unbind events.
    */
-  getOffMethodName: function(source) {
+  getOffMethodName: function getOffMethodName(source) {
     var name = _.find(["off", "removeListener", "removeEventListener", "detachEvent"], function(name) {
       // "detachEvent" is not a "function" in IE8 (WTF)
       return _.isFunction(source[name]) || (browser.isIE8 &amp;&amp; source[name]);
@@ -169,7 +168,7 @@ var binder = {
    * @param {String} eventName - single or space-delimited event name(s)
    * @return {String[]} - array of event names
    */
-  getEventNames: function(eventName) {
+  getEventNames: function getEventNames(eventName) {
     eventName = eventName || "";
 
     return _(eventName.split(" "))
@@ -191,7 +190,7 @@ var binder = {
    * @param {String} methodName method name to prefix
    * @return {String} prefixed method name
    */
-  getBoundMethodName: function(methodName) {
+  getBoundMethodName: function getBoundMethodName(methodName) {
     return "_bound_" + methodName;
   }
 };

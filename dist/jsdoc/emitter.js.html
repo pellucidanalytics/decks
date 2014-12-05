@@ -87,7 +87,7 @@ Emitter.prototype = _.create(superPrototype, /** @lends Emitter.prototype */ {
    * This argument is N/A if the first argument is a {@link DecksEvent} instance.
    * @return {boolean} - true if at least one handler was invoked for the event, otherwise false
    */
-  emit: function() {
+  emit: function emit() {
     var self = this;
 
     // If the arg is a DecksEvent, use the event.type as the emit type argument
@@ -119,7 +119,7 @@ Emitter.prototype = _.create(superPrototype, /** @lends Emitter.prototype */ {
    * @param {*} context - context to use for invoking callback function
    * @return {undefined}
    */
-  on: function(event, fn, context) {
+  on: function on(event, fn, context) {
     if (event === this._wildcard) {
       this.onAny(fn, context);
       return;
@@ -136,7 +136,7 @@ Emitter.prototype = _.create(superPrototype, /** @lends Emitter.prototype */ {
    * @param {*} context - context for callback function
    * @return {undefined}
    */
-  off: function(event, fn, context) {
+  off: function off(event, fn, context) {
     if (event === this._wildcard) {
       this.offAny(fn, context);
       return;
@@ -149,7 +149,7 @@ Emitter.prototype = _.create(superPrototype, /** @lends Emitter.prototype */ {
   /**
    * Extension to EventEmitter3 to subscribe to any event.
    */
-  onAny: function(fn, context) {
+  onAny: function onAny(fn, context) {
     this._anyListeners.push({
       fn: fn,
       context: context
@@ -159,7 +159,7 @@ Emitter.prototype = _.create(superPrototype, /** @lends Emitter.prototype */ {
   /**
    * Extension to EventEmitter3 to unsubscribe from any event.
    */
-  offAny: function(fn, context) {
+  offAny: function offAny(fn, context) {
     this._anyListeners = _.filter(this._anyListeners, function(anyListener) {
       return !(anyListener.fn === fn &amp;&amp; anyListener.context === context);
     });

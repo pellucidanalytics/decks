@@ -27,6 +27,7 @@
         <article>
             <pre class="prettyprint source linenums"><code>var _ = require("lodash");
 var dom = require("../ui/dom");
+var Layout = require("../layout");
 var BasicGridLayout = require("./basicgridlayout");
 
 function randomPlusMinus(range) {
@@ -64,9 +65,11 @@ BasicStackLayout.prototype = _.create(BasicGridLayout.prototype, /** @lends Basi
   defaultOptions: _.merge({}, BasicGridLayout.prototype.defaultOptions, {
   }),
 
-  overridables: _.uniq(BasicGridLayout.prototype.overridables.concat([
-    "getStackNames"
-  ])),
+  getOverridables: function() {
+    var overridables = Layout.prototype.getOverridables();
+    overridables.push("getStackNames");
+    return overridables;
+  },
 
   getStackNames: function(item) {
     var groups = item.get("groups");

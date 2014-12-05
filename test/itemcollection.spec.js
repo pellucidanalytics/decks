@@ -153,7 +153,7 @@ describe("decks.ItemCollection", function() {
       var spy = sinon.spy(itemCollection, "bindEvents");
       var item = new Item();
       itemCollection.addItem(item);
-      expect(spy).to.have.been.calledWith(item, itemCollection.itemEvents);
+      expect(spy).to.have.been.calledWith(item, itemCollection.getItemEvents());
       spy.reset();
     });
 

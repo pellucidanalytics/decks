@@ -49,14 +49,14 @@ describe("decks.Frame", function() {
     it("should bind emitter events", function() {
       var spy = sinon.spy(Frame.prototype, "bindEvents");
       frame = new Frame(frameOptions);
-      expect(spy).to.have.been.calledWith(emitter, Frame.prototype.emitterEvents);
+      expect(spy).to.have.been.calledWith(emitter, frame.getEmitterEvents());
       Frame.prototype.bindEvents.restore();
     });
 
     it("should bind window events", function() {
       var spy = sinon.spy(Frame.prototype, "bindEvents");
       frame = new Frame(frameOptions);
-      expect(spy).to.have.been.calledWith(window, Frame.prototype.windowEvents);
+      expect(spy).to.have.been.calledWith(window, frame.getWindowEvents());
       Frame.prototype.bindEvents.restore();
     });
 

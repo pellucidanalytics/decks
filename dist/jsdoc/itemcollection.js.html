@@ -50,6 +50,8 @@ function ItemCollection(items, options) {
   this.setEmitter(options.emitter || {});
   this.items = {};
   this.addItems(items);
+
+  this.emit(DecksEvent("item:collection:ready", this));
 }
 
 _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection.prototype */ {
@@ -64,8 +66,10 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    *
    * @return {undefined}
    */
-  itemEvents: {
-    "*": "onItemEvent"
+  getItemEvents: function() {
+    return {
+      "*": "onAnyItemEvent"
+    };
   },
 
   /**
@@ -132,7 +136,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
     }
 
     this.items[item.id] = item;
-    this.bindEvents(item, this.itemEvents);
+    this.bindEvents(item, this.getItemEvents());
 
     if (!options.silent) {
       this.emit(DecksEvent("item:collection:item:added", this, item));
@@ -204,7 +208,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
       this.emit(DecksEvent("item:collection:item:removing", this, item));
     }
 
-    this.unbindEvents(item, this.itemEvents);
+    this.unbindEvents(item, this.getItemEvents());
     delete this.items[item.id];
 
     if (!options.silent) {
@@ -440,7 +444,7 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
    * @param e
    * @return {undefined}
    */
-  onItemEvent: function onItemEvent(e) {
+  onAnyItemEvent: function onAnyItemEvent(e) {
     this.emit(e);
   }
 });

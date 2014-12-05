@@ -90,7 +90,7 @@ function SwipeEmitter(options) {
     velocity: this.velocity
   });
 
-  this.bindHammerEvents();
+  this.bind();
 }
 
 SwipeEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends SwipeEmitter.prototype */ {
@@ -121,7 +121,7 @@ SwipeEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends SwipeEmit
     velocity: 0.65
   }),
 
-  getHammerEvents: function() {
+  getHammerEvents: function getHammerEvents() {
     var map = { };
 
     if (this.horizontal &amp;&amp; this.vertical) {
@@ -135,7 +135,7 @@ SwipeEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends SwipeEmit
     return map;
   },
 
-  onSwipe: function(e) {
+  onSwipe: function onSwipe(e) {
     /**
      * Event for a swipe in any direction
      *
@@ -148,7 +148,7 @@ SwipeEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends SwipeEmit
     this.emit(DecksEvent("gesture:swipe:any", this, e));
   },
 
-  onSwipeX: function(e) {
+  onSwipeX: function onSwipeX(e) {
     /**
      * Event for a swipe in horizontal direction
      *
@@ -161,7 +161,7 @@ SwipeEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends SwipeEmit
     this.emit(DecksEvent("gesture:swipe:x", this, e));
   },
 
-  onSwipeY: function(e) {
+  onSwipeY: function onSwipeY(e) {
     /**
      * Event for a swipe in vertical direction
      *

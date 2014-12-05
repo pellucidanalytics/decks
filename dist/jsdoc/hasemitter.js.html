@@ -25,8 +25,7 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>var _ = require("lodash");
-var Emitter = require("./emitter");
+            <pre class="prettyprint source linenums"><code>var Emitter = require("./emitter");
 var validate = require("../utils/validate");
 
 /**
@@ -40,14 +39,12 @@ var validate = require("../utils/validate");
 var hasEmitter = {
   /**
    * Sets an emitter instance on 'this' and optionally binds events from
-   * the emitter to methods on 'this' using the emitterEvents hash arguments
    *
    * @instance
    * @param {!(Object|Emitter)} emitter - Emitter instance or options
-   * @param {?Object} emitterEvents - hash of event names to method names, for which to bind to on the emitter.
    * @returns {undefined}
    */
-  setEmitter: function(emitter, emitterEvents) {
+  setEmitter: function setEmitter(emitter) {
     validate(emitter, "emitter", { isRequired: true, isNotSet: this.emitter });
 
     if (!(emitter instanceof Emitter)) {
@@ -55,14 +52,6 @@ var hasEmitter = {
     }
 
     this.emitter = emitter;
-
-    if (emitterEvents) {
-      if (!_.isFunction(this.bindEvents)) {
-        throw new Error("hasEmitter#setEmitter: events were specified, but target object does not have a bindEvents method");
-      }
-
-      this.bindEvents(this.emitter, emitterEvents);
-    }
   },
 
   /**
@@ -70,7 +59,7 @@ var hasEmitter = {
    *
    * @instance
    */
-  emit: function() {
+  emit: function emit() {
     this.emitter.emit.apply(this.emitter, arguments);
   },
 
@@ -79,7 +68,7 @@ var hasEmitter = {
    *
    * @instance
    */
-  on: function() {
+  on: function on() {
     this.emitter.on.apply(this.emitter, arguments);
   },
 
@@ -88,7 +77,7 @@ var hasEmitter = {
    *
    * @instance
    */
-  off: function() {
+  off: function off() {
     this.emitter.off.apply(this.emitter, arguments);
   },
 
@@ -97,7 +86,7 @@ var hasEmitter = {
    *
    * @instance
    */
-  onAny: function() {
+  onAny: function onAny() {
     this.emitter.onAny.apply(this.emitter, arguments);
   },
 
@@ -106,27 +95,15 @@ var hasEmitter = {
    *
    * @instance
    */
-  offAny: function() {
+  offAny: function offAny() {
     this.emitter.offAny.apply(this.emitter, arguments);
   },
 
   /**
    * Calls through to {@link Emitter#once}
    */
-  once: function() {
+  once: function once() {
     this.emitter.once.apply(this.emitter, arguments);
-  },
-
-  bindEmitterEvents: function() {
-    validate(this.bindEvents, "bindEvents", { isFunction: true });
-    validate(this.emitterEvents, "emitterEvents", { isPlainObject: true });
-    this.bindEvents(this.emitter, this.emitterEvents);
-  },
-
-  unbindEmitterEvents: function() {
-    validate(this.unbindEvents, "unbindEvents", { isFunction: true });
-    validate(this.emitterEvents, "emitterEvents", { isPlainObject: true });
-    this.unbindEvents(this.emitter, this.emitterEvents);
   }
 };
 

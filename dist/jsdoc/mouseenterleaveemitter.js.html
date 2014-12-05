@@ -54,7 +54,7 @@ function MouseEnterLeaveEmitter(options) {
   this.enter = !!options.enter;
   this.leave = !!options.leave;
 
-  this.bindElementEvents();
+  this.bind();
 }
 
 MouseEnterLeaveEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends MouseEnterLeaveEmitter.prototype */ {
@@ -65,7 +65,7 @@ MouseEnterLeaveEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends
     out: true
   }),
 
-  getElementEvents: function() {
+  getElementEvents: function getElementEvents() {
     var map = {};
     if (this.enter) {
       map.mouseenter = "onMouseEnter";
@@ -76,11 +76,11 @@ MouseEnterLeaveEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends
     return map;
   },
 
-  onMouseEnter: function(e) {
+  onMouseEnter: function onMouseEnter(e) {
     this.emit(DecksEvent("gesture:mouse:enter", this, e));
   },
 
-  onMouseLeave: function(e) {
+  onMouseLeave: function onMouseLeave(e) {
     this.emit(DecksEvent("gesture:mouse:leave", this, e));
   }
 });

@@ -68,11 +68,14 @@ function GestureHandler(options) {
   this.gestureEmitters = {};
   this.animationCount = 0;
   this.debouncedOnGestureScroll = _.debounce(this.onGestureScroll, options.movement.debouncedScrollWait);
+
   this.setAnimator(options.animator);
   this.setConfig(options.config);
-  this.setEmitter(options.emitter || {}, this.emitterEvents);
+  this.setEmitter(options.emitter || {});
   this.setElement(options.element);
   this.setOptions(options);
+
+  this.bind();
 }
 
 _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler.prototype */ {
@@ -211,28 +214,6 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
   },
 
-  emitterEvents: {
-    // Pan gestures - linear tracking movement
-    "gesture:pan:start": "onGesturePanStart",
-    "gesture:pan:any": "onGesturePanAny",
-    "gesture:pan:x": "onGesturePanX",
-    "gesture:pan:y": "onGesturePanY",
-    "gesture:pan:end": "onGesturePanEnd",
-    "gesture:pan:cancel": "onGesturePanCancel",
-
-    // Swipe gestures - inertial movement in swipe direction
-    "gesture:swipe:any": "onGestureSwipeAny",
-    "gesture:swipe:x": "onGestureSwipeX",
-    "gesture:swipe:y": "onGestureSwipeY",
-
-    // Tap/press gestures
-    "gesture:tap": "onGestureTap",
-    "gesture:press": "onGesturePress",
-
-    // Scroll
-    "gesture:scroll": "debouncedOnGestureScroll"
-  },
-
   /**
    * Mapping of gesture names to gesture emitter component constructor functions
    */
@@ -245,6 +226,48 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     tap: TapEmitter,
     press: PressEmitter,
     scroll: ScrollEmitter
+  },
+
+  getEmitterEvents: function() {
+    return {
+      // Pan gestures - linear tracking movement
+      "gesture:pan:start": "onGesturePanStart",
+      "gesture:pan:any": "onGesturePanAny",
+      "gesture:pan:x": "onGesturePanX",
+      "gesture:pan:y": "onGesturePanY",
+      "gesture:pan:end": "onGesturePanEnd",
+      "gesture:pan:cancel": "onGesturePanCancel",
+
+      // Swipe gestures - inertial movement in swipe direction
+      "gesture:swipe:any": "onGestureSwipeAny",
+      "gesture:swipe:x": "onGestureSwipeX",
+      "gesture:swipe:y": "onGestureSwipeY",
+
+      // Tap/press gestures
+      "gesture:tap": "onGestureTap",
+      "gesture:press": "onGesturePress",
+
+      // Scroll
+      "gesture:scroll": "debouncedOnGestureScroll"
+    };
+  },
+
+  /**
+   * Binds all {@link GestureHandler} events handlers.
+   *
+   * @return {undefined}
+   */
+  bind: function bind() {
+    this.bindEvents(this.emitter, this.getEmitterEvents());
+  },
+
+  /**
+   * Unbinds all {@link GestureHandler} event handlers.
+   *
+   * @return {undefined}
+   */
+  unbind: function unbind() {
+    this.unbindEvents(this.emitter, this.getEmitterEvents());
   },
 
   /**
@@ -397,7 +420,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     this.hammer.destroy();
     delete this.hammer;
 
-    this.unbindEvents(this.emitter, this.emitterEvents);
+    this.unbind();
   },
 
   /**

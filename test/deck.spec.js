@@ -77,7 +77,7 @@ describe("decks.Deck", function () {
       var spy = sinon.spy(Deck.prototype, "bindEvents");
       deckOptions.emitter = new Emitter();
       new Deck(deckOptions);
-      expect(spy).to.have.been.calledWith(deckOptions.emitter, Deck.prototype.emitterEvents);
+      expect(spy).to.have.been.calledWith(deckOptions.emitter, Deck.prototype.getEmitterEvents());
       Deck.prototype.bindEvents.restore();
     });
 
@@ -411,11 +411,11 @@ describe("decks.Deck", function () {
     });
   });
 
-  describe("onItemCollectionEvent", function() {
+  describe("onAnyItemCollectionEvent", function() {
     it("should forward the event on the deck emitter", function() {
       var spy = sinon.spy(deck, "emit");
       var e = DecksEvent("", {}, {});
-      deck.onItemCollectionEvent(e);
+      deck.onAnyItemCollectionEvent(e);
       expect(spy).to.have.been.calledWith(e);
     });
   });

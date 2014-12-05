@@ -49,6 +49,8 @@ function MouseWheelEmitter(options) {
   options = _.merge({}, this.defaultOptions, options);
 
   GestureEmitter.call(this, options);
+
+  this.bind();
 }
 
 MouseWheelEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends MouseWheelEmitter.prototype */ {
@@ -57,11 +59,11 @@ MouseWheelEmitter.prototype = _.create(GestureEmitter.prototype, /** @lends Mous
   defaultOptions: _.merge({}, GestureEmitter.prototype.defaultOptions, {
   }),
 
-  getElementEvents: function() {
+  getElementEvents: function getElementEvents() {
     return {};
   },
 
-  getHammerEvents: function() {
+  getHammerEvents: function getHammerEvents() {
     return {};
   }
 });

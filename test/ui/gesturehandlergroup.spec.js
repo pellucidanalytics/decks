@@ -70,24 +70,22 @@ describe("decks.ui.GestureHandlerGroup", function() {
     it("should bind emitter events", function() {
       var spy = sinon.spy(GestureHandlerGroup.prototype, "bindEvents");
       gestureHandlerGroup = new GestureHandlerGroup(options);
-      expect(spy).to.have.been.calledWith(emitter, gestureHandlerGroup.emitterEvents);
+      expect(spy).to.have.been.calledWith(emitter, gestureHandlerGroup.getEmitterEvents());
       GestureHandlerGroup.prototype.bindEvents.restore();
     });
   });
 
-  describe("setEmitterEvents", function() {
-    it("should setup an event map based on options", function() {
+  describe("getEmitterEvents", function() {
+    it("should get event map based on options", function() {
       gestureHandlerGroup.gestures.pan.enabled = false;
       gestureHandlerGroup.gestures.swipe.enabled = false;
-      gestureHandlerGroup.setEmitterEvents();
-      expect(gestureHandlerGroup.emitterEvents).to.eql({});
+      expect(gestureHandlerGroup.getEmitterEvents()).to.eql({});
 
       gestureHandlerGroup.gestures.pan.enabled = true;
       gestureHandlerGroup.gestures.pan.horizontal = true;
       gestureHandlerGroup.gestures.pan.vertical = true;
       gestureHandlerGroup.gestures.swipe.enabled = false;
-      gestureHandlerGroup.setEmitterEvents();
-      expect(gestureHandlerGroup.emitterEvents).to.eql({
+      expect(gestureHandlerGroup.getEmitterEvents()).to.eql({
         "gesture:pan:start": "onGesturePanStart",
         "gesture:pan:end": "onGesturePanEnd",
         "gesture:pan:cancel": "onGesturePanCancel",
@@ -98,8 +96,7 @@ describe("decks.ui.GestureHandlerGroup", function() {
       gestureHandlerGroup.gestures.swipe.enabled = true;
       gestureHandlerGroup.gestures.swipe.horizontal = true;
       gestureHandlerGroup.gestures.swipe.vertical = true;
-      gestureHandlerGroup.setEmitterEvents();
-      expect(gestureHandlerGroup.emitterEvents).to.eql({
+      expect(gestureHandlerGroup.getEmitterEvents()).to.eql({
         "gesture:swipe:any": "onGestureSwipeAny"
       });
     });

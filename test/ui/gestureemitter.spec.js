@@ -53,22 +53,24 @@ describe("decks.ui.GestureEmitter", function() {
   });
 
   describe("bindElementEvents", function() {
-    it("should get element events, but not bind them (because there are none)", function() {
+    it("should get element events and bind them", function() {
       var getElementEventsSpy = sinon.spy(gestureEmitter, "getElementEvents");
       var bindEventsSpy = sinon.spy(gestureEmitter, "bindEvents");
       gestureEmitter.bindElementEvents();
       expect(getElementEventsSpy).to.have.been.calledOnce;
-      expect(bindEventsSpy).not.to.have.been.calledOnce;
+      expect(bindEventsSpy).to.have.been.calledOnce;
+      expect(bindEventsSpy).to.have.been.calledWith(gestureEmitter.element, gestureEmitter.getElementEvents());
     });
   });
 
   describe("unbindElementEvents", function() {
-    it("should get element events, but not unbind them (because there are none)", function() {
+    it("should get element events and unbind them", function() {
       var getElementEventsSpy = sinon.spy(gestureEmitter, "getElementEvents");
       var unbindEventsSpy = sinon.spy(gestureEmitter, "unbindEvents");
       gestureEmitter.unbindElementEvents();
       expect(getElementEventsSpy).to.have.been.calledOnce;
-      expect(unbindEventsSpy).not.to.have.been.calledOnce;
+      expect(unbindEventsSpy).to.have.been.calledOnce;
+      expect(unbindEventsSpy).to.have.been.calledWith(gestureEmitter.element, gestureEmitter.getElementEvents());
     });
   });
 
@@ -79,22 +81,24 @@ describe("decks.ui.GestureEmitter", function() {
   });
 
   describe("bindHammerEvents", function() {
-    it("should get hammer events, but not bind them (because there are none)", function() {
+    it("should get hammer events and bind them", function() {
       var getHammerEventsSpy = sinon.spy(gestureEmitter, "getHammerEvents");
       var bindEventsSpy = sinon.spy(gestureEmitter, "bindEvents");
       gestureEmitter.bindHammerEvents();
       expect(getHammerEventsSpy).to.have.been.calledOnce;
-      expect(bindEventsSpy).not.to.have.been.calledOnce;
+      expect(bindEventsSpy).to.have.been.calledOnce;
+      expect(bindEventsSpy).to.have.been.calledWith(gestureEmitter.hammer, gestureEmitter.getHammerEvents());
     });
   });
 
   describe("unbindHammerEvents", function() {
-    it("should get hammer events, but not unbind them (because there are none)", function() {
+    it("should get hammer events and unbind them", function() {
       var getHammerEventsSpy = sinon.spy(gestureEmitter, "getHammerEvents");
       var unbindEventsSpy = sinon.spy(gestureEmitter, "unbindEvents");
       gestureEmitter.unbindHammerEvents();
       expect(getHammerEventsSpy).to.have.been.calledOnce;
-      expect(unbindEventsSpy).not.to.have.been.calledOnce;
+      expect(unbindEventsSpy).to.have.been.calledOnce;
+      expect(unbindEventsSpy).to.have.been.calledWith(gestureEmitter.hammer, gestureEmitter.getHammerEvents());
     });
   });
 
