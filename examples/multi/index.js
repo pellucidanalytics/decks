@@ -176,6 +176,16 @@ $(function() {
     deck.setLayout(layout);
   });
 
+  $(".cycle-layouts-button").on("click", function() {
+    var layoutKeys = _.keys(layouts);
+    var currentLayoutKey = $layoutSelect.val();
+    var index = _.indexOf(layoutKeys, currentLayoutKey);
+    index = (index + 1) % layoutKeys.length;
+    var newLayoutKey = layoutKeys[index];
+    $layoutSelect.val(newLayoutKey);
+    $layoutSelect.change();
+  });
+
   // Add item button
   $(".add-item-button").on("click", function() {
     deck.addItem(createItem());
@@ -244,7 +254,7 @@ $(function() {
     config: {
       debugEvents: false,
       debugDrawing: false,
-      debugGestures: true
+      debugGestures: false
     },
     animator: {
       animate: Velocity

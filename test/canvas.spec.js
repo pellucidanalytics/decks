@@ -106,6 +106,7 @@ describe("decks.Canvas", function() {
       expect(canvas.element.style.position).to.eql("absolute");
       expect(canvas.element.style.top).to.eql("0px");
       expect(canvas.element.style.left).to.eql("0px");
+      expect(canvas.element.style.overflow).to.eql("hidden");
     });
 
     it("should emit an event", function() {

@@ -1079,7 +1079,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     // Defer the completion of the pan for one tick, because sometimes the latest animation needs to finish
     _.defer(function() {
       if (self.config.debugGestures) {
-        console.log("pan end: %s (is animating: %s)", this.element.id, self.isAnimating());
+        console.log("pan end: %s (is animating: %s)", self.element.id, self.isAnimating());
       }
 
       if (!self.isAnimating()) {

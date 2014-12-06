@@ -209,21 +209,6 @@ describe("decks.ui.GestureHandlerGroup", function() {
     });
   });
 
-  describe("removeGestureHandlers", function() {
-    it("should remove gesture handlers", function() {
-      var gestureHandler1 = createGestureHandler();
-      var gestureHandler2 = createGestureHandler();
-      var gestureHandler3 = createGestureHandler();
-      gestureHandlerGroup.addGestureHandlers([gestureHandler1, gestureHandler2, gestureHandler3]);
-      expect(gestureHandlerGroup.hasGestureHandler(gestureHandler1)).to.be.True;
-      expect(gestureHandlerGroup.hasGestureHandler(gestureHandler2)).to.be.True;
-      gestureHandlerGroup.removeGestureHandlers([gestureHandler1, gestureHandler2]);
-      expect(gestureHandlerGroup.hasGestureHandler(gestureHandler1)).to.be.False;
-      expect(gestureHandlerGroup.hasGestureHandler(gestureHandler2)).to.be.False;
-      expect(gestureHandlerGroup.hasGestureHandler(gestureHandler3)).to.be.True;
-    });
-  });
-
   describe("applyGesture", function() {
     it("should call a method on every gesture handler in the group (other than the source)", function() {
       // Test elements

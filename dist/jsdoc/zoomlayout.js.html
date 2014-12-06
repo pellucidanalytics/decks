@@ -123,6 +123,14 @@ ZoomLayout.prototype = _.create(Layout.prototype, /** @lends ZoomLayout.prototyp
     };
   },
 
+  getCanvasBoundsOptions: function() {
+    var options = Layout.prototype.getCanvasBoundsOptions();
+    options.marginRight = 40;
+    options.preventOverflowVertical = true;
+    options.preventScrollbarVertical = true;
+    return options;
+  },
+
   getMoveToElementOffsets: function(/*element*/) {
     return {
       x: -this.padding,
