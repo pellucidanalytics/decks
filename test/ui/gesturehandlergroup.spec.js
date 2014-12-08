@@ -79,25 +79,28 @@ describe("decks.ui.GestureHandlerGroup", function() {
     it("should get event map based on options", function() {
       gestureHandlerGroup.gestures.pan.enabled = false;
       gestureHandlerGroup.gestures.swipe.enabled = false;
+      gestureHandlerGroup.gestures.tap.enabled = false;
+      gestureHandlerGroup.gestures.press.enabled = false;
+
       expect(gestureHandlerGroup.getEmitterEvents()).to.eql({});
 
       gestureHandlerGroup.gestures.pan.enabled = true;
       gestureHandlerGroup.gestures.pan.horizontal = true;
       gestureHandlerGroup.gestures.pan.vertical = true;
-      gestureHandlerGroup.gestures.swipe.enabled = false;
+      gestureHandlerGroup.gestures.swipe.enabled = true;
+      gestureHandlerGroup.gestures.swipe.horizontal = true;
+      gestureHandlerGroup.gestures.swipe.vertical = true;
+      gestureHandlerGroup.gestures.tap.enabled = true;
+      gestureHandlerGroup.gestures.press.enabled = true;
+
       expect(gestureHandlerGroup.getEmitterEvents()).to.eql({
         "gesture:pan:start": "onGesturePanStart",
         "gesture:pan:end": "onGesturePanEnd",
         "gesture:pan:cancel": "onGesturePanCancel",
-        "gesture:pan:any": "onGesturePanAny"
-      });
-
-      gestureHandlerGroup.gestures.pan.enabled = false;
-      gestureHandlerGroup.gestures.swipe.enabled = true;
-      gestureHandlerGroup.gestures.swipe.horizontal = true;
-      gestureHandlerGroup.gestures.swipe.vertical = true;
-      expect(gestureHandlerGroup.getEmitterEvents()).to.eql({
-        "gesture:swipe:any": "onGestureSwipeAny"
+        "gesture:pan:any": "onGesturePanAny",
+        "gesture:swipe:any": "onGestureSwipeAny",
+        "gesture:tap": "onGestureTap",
+        "gesture:press": "onGesturePress"
       });
     });
   });

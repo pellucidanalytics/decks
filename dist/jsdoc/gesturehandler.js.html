@@ -36,7 +36,7 @@ var PanEmitter = require("./panemitter");
 var SwipeEmitter = require("./swipeemitter");
 var MouseWheelEmitter = require("./mousewheelemitter");
 var MouseOverOutEmitter = require("./mouseoveroutemitter");
-var MouseEnterLeaveEmitter = require("./mouseoveroutemitter");
+var MouseEnterLeaveEmitter = require("./mouseenterleaveemitter");
 var TapEmitter = require("./tapemitter");
 var PressEmitter = require("./pressemitter");
 var ScrollEmitter = require("./scrollemitter");
@@ -181,6 +181,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     movement: {
       scroll: false, // false: move by changing top/left, true: move by changing scrollTop/scrollLeft on container
       debouncedScrollWait: 200,
+      swipingTimeout: 30,
       animateOptions: {
         duration: 500,
         easing: "easeInOutCubic"
@@ -194,6 +195,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       toBounds: false,
       toNearestChildElement: true,
       childElementSelector: ".decks-item",
+      reduceMovementAtBounds: false,
       distanceThreshold: 40, // The pixel distance when pulling away from an edge, where movement resistance begins to be applied
       distanceScale: 0.5, // The scale factor for reducing movement when pulling away from an edge
       animateOptions: {
@@ -349,7 +351,9 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     // Gesture types
     _.each(options.gestures, function(gestureEmitterOptions, key) {
+      // Get the constructor function for this type of gesture emitter
       var GestureEmitter = this.gestureEmitterTypes[key];
+
       if (!GestureEmitter) {
         throw new Error("GestureHandler#setOptions: no gesture emitter component configured to handle gesture type: " + key);
       }
@@ -444,8 +448,24 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       _.extend(this.currentPosition, rect.normalize(this.element));
     }
 
+    /*
+    if (this.config.debugGestures) {
+      console.log("set current position " + this.element.id, this.currentPosition);
+    }
+    */
+
     if (!this.startPosition) {
       this.startPosition = this.currentPosition;
+
+      if (this.element.parentNode) {
+        this.parentPosition = rect.normalize(this.element.parentNode);
+      }
+
+      /*
+      if (this.config.debugGestures) {
+        console.log("set start position " + this.element.id, this.startPosition);
+      }
+      */
     }
   },
 
@@ -456,10 +476,11 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    */
   clearPositionData: function clearPositionData() {
     if (this.config.debugGestures) {
-      console.log("clear position");
+      console.log("clear position", this.element.id);
     }
     this.startPosition = null;
     this.currentPosition = null;
+    this.parentPosition = null;
   },
 
   /**
@@ -481,7 +502,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
    */
   stopAnimation: function stopAnimation() {
     if (this.config.debugGestures) {
-      console.log("stop");
+      console.log("stop", this.element.id);
     }
     this.animator.animate(this.element, "stop", true);
     this.animationCount = 0;
@@ -513,10 +534,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (this.movement.scroll) {
       x = this.startPosition.scrollLeft - e.deltaX;
     } else {
-      x = this.startPosition.left + e.deltaX;
+      x = this.startPosition.left - this.parentPosition.left + e.deltaX;
 
       // Limit movement if the user is dragging the element towards the inside of the container bounds
-      if (this.bounds &amp;&amp; this.snapping.distanceThreshold) {
+      if (this.snapping.reduceMovementAtBounds &amp;&amp; this.bounds &amp;&amp; this.snapping.distanceThreshold) {
         if ((this.currentPosition.left - this.bounds.left) > this.snapping.distanceThreshold) {
           x = (this.startPosition.left + this.snapping.distanceThreshold) +
             ((e.deltaX - this.snapping.distanceThreshold) * this.snapping.distanceScale);
@@ -553,10 +574,10 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     if (this.movement.scroll) {
       y = this.startPosition.scrollTop - e.deltaY;
     } else {
-      y = this.startPosition.top + e.deltaY;
+      y = this.startPosition.top - this.parentPosition.top + e.deltaY;
 
       // Limit movement if the user is dragging the element towards the inside of the container bounds
-      if (this.bounds &amp;&amp; this.snapping.distanceThreshold) {
+      if (this.snapping.reduceMovementAtBounds &amp;&amp; this.bounds &amp;&amp; this.snapping.distanceThreshold) {
         if ((this.currentPosition.top - this.bounds.top) > this.snapping.distanceThreshold) {
           y = (this.startPosition.top + this.snapping.distanceThreshold) +
             ((e.deltaY - this.snapping.distanceThreshold) * this.snapping.distanceScale);
@@ -908,6 +929,21 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   /**
+   * Sets a flag that indicates that the element is swiping.
+   *
+   * Flag is automatically cleared after a configurable timeout.
+   *
+   * @return {undefined}
+   */
+  setSwiping: function setSwiping() {
+    var self = this;
+    self.isSwiping = true;
+    setTimeout(function() {
+      self.isSwiping = false;
+    }, self.movement.swipingTimeout);
+  },
+
+  /**
    * Called when a movement animation is complete.
    *
    * @param options
@@ -917,8 +953,12 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     var self = this;
 
     if (this.config.debugGestures) {
-      console.log("complete: " + options.description);
+      console.log("complete: " + options.description + " " + this.element.id);
     }
+
+    this.isPanningAny = false;
+    this.isPanningX = false;
+    this.isPanningY = false;
 
     // If waitForXAndY, two animations must complete before this method is called,
     // so decrement by 2.  Otherwise, decrement by 1.
@@ -975,17 +1015,19 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   onGesturePanAny: function onGesturePanAny(e, options) {
     options = options || {};
     var element = options.elementOverride || e.sender.element;
-    if (element !== this.element || this.isSwiping) {
+    if (element !== this.element || this.isPanningAny || this.isSwiping) {
       return;
+    }
+
+    this.isPanningAny = true;
+
+    if (this.config.debugGestures) {
+      console.log("pan any", this.element.id);
     }
 
     if (this.isAnimating()) {
       this.stopAnimation();
       this.clearPositionData();
-    }
-
-    if (this.config.debugGestures) {
-      console.log("pan any", this.element.id);
     }
 
     this.updatePositionData(e.data);
@@ -1009,17 +1051,19 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   onGesturePanX: function onGesturePanX(e, options) {
     options = options || {};
     var element = options.elementOverride || e.sender.element;
-    if (element !== this.element || this.isSwiping) {
+    if (element !== this.element || this.isPanningX || this.isSwiping) {
       return;
+    }
+
+    this.isPanningX = true;
+
+    if (this.config.debugGestures) {
+      console.log("pan x", this.element.id);
     }
 
     if (this.isAnimating()) {
       this.stopAnimation();
       this.clearPositionData();
-    }
-
-    if (this.config.debugGestures) {
-      console.log("pan x", this.element.id);
     }
 
     this.updatePositionData(e.data);
@@ -1043,17 +1087,19 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   onGesturePanY: function onGesturePanY(e, options) {
     options = options || {};
     var element = options.elementOverride || e.sender.element;
-    if (element !== this.element || this.isSwiping) {
+    if (element !== this.element || this.isPanningY || this.isSwiping) {
       return;
+    }
+
+    this.isPanningY = true;
+
+    if (this.config.debugGestures) {
+      console.log("pan y", this.element.id);
     }
 
     if (this.isAnimating()) {
       this.stopAnimation();
       this.clearPositionData();
-    }
-
-    if (this.config.debugGestures) {
-      console.log("pan y", this.element.id);
     }
 
     this.updatePositionData(e.data);
@@ -1109,14 +1155,6 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       this.stopAnimation();
       this.clearPositionData();
     }
-  },
-
-  setSwiping: function setSwiping() {
-    var self = this;
-    this.isSwiping = true;
-    setTimeout(function() {
-      self.isSwiping = false;
-    }, 30);
   },
 
   onGestureSwipeAny: function onGestureSwipeAny(e, options) {

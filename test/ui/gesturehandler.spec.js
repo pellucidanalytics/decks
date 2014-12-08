@@ -1,12 +1,21 @@
 var _ = require("lodash");
 var tools = require("../testtools");
-//var sinon = tools.sinon;
+var sinon = tools.sinon;
 var expect = tools.expect;
 var decks = require("../..");
 var Deck = decks.Deck;
 var Emitter = decks.events.Emitter;
 var GestureHandler = decks.ui.GestureHandler;
 var dom = decks.ui.dom;
+var PanEmitter = decks.ui.PanEmitter;
+var SwipeEmitter = decks.ui.SwipeEmitter;
+var MouseWheelEmitter = decks.ui.MouseWheelEmitter;
+var MouseEnterLeaveEmitter = decks.ui.MouseEnterLeaveEmitter;
+var MouseOverOutEmitter = decks.ui.MouseOverOutEmitter;
+var TapEmitter = decks.ui.TapEmitter;
+var PressEmitter = decks.ui.PressEmitter;
+var ScrollEmitter = decks.ui.ScrollEmitter;
+var Hammer = require("hammerjs");
 
 describe("decks.ui.GestureHandler", function() {
   var containerElement;
@@ -23,6 +32,7 @@ describe("decks.ui.GestureHandler", function() {
     dom.append(document.body, containerElement);
 
     element = dom.create("div");
+    dom.setStyles(element, { position: "absolute", top: 10, left: 10, width: 20, height: 20 });
     containerElement.appendChild(element);
 
     emitter = new Emitter();
@@ -76,8 +86,103 @@ describe("decks.ui.GestureHandler", function() {
       });
     });
 
-    xit("should bind to emitter events", function() {
-      // TODO
+    it("should bind to emitter events", function() {
+      var spy = sinon.spy(GestureHandler.prototype, "bind");
+      gestureHandler = new GestureHandler(options);
+      expect(spy).to.have.been.called;
+      GestureHandler.prototype.bind.restore();
+    });
+  });
+
+  describe("gestureEmitterTypes", function() {
+    it("should have a map of keys to constructor functions", function() {
+      expect(gestureHandler.gestureEmitterTypes.pan).to.equal(PanEmitter);
+      expect(gestureHandler.gestureEmitterTypes.swipe).to.equal(SwipeEmitter);
+      expect(gestureHandler.gestureEmitterTypes.mouseWheel).to.equal(MouseWheelEmitter);
+      expect(gestureHandler.gestureEmitterTypes.mouseEnterLeave).to.equal(MouseEnterLeaveEmitter);
+      expect(gestureHandler.gestureEmitterTypes.mouseOverOut).to.equal(MouseOverOutEmitter);
+      expect(gestureHandler.gestureEmitterTypes.tap).to.equal(TapEmitter);
+      expect(gestureHandler.gestureEmitterTypes.press).to.equal(PressEmitter);
+      expect(gestureHandler.gestureEmitterTypes.scroll).to.equal(ScrollEmitter);
+    });
+  });
+
+  describe("getEmitterEvents", function() {
+    it("should return a map of emitter events to bind to", function() {
+      expect(gestureHandler.getEmitterEvents()).to.eql({
+        // Pan gestures - linear tracking movement
+        "gesture:pan:start": "onGesturePanStart",
+        "gesture:pan:any": "onGesturePanAny",
+        "gesture:pan:x": "onGesturePanX",
+        "gesture:pan:y": "onGesturePanY",
+        "gesture:pan:end": "onGesturePanEnd",
+        "gesture:pan:cancel": "onGesturePanCancel",
+
+        // Swipe gestures - inertial movement in swipe direction
+        "gesture:swipe:any": "onGestureSwipeAny",
+        "gesture:swipe:x": "onGestureSwipeX",
+        "gesture:swipe:y": "onGestureSwipeY",
+
+        // Tap/press gestures
+        "gesture:tap": "onGestureTap",
+        "gesture:press": "onGesturePress",
+
+        // Scroll
+        "gesture:scroll": "debouncedOnGestureScroll"
+      });
+    });
+  });
+
+  describe("bind", function() {
+    it("should bind emitter events", function() {
+      var spy = sinon.spy(gestureHandler, "bindEvents");
+      gestureHandler.bind();
+      expect(spy).to.have.been.calledWith(gestureHandler.emitter, gestureHandler.getEmitterEvents());
+      gestureHandler.bindEvents.restore();
+    });
+  });
+
+  describe("unbind", function() {
+    it("should unbind emitter events", function() {
+      var spy = sinon.spy(gestureHandler, "unbindEvents");
+      gestureHandler.unbind();
+      expect(spy).to.have.been.calledWith(gestureHandler.emitter, gestureHandler.getEmitterEvents());
+      gestureHandler.unbindEvents.restore();
+    });
+  });
+
+  describe("setAnimator", function() {
+    it("should set an animator instance", function() {
+      expect(gestureHandler.animator).to.eql(animator);
+    });
+
+    it("should throw if already set", function() {
+      expect(function() { gestureHandler.setAnimator({}); }).to.Throw;
+    });
+  });
+
+  describe("setConfig", function() {
+    it("should set a config instance", function() {
+      expect(gestureHandler.config).to.eql(config);
+    });
+
+    it("should throw if already set", function() {
+      expect(function() { gestureHandler.setConfig({}); }).to.Throw;
+    });
+  });
+
+  describe("setElement", function() {
+    it("should set an element", function() {
+      expect(gestureHandler.element).to.equal(element);
+    });
+
+    it("should set a Hammer instance", function() {
+      expect(gestureHandler.hammer instanceof Hammer).to.be.True;
+    });
+  });
+
+  describe("setOptions", function() {
+    xit("TODO", function() {
     });
   });
 
@@ -103,26 +208,90 @@ describe("decks.ui.GestureHandler", function() {
   });
 
   describe("updatePositionData", function() {
-    xit("TODO", function() {
+    it("should record the current position of the element", function() {
+      expect(gestureHandler.currentPosition).to.be.Undefined;
+      expect(gestureHandler.startPosition).to.be.Undefined;
+
+      var e1 = { key: "val1" };
+      gestureHandler.updatePositionData(e1);
+
+      expect(gestureHandler.currentPosition).to.eql({
+        event: e1,
+        isNormalized: true,
+        top: 10,
+        bottom: 30,
+        left: 10,
+        right: 30,
+        width: 20,
+        height: 20
+      });
+
+      expect(gestureHandler.startPosition).to.eql(gestureHandler.currentPosition);
+
+      element.style.top = "20px";
+      element.style.left = "20px";
+
+      var e2 = { key: "val2" };
+      gestureHandler.updatePositionData(e2);
+
+      expect(gestureHandler.currentPosition).to.eql({
+        event: e2,
+        isNormalized: true,
+        top: 20,
+        bottom: 40,
+        left: 20,
+        right: 40,
+        width: 20,
+        height: 20
+      });
+
+      expect(gestureHandler.startPosition).to.eql({
+        event: e1,
+        isNormalized: true,
+        top: 10,
+        bottom: 30,
+        left: 10,
+        right: 30,
+        width: 20,
+        height: 20
+      });
     });
   });
 
   describe("clearPositionData", function() {
+    it("should clear the current and start positions", function() {
+      expect(gestureHandler.currentPosition).to.be.Undefined;
+      expect(gestureHandler.startPosition).to.be.Undefined;
+
+      gestureHandler.updatePositionData();
+      expect(gestureHandler.currentPosition).not.to.be.Undefined;
+      expect(gestureHandler.startPosition).not.to.be.Undefined;
+
+      gestureHandler.clearPositionData();
+      expect(gestureHandler.currentPosition).to.be.Null;
+      expect(gestureHandler.startPosition).to.be.Null;
+    });
+  });
+
+  describe("isAnimating", function() {
+    it("should return true if there are animations running", function() {
+      gestureHandler.animationCount = 0;
+      expect(gestureHandler.isAnimating()).to.be.False;
+      gestureHandler.animationCount = 1;
+      expect(gestureHandler.isAnimating()).to.be.True;
+      gestureHandler.animationCount = 2;
+      expect(gestureHandler.isAnimating()).to.be.True;
+      gestureHandler.animationCount = -1;
+      expect(gestureHandler.isAnimating()).to.be.False;
+    });
+  });
+
+  describe("stopAnimation", function() {
     xit("TODO", function() {
     });
   });
 
   describe("resetPosition", function() {
-    xit("TODO", function() {
-    });
-  });
-
-  describe("animateMoveToElement", function() {
-    xit("TODO", function() {
-    });
-  });
-
-  describe("stopAnimation", function() {
     xit("TODO", function() {
     });
   });
@@ -183,6 +352,11 @@ describe("decks.ui.GestureHandler", function() {
   });
 
   describe("getInertiaDuration", function() {
+    xit("TODO", function() {
+    });
+  });
+
+  describe("animateMoveToElement", function() {
     xit("TODO", function() {
     });
   });

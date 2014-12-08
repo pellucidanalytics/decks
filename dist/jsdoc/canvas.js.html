@@ -63,7 +63,7 @@ function Canvas(options) {
   this.setConfig(options.config);
   this.setEmitter(options.emitter);
   this.setLayout(options.layout);
-  this.setElement(options.element || dom.create("div"));
+  this.setElement(options.element);
 
   this.bind();
 
@@ -72,6 +72,7 @@ function Canvas(options) {
 
 _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   defaultOptions: {
+    element: dom.create("div"),
     overflow: "hidden",
     watchWindowScroll: true,
     watchWindowResize: true,
@@ -193,11 +194,13 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     if (!element.id) {
       element.id = this.config.canvasClassName + "-" + this.canvasId;
     }
+
     dom.addClass(element, this.config.canvasClassName);
     dom.setStyle(element, "position", "absolute");
     dom.setStyle(element, "top", 0);
     dom.setStyle(element, "left", 0);
     dom.setStyle(element, "overflow", this.overflow);
+
     this.element = element;
 
     this.emit(DecksEvent("canvas:element:set", this, this.element));
@@ -211,8 +214,11 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
    */
   setLayout: function setLayout(layout) {
     validate(layout, "Canvas#setLayout: layout", { isInstanceOf: Layout });
+
     this.layout = layout;
+
     this.configureGestures();
+
     this.resetPosition();
   },
 
@@ -246,8 +252,6 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
         // Resize the canvas back to the frame height to prevent vertical overflow
         bounds = rect.resizeToHeight(bounds, this.frameBounds.height);
       }
-    } else {
-      console.warn("Canvas#setBounds: not restricting Canvas overflow - frameBounds not set");
     }
 
     if (layoutBoundsOptions.preventScrollbarHorizontal) {
@@ -283,6 +287,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
    */
   setFrame: function setFrame(frame) {
     validate(frame, "Canvas#setFrame: frame", { isInstanceOf: Frame, isNotSet: this.frame });
+
     this.frame = frame;
   },
 
@@ -389,6 +394,9 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     }
 
     var allElementsBounds = rect.unionAll(elements);
+
+    // Don't include this.bounds in this union - we want to resize to fit the current elements,
+    // and don't care about the current canvas size
     var bounds = rect.union(allElementsBounds, this.frameBounds);
 
     this.setBounds(bounds);
@@ -406,6 +414,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     if (!this.gestureHandler) {
       return;
     }
+
     this.gestureHandler.resetPosition();
   },
 
@@ -419,6 +428,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
    */
   panToElement: function panToElement(element) {
     validate(element, "Canvas#panToElement: element", { isElement: true });
+
     this.gestureHandler.animateMoveToElement(element);
   },
 
@@ -469,6 +479,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     if (!this.gestureHandler) {
       return;
     }
+
     this.gestureHandler.bind();
   },
 
@@ -476,6 +487,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     if (!this.gestureHandler) {
       return;
     }
+
     this.gestureHandler.unbind();
   },
 
@@ -519,9 +531,11 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
 
   onGestureElementMoved: function onGestureElementMoved(e) {
     var element = e.data;
+
     if (element !== this.element) {
       return;
     }
+
     this.setBounds();
   },
 

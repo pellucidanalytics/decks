@@ -138,7 +138,7 @@ function runWatchify(sourcePath, destinationPath, onEnd) {
     debug: true
   }));
 
-  bundler.on("update", function() {
+  function rebundle() {
     var pathInfo = sourcePath + " -> " + destinationPath;
 
     gulpUtil.log(gulpUtil.colors.cyan("Rebundling: " + pathInfo));
@@ -157,7 +157,11 @@ function runWatchify(sourcePath, destinationPath, onEnd) {
           return onEnd();
         }
       });
-  });
+  }
+
+  bundler.on("update", rebundle);
+
+  return rebundle();
 }
 
 // Wrapper for gulp.watch, which logs which file changed
@@ -349,7 +353,9 @@ gulp.task("test-watch", ["test"], function() {
 gulp.task("serve", function() {
   var app = express();
   app.use(connectLiveReload());
+  /* jshint ignore:start */
   app.use(express.static(__dirname));
+  /* jshint ignore:end */
   var port = 3001;
   console.log("Listening on port " + port);
   app.listen(port);

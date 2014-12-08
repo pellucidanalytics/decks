@@ -152,7 +152,7 @@ var layouts = {
   row: new RowLayout({
     itemWidth: 150,
     itemHeight: 120,
-    itemPadding: 15,
+    itemPadding: 40,
     itemsPerRow: 20,
     loadRender: loadRender,
     unloadRender: unloadRender
