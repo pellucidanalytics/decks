@@ -9,6 +9,7 @@ var BasicGridLayout = decks.layouts.BasicGridLayout;
 var BasicStackLayout = decks.layouts.BasicStackLayout;
 var ZoomLayout = decks.layouts.ZoomLayout;
 var RowLayout = decks.layouts.RowLayout;
+var ColumnLayout = decks.layouts.ColumnLayout;
 
 var id = 0;
 var imageWidth = 800;
@@ -153,7 +154,15 @@ var layouts = {
     itemWidth: 150,
     itemHeight: 120,
     itemPadding: 40,
-    itemsPerRow: 20,
+    itemsPerRow: 15,
+    loadRender: loadRender,
+    unloadRender: unloadRender
+  }),
+  column: new ColumnLayout({
+    itemWidth: 150,
+    itemHeight: 120,
+    itemPadding: 40,
+    itemsPerColumn: 15,
     loadRender: loadRender,
     unloadRender: unloadRender
   })
@@ -254,7 +263,7 @@ $(function() {
     config: {
       debugEvents: false,
       debugDrawing: false,
-      debugGestures: false
+      debugGestures: true
     },
     animator: {
       animate: Velocity
