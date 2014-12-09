@@ -557,8 +557,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     var renders = this.getRenders(render.item);
     renders[render.id] = render;
-
-    this.emit(DecksEvent("viewport:render:drawn", this, render));
   },
 
   /**
@@ -1433,6 +1431,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       if (render.item.isErasing &amp;&amp; !this.hasRenders(render.item)) {
         this.removeItem(render.item);
       }
+    } else {
+      this.emit(DecksEvent("viewport:render:drawn", this, render));
     }
 
     this.rendersDrawingCount--;
