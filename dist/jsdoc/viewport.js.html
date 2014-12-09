@@ -62,49 +62,31 @@ function Viewport(options) {
 
   options = _.merge({}, this.defaultOptions, options);
 
-  /**
-   * Wait time for debounced loadOrUnloadRenders method
-   */
+  /** Wait time for debounced loadOrUnloadRenders method */
   this.debouncedLoadOrUnloadRendersWait = options.debouncedLoadOrUnloadRendersWait;
 
-  /**
-   * Wait time for debounced drawItems method
-   */
+  /** Wait time for debounced drawItems method */
   this.debouncedDrawItemsWait = options.debouncedDrawItemsWait;
 
-  /**
-   * Whether to run a draw cycle when the deck:ready event is handled
-   */
+  /** Whether to run a draw cycle when the deck:ready event is handled */
   this.drawOnDeckReady = options.drawOnDeckReady;
 
-  /**
-   * Whether to use animation slots
-   */
+  /** Whether to use animation slots */
   this.useAnimationSlots = options.useAnimationSlots;
 
-  /**
-   * Number of items to animate per animation slot
-   */
+  /** Number of items to animate per animation slot */
   this.itemsPerRenderSlot = options.itemsPerRenderSlot;
 
-  /**
-   * Max number of animation slots that will be animated in one animation cycle.
-   */
+  /** Max number of animation slots that will be animated in one animation cycle.  */
   this.maxSlotsWithAnimations = options.maxSlotsWithAnimations;
 
-  /**
-   * Delay value for each successive animation slot
-   */
+  /** Delay value for each successive animation slot */
   this.slotRenderDelay = options.slotRenderDelay;
 
-  /**
-   * Debounced version of {@link Viewport#loadOrUnloadRenders}
-   */
+  /** Debounced version of {@link Viewport#loadOrUnloadRenders} */
   this.debouncedLoadOrUnloadRenders = _.debounce(_.bind(this.loadOrUnloadRenders, this), this.debouncedLoadOrUnloadRendersWait);
 
-  /**
-   * Debounced version of {@link Viewport#drawItems}
-   */
+  /** Debounced version of {@link Viewport#drawItems} */
   this.debouncedDrawItems = _.debounce(_.bind(this.drawItems, this), this.debouncedDrawItemsWait);
 
   /**
@@ -184,16 +166,13 @@ function Viewport(options) {
    */
   this.customRenders = {};
 
-  /**
-   * Keeps track of how many renders are currently being drawn
-   */
+  /** Keeps track of how many renders are currently being drawn */
   this.rendersDrawingCount = 0;
 
-  /**
-   * Keeps track of the number of custom renders being drawn
-   */
+  /** Keeps track of the number of custom renders being drawn */
   this.customRendersDrawingCount = 0;
 
+  /** Keeps track of {@link GestureHandlerGroup}s */
   this.gestureHandlerGroups = {};
 
   /**
@@ -212,7 +191,7 @@ function Viewport(options) {
 
   this.setAnimator(options.animator);
   this.setConfig(options.config);
-  this.setEmitter(options.emitter, this.emitterEvents);
+  this.setEmitter(options.emitter);
   this.setItemCollection(options.itemCollection);
   this.setLayout(options.layout);
   this.setFrame(options.frame);
@@ -228,6 +207,10 @@ function Viewport(options) {
     }
     this.drawRender = this.drawRenderWithAnimationSlots;
   }
+
+  this.bind();
+
+  this.emit(DecksEvent("viewport:ready", this));
 }
 
 _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype */ {
@@ -235,45 +218,81 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * Default options for instances of Viewport
    */
   defaultOptions: {
+    /** Wait time for debounced loadOrUnloadRenders function */
     debouncedLoadOrUnloadRendersWait: 1000,
+
+    /** Wait time for debounced drawItems function */
     debouncedDrawItemsWait: 1000,
+
+    /** Whether to run a draw cycle on deck:ready */
     drawOnDeckReady: true,
-    useAnimationSlots: false, /* Whether to forcefully run animations in small, staggered slots */
-    itemsPerRenderSlot: 15, /* number of items created and animated in each rendering slot */
-    maxSlotsWithAnimations: 3, /* animations are applied for total items = itemsPerRenderSlot * maxSlotsWithAnimations */
-    slotRenderDelay: 100 /* delay between each render slot */
+
+    /** Whether to forcefully run animations in small, staggered slots */
+    useAnimationSlots: false,
+
+    /** Number of items created and animated in each rendering slot */
+    itemsPerRenderSlot: 15,
+
+    /* animations are applied for total items = itemsPerRenderSlot * maxSlotsWithAnimations */
+    maxSlotsWithAnimations: 3,
+
+    /* delay between each render slot */
+    slotRenderDelay: 100
   },
 
   /**
    * Event to method mapping for binding to the decks emitter.
    */
-  emitterEvents: {
-    // Deck
-    "deck:ready": "onDeckReady",
-    "deck:draw": "onDeckDraw",
-    "deck:layout:setting": "onDeckLayoutSetting",
-    "deck:layout:set": "onDeckLayoutSet",
+  getEmitterEvents: function getEmitterEvents() {
+    return {
+      // Deck
+      "deck:ready": "onDeckReady",
+      "deck:draw": "onDeckDraw",
+      "deck:layout:setting": "onDeckLayoutSetting",
+      "deck:layout:set": "onDeckLayoutSet",
 
-    // Frame
-    "frame:bounds:setting": "onFrameBoundsSetting",
-    "frame:bounds:set": "onFrameBoundsSet",
+      // Frame
+      "frame:bounds:setting": "onFrameBoundsSetting",
+      "frame:bounds:set": "onFrameBoundsSet",
 
-    // Item
-    "item:changed": "onItemChanged",
-    "item:index:changed": "onItemIndexChanged",
+      // Item
+      "item:changed": "onItemChanged",
+      "item:index:changed": "onItemIndexChanged",
 
-    // ItemCollection
-    "item:collection:item:adding": "onItemCollectionItemAdding",
-    "item:collection:item:added": "onItemCollectionItemAdded",
-    "item:collection:item:removing": "onItemCollectionItemRemoving",
-    "item:collection:item:removed": "onItemCollectionItemRemoved",
-    "item:collection:clearing": "onItemCollectionClearing",
-    "item:collection:cleared": "onItemCollectionCleared",
-    "item:collection:indexing": "onItemCollectionIndexing",
-    "item:collection:indexed": "onItemCollectionIndexed",
+      // ItemCollection
+      "item:collection:item:adding": "onItemCollectionItemAdding",
+      "item:collection:item:added": "onItemCollectionItemAdded",
+      "item:collection:item:removing": "onItemCollectionItemRemoving",
+      "item:collection:item:removed": "onItemCollectionItemRemoved",
+      "item:collection:clearing": "onItemCollectionClearing",
+      "item:collection:cleared": "onItemCollectionCleared",
+      "item:collection:filter:setting": "onItemCollectionFilterSetting",
+      "item:collection:sort:by:setting": "onItemCollectionSortBySetting",
+      "item:collection:reversed:setting": "onItemCollectionReversedSetting",
+      "item:collection:indexing": "onItemCollectionIndexing",
+      "item:collection:indexed": "onItemCollectionIndexed",
 
-    // Gestures
-    "gesture:element:moved": "onGestureElementMoved"
+      // Gestures
+      "gesture:element:moved": "onGestureElementMoved"
+    };
+  },
+
+  /**
+   * Binds all {@link Viewport} event handlers
+   *
+   * @return {undefined}
+   */
+  bind: function bind() {
+    this.bindEvents(this.emitter, this.getEmitterEvents());
+  },
+
+  /**
+   * Unbinds all {@link Viewport} event handlers
+   *
+   * @return {undefined}
+   */
+  unbind: function unbind() {
+    this.unbindEvents(this.emitter, this.getEmitterEvents());
   },
 
   /**
@@ -370,9 +389,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     this.emit(DecksEvent("viewport:item:drawing", this, item));
 
-    var layoutRenders = this.layout.getRenders(item, this.layoutMethodOptions) || [];
+    var layoutRenders = this.layout.getRenders(item, this.layoutMethodOptions);
 
-    if (!_.isArray(layoutRenders)) {
+    if (_.isNull(layoutRenders) || _.isUndefined(layoutRenders)) {
+      layoutRenders = [];
+    } else if (!_.isArray(layoutRenders)) {
       layoutRenders = [layoutRenders];
     }
 
@@ -571,6 +592,16 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
 
+    // Store the render in the internal data structure
+    this.setRender(render);
+
+    // Stop any previous animations for this element
+    if (render.isAnimating) {
+      this.stopRenderAnimation(render);
+    }
+
+    render.isAnimating = true;
+
     raf(function() {
       self.emit(DecksEvent(eventName, self, render));
 
@@ -623,6 +654,16 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       // cut the slot render delay by half when there are no animations
       slotRenderDelay = parseInt(slotRenderDelay / 2, 10);
     }
+
+    // Store the render in the internal data structure
+    this.setRender(render);
+
+    // Stop any previous animations for this element
+    if (render.isAnimating) {
+      this.stopRenderAnimation(render);
+    }
+
+    render.isAnimating = true;
 
     _.delay(function () {
       raf(function() {
@@ -883,6 +924,23 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   },
 
   /**
+   * Stops the animation for a render.
+   *
+   * @param render
+   * @return {undefined}
+   */
+  stopRenderAnimation: function stopRenderAnimation(render) {
+    validate(render, "Viewport#stopRenderAnimation: render", { isRequired: true });
+
+    if (this.config.debugDrawing) {
+      console.log("stop render animation", render.item.id, render.id);
+    }
+
+    this.animator.animate(render.element, "stop", true);
+    render.isAnimating = false;
+  },
+
+  /**
    * Gets the custom renders
    *
    * @return {undefined}
@@ -976,7 +1034,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawCustomRenders: function drawCustomRenders() {
-    var layoutCustomRenders = this.layout.getCustomRenders(this.layoutMethodOptions) || [];
+    var layoutCustomRenders = this.layout.getCustomRenders(this.layoutMethodOptions);
+
+    if (!layoutCustomRenders || _.isEmpty(layoutCustomRenders)) {
+      return;
+    }
 
     if (!_.isArray(layoutCustomRenders)) {
       layoutCustomRenders = [layoutCustomRenders];
@@ -1073,6 +1135,115 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.canvas.panToElement(render.element);
   },
 
+  configureRenderGestures: function configureRenderGestures(render) {
+    if (render.isErasing) {
+      this.removeRenderGestureHandler(render);
+    } else {
+      this.addRenderGestureHandler(render);
+    }
+  },
+
+  configureAllRenderGestures: function() {
+    var renders = this.getRenders();
+
+    _.each(renders, function(render) {
+      this.configureRenderGestures(render);
+    }, this);
+  },
+
+  destroyRenderGestures: function() {
+    _.each(this.gestureHandlerGroups, function(gestureHandlerGroup) {
+      gestureHandlerGroup.destroy();
+    }, this);
+
+    // Clear the gesture handler group id off all renders
+    _.each(this.getRenders(), function(render) {
+      delete render.gestureHandlerGroupId;
+    });
+
+    this.gestureHandlerGroups = {};
+  },
+
+  addRenderGestureHandler: function addRenderGestureHandler(render) {
+    var gestureHandlerGroupId = render.gestureHandlerGroupId;
+
+    if (!gestureHandlerGroupId) {
+      return;
+    }
+
+    // Get the GestureHandlerGroup options from the Layout
+    var layoutGestureHandlerOptions = this.layout.getRenderGestureOptions(render, this.layoutMethodOptions);
+
+    // Create the GestureHandlerGroup if it doesn't exist
+    if (!this.gestureHandlerGroups[gestureHandlerGroupId]) {
+      var defaultGestureHandlerGroupOptions = {
+        config: this.config,
+        emitter: this.emitter,
+        containerElement: this.canvas.element
+      };
+
+      var gestureHandlerGroupOptions = _.extend(defaultGestureHandlerGroupOptions, layoutGestureHandlerOptions);
+
+      this.gestureHandlerGroups[gestureHandlerGroupId] = new GestureHandlerGroup(gestureHandlerGroupOptions);
+    }
+
+    // Get a reference to the group
+    var gestureHandlerGroup = this.gestureHandlerGroups[gestureHandlerGroupId];
+
+    // If the element is already in the group, bail
+    if (gestureHandlerGroup.hasGestureHandlerForElement(render.element)) {
+      return;
+    }
+
+    // Create the GestureHandler to add to the GestureHandlerGroup
+    var defaultGestureHandlerOptions = {
+      animator: this.animator,
+      config: this.config,
+      emitter: this.emitter,
+      element: render.element,
+      bounds: this.frame.bounds,
+      snapping: {
+        toBounds: false,
+        hardStopAtBounds: true,
+        reduceMovementAtBounds: false,
+        toNearestChildElement: false
+      }
+    };
+
+    var gestureHandlerOptions = _.merge(defaultGestureHandlerOptions, layoutGestureHandlerOptions);
+
+    var gestureHandler = new GestureHandler(gestureHandlerOptions);
+
+    if (this.config.debugGestures) {
+      console.log("Viewport#addRenderGestureHandler: adding gesture handler", gestureHandlerGroupId, render);
+    }
+
+    gestureHandlerGroup.addGestureHandler(gestureHandler);
+  },
+
+  removeRenderGestureHandler: function removeRenderGestureHandler(render) {
+    var gestureHandlerGroupId = render.gestureHandlerGroupId;
+
+    if (!gestureHandlerGroupId) {
+      // No gesture handler group id specified
+      return;
+    }
+
+    if (!this.gestureHandlerGroups[gestureHandlerGroupId]) {
+      // No gesture handler group exists for this id
+      return;
+    }
+
+    var gestureHandlerGroup = this.gestureHandlerGroups[gestureHandlerGroupId];
+
+    if (this.config.debugGestures) {
+      console.log("Viewport#removeRenderGestureHandler: removing gesture handler", gestureHandlerGroupId, render);
+    }
+
+    gestureHandlerGroup.removeGestureHandlerForElement(render.element);
+  },
+
+
   /**
    * Called when the {@link Deck} is ready.  Triggers a draw/load cycle.
    *
@@ -1120,6 +1291,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckLayoutSetting: erasing custom renders");
     }
     this.eraseCustomRenders();
+    this.destroyRenderGestures();
   },
 
   /**
@@ -1209,6 +1381,18 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.eraseItems(items);
   },
 
+  onItemCollectionFilterSetting: function() {
+    this.destroyRenderGestures();
+  },
+
+  onItemCollectionSortBySetting: function() {
+    this.destroyRenderGestures();
+  },
+
+  onItemCollectionReversedSetting: function() {
+    this.destroyRenderGestures();
+  },
+
   onItemCollectionIndexing: function onItemCollectionIndexing(e) {
     var stats = e.data;
     if (stats.totalCount > 0 || (stats.totalCount === 0 &amp;&amp; stats.reason.isClear)) {
@@ -1242,16 +1426,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   onRenderAnimationComplete: function onRenderAnimationComplete(render) {
+    render.isAnimating = false;
+
     if (render.isErasing) {
       this.removeRender(render);
       if (render.item.isErasing &amp;&amp; !this.hasRenders(render.item)) {
         this.removeItem(render.item);
       }
-    } else {
-      this.setRender(render);
     }
-
-    this.configureRenderGestures(render);
 
     this.rendersDrawingCount--;
     if (this.rendersDrawingCount === 0) {
@@ -1278,6 +1460,10 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
             console.info("Viewport#onAllRenderAnimationsComplete: drawing custom renders");
           }
           self.drawCustomRenders();
+
+          _.defer(function() {
+            self.configureAllRenderGestures();
+          });
         });
       });
     });
@@ -1319,76 +1505,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     });
   },
 
-  configureRenderGestures: function configureRenderGestures(render) {
-    if (render.isErasing) {
-      this.removeRenderGestureHandler(render);
-    } else {
-      this.addRenderGestureHandler(render);
-    }
-  },
-
-  addRenderGestureHandler: function addRenderGestureHandler(render) {
-    var gestureHandlerGroupId = render.gestureHandlerGroupId;
-
-    if (!gestureHandlerGroupId) {
-      // No group id, don't add gesture handler
-      return;
-    }
-
-    if (!this.gestureHandlerGroups[gestureHandlerGroupId]) {
-      console.log("Viewport#addRenderGestureHandler: creating gesture group: " + gestureHandlerGroupId);
-      this.gestureHandlerGroups[gestureHandlerGroupId] = new GestureHandlerGroup({
-        config: this.config,
-        emitter: this.emitter
-      });
-    }
-
-    var gestureHandlerGroup = this.gestureHandlerGroups[gestureHandlerGroupId];
-
-    if (gestureHandlerGroup.hasGestureHandlerForElement(render.element)) {
-      // Already has element in a group
-      return;
-    }
-
-    var defaultGestureHandlerOptions = {
-      animator: this.animator,
-      config: this.config,
-      emitter: this.emitter,
-      element: render.element,
-      bounds: this.frame.bounds,
-      snapping: {
-        toBounds: true,
-        toNearestChildElement: false
-      }
-    };
-    var layoutGestureHandlerOptions = this.layout.getRenderGestureOptions(render, this.layoutMethodOptions);
-    var gestureHandlerOptions = _.merge(defaultGestureHandlerOptions, layoutGestureHandlerOptions);
-
-    var gestureHandler = new GestureHandler(gestureHandlerOptions);
-
-    console.log("Viewport#addRenderGestureHandler: adding gesture handler", render);
-    gestureHandlerGroup.addGestureHandler(gestureHandler);
-  },
-
-  removeRenderGestureHandler: function removeRenderGestureHandler(render) {
-    var gestureHandlerGroupId = render.gestureHandlerGroupId;
-
-    if (!gestureHandlerGroupId) {
-      // No gesture handler group id specified
-      return;
-    }
-
-    if (!this.gestureHandlerGroups[gestureHandlerGroupId]) {
-      // No gesture handler group exists for this id
-      return;
-    }
-
-    var gestureHandlerGroup = this.gestureHandlerGroups[gestureHandlerGroupId];
-
-    console.log("Viewport#removeRenderGestureHandler: remove gesture handler", render);
-    gestureHandlerGroup.removeGestureHandlerForElement(render.element);
-  },
-
   /**
    * Called when an element is moved via a gesture.
    *
@@ -1423,7 +1539,7 @@ module.exports = Viewport;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="ColumnLayout.html">ColumnLayout</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">

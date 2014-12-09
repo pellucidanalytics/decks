@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: layouts/basicgridlayout.js</title>
+    <title>JSDoc: Source: layouts/columnlayout.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: layouts/basicgridlayout.js</h1>
+    <h1 class="page-title">Source: layouts/columnlayout.js</h1>
 
     
 
@@ -30,21 +30,23 @@ var dom = require("../ui/dom");
 var Layout = require("../layout");
 
 /**
- * Basic grid layout implementation
+ * Basic row layout implementation
  *
  * @class
  * @extends Layout
  * @param {?Object} options - additional options
  */
-function BasicGridLayout(options) {
-  if (!(this instanceof BasicGridLayout)) {
-    return new BasicGridLayout(options);
+function ColumnLayout(options) {
+  if (!(this instanceof ColumnLayout)) {
+    return new ColumnLayout(options);
   }
 
   options = _.merge({}, this.defaultOptions, options);
 
   this.itemWidth = options.itemWidth;
   this.itemHeight = options.itemHeight;
+  this.itemsPerColumn = options.itemsPerColumn;
+  this.itemPadding = options.itemPadding;
   this.scrollbarWidth = options.scrollbarWidth;
   this.transform = options.transform;
   this.animateOptions = options.animateOptions;
@@ -52,44 +54,45 @@ function BasicGridLayout(options) {
   Layout.call(this, options);
 }
 
-BasicGridLayout.prototype = _.create(Layout.prototype, /** @lends BasicGridLayout.prototype */ {
-  constructor: BasicGridLayout,
+ColumnLayout.prototype = _.create(Layout.prototype, /** @lends ColumnLayout.prototype */ {
+  constructor: ColumnLayout,
 
   defaultOptions: _.merge({}, Layout.prototype.defaultOptions, {
     itemWidth: 300,
     itemHeight: 200,
+    itemsPerColumn: 20,
+    itemPadding: 40,
     scrollbarWidth: 20,
     transform: {},
     animateOptions: {}
   }),
 
-  getItemsPerRow: function(width) {
-    return Math.floor(width / this.itemWidth) - 2;
+  getItemsPerColumn: function() {
+    return this.itemsPerColumn;
   },
 
-  getItemPadding: function(itemsPerRow, width) {
-    return (width - (itemsPerRow * this.itemWidth)) / (itemsPerRow + 1);
+  getItemPadding: function() {
+    return this.itemPadding;
   },
 
-  getTop: function(index, itemsPerRow, itemPadding) {
-    var row = Math.floor(index / itemsPerRow);
+  getTop: function(index, itemsPerColumn, itemPadding) {
+    var row = index % itemsPerColumn;
     return row * (this.itemHeight + itemPadding) + itemPadding;
   },
 
-  getLeft: function(index, itemsPerRow, itemPadding) {
-    var column = index % itemsPerRow;
+  getLeft: function(index, itemsPerColumn, itemPadding) {
+    var column = Math.floor(index / itemsPerColumn);
     return column * (this.itemWidth + itemPadding) + itemPadding;
   },
 
-  getTransform: function(item, options) {
+  getTransform: function(item/*, options*/) {
     var index = item.index;
-    var width = options.frame.bounds.width;
-    var itemsPerRow = this.getItemsPerRow(width);
-    this.itemPadding = this.getItemPadding(itemsPerRow, width);
+    var itemsPerColumn = this.getItemsPerColumn();
+    var itemPadding = this.getItemPadding();
 
     return _.merge({}, this.transform, {
-      top: this.getTop(index, itemsPerRow, this.itemPadding),
-      left: this.getLeft(index, itemsPerRow, this.itemPadding),
+      top: this.getTop(index, itemsPerColumn, itemPadding),
+      left: this.getLeft(index, itemsPerColumn, itemPadding),
       width: this.itemWidth,
       height: this.itemHeight
     });
@@ -106,9 +109,12 @@ BasicGridLayout.prototype = _.create(Layout.prototype, /** @lends BasicGridLayou
       return this.getHideAnimation();
     }
 
+    var gestureGroup = "" + Math.floor(item.index / this.getItemsPerColumn());
+
     return _.merge(this.getShowAnimation(), {
       transform: this.getTransform(item, options),
-      animateOptions: this.getAnimateOptions(item)
+      animateOptions: this.getAnimateOptions(item),
+      gestureHandlerGroupId: gestureGroup
     });
   },
 
@@ -120,51 +126,37 @@ BasicGridLayout.prototype = _.create(Layout.prototype, /** @lends BasicGridLayou
   },
 
   getCustomRenders: function(options) {
-    var itemCount = options.itemCollection.getItems(function(item) {
-      return item.index !== -1;
-    }).length;
-    var itemsPerRow = this.getItemsPerRow(options.frame.bounds.width);
-    var rowCount = Math.ceil(itemCount / itemsPerRow);
-    var itemPadding = this.getItemPadding(itemsPerRow, options.frame.bounds.width);
+    var labelElement = options.viewport.createCustomRenderElement();
+    dom.text(labelElement, "ColumnLayout");
 
-    var element = options.viewport.createCustomRenderElement();
-    dom.text(element, "BasicGridLayout");
+    return {
+      element: labelElement,
+      transform: {
+        top: 3,
+        left: 3,
+        zIndex: this.baseZIndex + 100
+      },
+      animateOptions: {
+        duration: 400
+      }
+    };
+  },
 
-    var renders = [
-      {
-        element: element,
-        transform: {
-          top: 3,
-          left: 3,
-          zIndex: this.baseZIndex + 100
+  getRenderGestureOptions: function() {
+    return {
+      gestures: {
+        pan: {
+          enabled: true,
+          horizontal: false,
+          vertical: true
         },
-        animateOptions: {
-          duration: 400
+        swipe: {
+          enabled: true,
+          horizontal: false,
+          vertical: true
         }
       }
-    ];
-
-    _.each(_.range(rowCount), function(rowIndex) {
-      var element = options.viewport.createCustomRenderElement();
-      var hr = dom.create("hr");
-      hr.style.margin = 0;
-      dom.append(element, hr);
-      var top = (this.itemHeight + itemPadding) * (rowIndex + 1) + 0.5 * itemPadding;
-
-      renders.push({
-        element: element,
-        transform: {
-          top: [top, top],
-          width: "100%",
-          margin: 0
-        },
-        animateOptions: {
-          duration: 400
-        }
-      });
-    }, this);
-
-    return renders;
+    };
   },
 
   getCanvasGestureOptions: function() {
@@ -175,21 +167,32 @@ BasicGridLayout.prototype = _.create(Layout.prototype, /** @lends BasicGridLayou
         },
         press: {
           enabled: true
+        },
+        pan: {
+          vertical: false,
+          horizontal: true
+        },
+        swipe: {
+          vertical: false,
+          horizontal: true
         }
+      },
+      snapping: {
+        toBounds: false,
+        toNearestChildElement: false
       }
     };
   },
 
-  getCanvasBoundsOptions: function(){
+  getCanvasBoundsOptions: function() {
     var options = Layout.prototype.getCanvasBoundsOptions();
-    options.marginBottom = 40;
-    options.preventOverflowHorizontal = true;
-    options.preventScrollbarHorizontal = true;
+    options.preventOverflowVertical = true;
+    options.preventScrollbarVertical = true;
     return options;
   }
 });
 
-module.exports = BasicGridLayout;
+module.exports = ColumnLayout;
 </code></pre>
         </article>
     </section>

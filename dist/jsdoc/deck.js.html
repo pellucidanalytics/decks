@@ -62,9 +62,12 @@ function Deck(options) {
   if (!(this instanceof Deck)) {
     return new Deck(options);
   }
+
   options = _.merge({}, this.defaultOptions, options);
+
   validate.isEnabled = !!options.config.validation;
-  this.setEmitter(options.emitter || {}, this.emitterEvents);
+
+  this.setEmitter(options.emitter || {});
   this.setConfig(options.config || {});
   this.setAnimator(options.animator);
   this.setItemCollection(options.itemCollection || options.items || []);
@@ -75,6 +78,9 @@ function Deck(options) {
   this.setFrame(options.frame);
   this.setCanvas(options.canvas || {});
   this.setViewport(options.viewport || {});
+
+  this.bind();
+
   this.emit(DecksEvent("deck:ready", this));
 }
 
@@ -98,15 +104,45 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
   /**
    * Events to bind to on the shared {@link Emitter}.
    */
-  emitterEvents: {
-    "*": "onAnyEvent"
+  getEmitterEvents: function() {
+    return {
+      "*": "onAnyEmitterEvent"
+    };
   },
 
   /**
    * Events to bind to on the {@link ItemCollection}
    */
-  itemCollectionEvents: {
-    "*": "onItemCollectionEvent"
+  getItemCollectionEvents: function() {
+    return {
+      "*": "onAnyItemCollectionEvent"
+    };
+  },
+
+  /**
+   * Binds the {@link Emitter} and {@link ItemCollection} event handlers.
+   *
+   * @return {undefined}
+   */
+  bind: function() {
+    this.bindEvents(this.emitter, this.getEmitterEvents());
+
+    if (this.itemCollection.emitter !== this.emitter) {
+      this.bindEvents(this.itemCollection, this.getItemCollectionEvents());
+    }
+  },
+
+  /**
+   * Unbinds the {@link Emitter} and {@link ItemCollection} event handlers.
+   *
+   * @return {undefined}
+   */
+  unbind: function() {
+    this.unbindEvents(this.emitter, this.getEmitterEvents());
+
+    if (this.itemCollection.emitter !== this.emitter) {
+      this.unbindEvents(this.itemCollection, this.getItemCollectionEvents());
+    }
   },
 
   /**
@@ -276,26 +312,54 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     self.setLayout(layout);
   },
 
-  bindCanvasGestureHandlerEmitterEvents: function bindCanvasGestureHandlerEmitterEvents() {
-    this.canvas.bindGestureHandlerEmitterEvents();
+  /**
+   * Binds the {@link Canvas}'s {@link GestureHandler} events.
+   *
+   * @return {undefined}
+   */
+  bindCanvasGestureHandler: function bindCanvasGestureHandler() {
+    this.canvas.bindGestureHandler();
   },
 
-  unbindCanvasGestureHandlerEmitterEvents: function unbindCanvasGestureHandlerEmitterEvents() {
-    this.canvas.unbindGestureHandlerEmitterEvents();
+  /**
+   * Unbinds the {@link Canvas}'s {@link GestureHandler} events.
+   *
+   * @return {undefined}
+   */
+  unbindCanvasGestureHandler: function unbindCanvasGestureHandler() {
+    this.canvas.unbindGestureHandler();
   },
 
+  /**
+   * Sets the config object.
+   *
+   * @param config
+   * @return {undefined}
+   */
   setConfig: function setConfig(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = config;
     this.emit(DecksEvent("deck:config:set", this, this.config));
   },
 
+  /**
+   * Sets the animator object.
+   *
+   * @param animator
+   * @return {undefined}
+   */
   setAnimator: function setAnimator(animator) {
     validate(animator, "animator", { isPlainObject: true, isNotSet: this.animator });
     this.animator = animator;
     this.emit(DecksEvent("deck:animator:set", this, this.animator));
   },
 
+  /**
+   * Sets the {@link ItemCollection}.
+   *
+   * @param itemCollection
+   * @return {undefined}
+   */
   setItemCollection: function setItemCollection(itemCollection) {
     validate(itemCollection, "itemCollection", { isRequired: true, isNotSet: this.itemCollection });
 
@@ -305,15 +369,15 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
 
     this.itemCollection = itemCollection;
 
-    // If the ItemCollection has a different emitter, bind to the item collection emitter and
-    // forward all events on the main Deck emitter.
-    if (this.emitter !== itemCollection.emitter) {
-      this.bindEvents(itemCollection, this.itemCollectionEvents);
-    }
-
     this.emit(DecksEvent("deck:item:collection:set", this, this.layout));
   },
 
+  /**
+   * Sets the {@link Layout}
+   *
+   * @param layout
+   * @return {undefined}
+   */
   setLayout: function setLayout(layout) {
     validate(layout, "layout", { isRequired: true });
 
@@ -323,9 +387,9 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
 
     this.emit(DecksEvent("deck:layout:setting", this, { oldLayout: this.layout, newLayout: layout }));
 
-    // Unbind events from the old layout
+    // Unbind the previous layout from emitter events
     if (this.layout) {
-      this.layout.unbindEvents(this.emitter, this.layout.emitterEvents);
+      this.layout.unbindEvents(this.emitter, this.layout.getEmitterEvents());
     }
 
     if (!(layout instanceof Layout)) {
@@ -333,12 +397,17 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     }
 
     this.layout = layout;
-
-    this.layout.bindEvents(this.emitter, this.layout.emitterEvents);
+    this.layout.bindEvents(this.emitter, this.layout.getEmitterEvents());
 
     this.emit(DecksEvent("deck:layout:set", this, this.layout));
   },
 
+  /**
+   * Sets the {@link Frame}
+   *
+   * @param frame
+   * @return {undefined}
+   */
   setFrame: function setFrame(frame) {
     validate(frame, "frame", { isRequired: true, isNotSet: this.frame });
 
@@ -356,6 +425,12 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:frame:set", this, this.frame));
   },
 
+  /**
+   * Sets the {@link Canvas}
+   *
+   * @param canvas
+   * @return {undefined}
+   */
   setCanvas: function setCanvas(canvas) {
     validate(canvas, "canvas", { isRequired: true, isNotSet: this.canvas });
 
@@ -374,6 +449,12 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:canvas:set", this, this.canvas));
   },
 
+  /**
+   * Sets the {@link Viewport}
+   *
+   * @param viewport
+   * @return {undefined}
+   */
   setViewport: function setViewport(viewport) {
     validate(viewport, "viewport", { isRequired: true, isNotSet: this.viewport });
 
@@ -395,13 +476,25 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     this.emit(DecksEvent("deck:viewport:set", this, this.viewport));
   },
 
-  onAnyEvent: function onAnyEvent(e) {
+  /**
+   * Called on any {@link Emitter} event.
+   *
+   * @param e
+   * @return {undefined}
+   */
+  onAnyEmitterEvent: function onAnyEmitterEvent(e) {
     if (this.config.debugEvents) {
-      console.log("Deck#onAnyEvent:", e);
+      console.log("Deck#onAnyEmitterEvent:", e);
     }
   },
 
-  onItemCollectionEvent: function onItemCollectionEvent(e) {
+  /**
+   * Called on any {@link ItemCollection} event.
+   *
+   * @param e
+   * @return {undefined}
+   */
+  onAnyItemCollectionEvent: function onAnyItemCollectionEvent(e) {
     // Forward itemCollection events on the main Deck emitter
     this.emit(e);
   }
@@ -418,7 +511,7 @@ module.exports = Deck;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="ColumnLayout.html">ColumnLayout</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">

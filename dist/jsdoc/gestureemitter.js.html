@@ -61,6 +61,8 @@ function GestureEmitter(options) {
   this.setEmitter(options.emitter || {});
   this.setElement(options.element);
   this.setHammer(options.hammer);
+
+  // Note: don't this.bind() here - let subclass bind after setting up other options
 }
 
 _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter.prototype */ {
@@ -80,7 +82,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    * @param {!Element} element - element to monitor
    * @return {undefined}
    */
-  setElement: function(element) {
+  setElement: function setElement(element) {
     validate(element, "element", { isElement: true, isNotSet: this.element });
     this.element = element;
   },
@@ -93,7 +95,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    * @param hammer
    * @return {undefined}
    */
-  setHammer: function(hammer) {
+  setHammer: function setHammer(hammer) {
     validate(hammer, "hammer", { isRequired: true, isNotSet: this.hammer });
     this.hammer = hammer;
   },
@@ -106,7 +108,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  getElementEvents: function() {
+  getElementEvents: function getElementEvents() {
     return {};
   },
 
@@ -115,14 +117,11 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  bindElementEvents: function() {
+  bindElementEvents: function bindElementEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getElementEvents();
-    if (!_.isEmpty(map)) {
-      this.bindEvents(this.element, map);
-    }
+    this.bindEvents(this.element, this.getElementEvents());
   },
 
   /**
@@ -130,14 +129,11 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  unbindElementEvents: function() {
+  unbindElementEvents: function unbindElementEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getElementEvents();
-    if (!_.isEmpty(map)) {
-      this.unbindEvents(this.element, map);
-    }
+    this.unbindEvents(this.element, this.getElementEvents());
   },
 
   /**
@@ -148,7 +144,7 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  getHammerEvents: function() {
+  getHammerEvents: function getHammerEvents() {
     return {};
   },
 
@@ -157,14 +153,11 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  bindHammerEvents: function() {
+  bindHammerEvents: function bindHammerEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getHammerEvents();
-    if (!_.isEmpty(map)) {
-      this.bindEvents(this.hammer, map);
-    }
+    this.bindEvents(this.hammer, this.getHammerEvents());
   },
 
   /**
@@ -172,14 +165,31 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  unbindHammerEvents: function() {
+  unbindHammerEvents: function unbindHammerEvents() {
     if (!this.enabled) {
       return;
     }
-    var map = this.getHammerEvents();
-    if (!_.isEmpty(map)) {
-      this.unbindEvents(this.hammer, map);
-    }
+    this.unbindEvents(this.hammer, this.getHammerEvents());
+  },
+
+  /**
+   * Binds all events (element and Hammer)
+   *
+   * @return {undefined}
+   */
+  bind: function bind() {
+    this.bindElementEvents();
+    this.bindHammerEvents();
+  },
+
+  /**
+   * Unbinds all events (element and Hammer)
+   *
+   * @return {undefined}
+   */
+  unbind: function unbind() {
+    this.unbindElementEvents();
+    this.unbindHammerEvents();
   },
 
   /**
@@ -187,9 +197,8 @@ _.extend(GestureEmitter.prototype, binder, hasEmitter, /** @lends GestureEmitter
    *
    * @return {undefined}
    */
-  destroy: function() {
-    this.unbindElementEvents();
-    this.unbindHammerEvents();
+  destroy: function destroy() {
+    this.unbind();
   }
 });
 
@@ -204,7 +213,7 @@ module.exports = GestureEmitter;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-decks.html">decks</a></li><li><a href="events.html">decks/events</a></li><li><a href="layouts.html">decks/layouts</a></li><li><a href="ui.html">decks/ui</a></li><li><a href="dom.html">decks/ui/dom</a></li><li><a href="utils.html">decks/utils</a></li><li><a href="rect.html">decks/utils/rect</a></li></ul><h3>Classes</h3><ul><li><a href="BasicGridLayout.html">BasicGridLayout</a></li><li><a href="BasicStackLayout.html">BasicStackLayout</a></li><li><a href="Canvas.html">Canvas</a></li><li><a href="ColumnLayout.html">ColumnLayout</a></li><li><a href="Deck.html">Deck</a></li><li><a href="DecksEvent.html">DecksEvent</a></li><li><a href="Emitter.html">Emitter</a></li><li><a href="Frame.html">Frame</a></li><li><a href="GestureEmitter.html">GestureEmitter</a></li><li><a href="GestureHandler.html">GestureHandler</a></li><li><a href="GestureHandlerGroup.html">GestureHandlerGroup</a></li><li><a href="Item.html">Item</a></li><li><a href="ItemCollection.html">ItemCollection</a></li><li><a href="Layout.html">Layout</a></li><li><a href="MouseEnterLeaveEmitter.html">MouseEnterLeaveEmitter</a></li><li><a href="MouseOverOutEmitter.html">MouseOverOutEmitter</a></li><li><a href="MouseWheelEmitter.html">MouseWheelEmitter</a></li><li><a href="PanEmitter.html">PanEmitter</a></li><li><a href="PressEmitter.html">PressEmitter</a></li><li><a href="RowLayout.html">RowLayout</a></li><li><a href="SwipeEmitter.html">SwipeEmitter</a></li><li><a href="TapEmitter.html">TapEmitter</a></li><li><a href="Viewport.html">Viewport</a></li><li><a href="ZoomLayout.html">ZoomLayout</a></li></ul><h3>Events</h3><ul><li><a href="PanEmitter.html#event:gesture:pan:any">gesture:pan:any</a></li><li><a href="PanEmitter.html#event:gesture:pan:cancel">gesture:pan:cancel</a></li><li><a href="PanEmitter.html#event:gesture:pan:end">gesture:pan:end</a></li><li><a href="PanEmitter.html#event:gesture:pan:start">gesture:pan:start</a></li><li><a href="PanEmitter.html#event:gesture:pan:x">gesture:pan:x</a></li><li><a href="PanEmitter.html#event:gesture:pan:y">gesture:pan:y</a></li><li><a href="PressEmitter.html#event:gesture:press">gesture:press</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:any">gesture:swipe:any</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:x">gesture:swipe:x</a></li><li><a href="SwipeEmitter.html#event:gesture:swipe:y">gesture:swipe:y</a></li><li><a href="TapEmitter.html#event:gesture:tap">gesture:tap</a></li></ul><h3>Mixins</h3><ul><li><a href="binder.html">binder</a></li><li><a href="hasEmitter.html">hasEmitter</a></li></ul>
 </nav>
 
 <br clear="both">
