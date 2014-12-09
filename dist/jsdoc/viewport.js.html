@@ -1148,7 +1148,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     }, this);
   },
 
-  destroyRenderGestureHandlerGroups: function() {
+  destroyRenderGestures: function() {
     _.each(this.gestureHandlerGroups, function(gestureHandlerGroup) {
       gestureHandlerGroup.destroy();
     }, this);
@@ -1171,7 +1171,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     if (!this.gestureHandlerGroups[gestureHandlerGroupId]) {
       this.gestureHandlerGroups[gestureHandlerGroupId] = new GestureHandlerGroup({
         config: this.config,
-        emitter: this.emitter
+        emitter: this.emitter,
+        containerElement: this.canvas.element
       });
     }
 
@@ -1190,6 +1191,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       bounds: this.frame.bounds,
       snapping: {
         toBounds: false,
+        hardStopAtBounds: true,
+        reduceMovementAtBounds: false,
         toNearestChildElement: false
       }
     };
@@ -1269,7 +1272,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       console.info("Viewport#onDeckLayoutSetting: erasing custom renders");
     }
     this.eraseCustomRenders();
-    this.destroyRenderGestureHandlerGroups();
+    this.destroyRenderGestures();
   },
 
   /**

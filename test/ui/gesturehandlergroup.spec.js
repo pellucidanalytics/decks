@@ -12,11 +12,13 @@ describe("decks.ui.GestureHandlerGroup", function() {
   var animator;
   var config;
   var emitter;
+  var containerElement;
   var options;
   var gestureHandlerGroup;
 
   function createGestureHandler(element) {
     element = element || document.createElement("div");
+    containerElement.appendChild(element);
     return new GestureHandler({
       animator: animator,
       config: config,
@@ -28,13 +30,30 @@ describe("decks.ui.GestureHandlerGroup", function() {
     animator = {
       animate: function() { }
     };
+
     emitter = new Emitter();
+
     config = Deck.prototype.defaultOptions.config;
+
+    containerElement = document.createElement("div");
+    containerElement.style.position = "absolute";
+    containerElement.style.top = "0px";
+    containerElement.style.left = "0px";
+    containerElement.style.width = "800px";
+    containerElement.style.height = "600px";
+    document.body.appendChild(containerElement);
+
     options = {
       config: config,
-      emitter: emitter
+      emitter: emitter,
+      containerElement: containerElement
     };
+
     gestureHandlerGroup = new GestureHandlerGroup(options);
+  });
+
+  afterEach(function() {
+    document.body.removeChild(containerElement);
   });
 
   describe("constructor", function() {
