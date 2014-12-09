@@ -337,7 +337,14 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
 
     validate(render.element, "Canvas#addRender: render.element", { isElement: true });
 
-    dom.append(this.element, render.element);
+
+    if (this.element.contains(render.element)) {
+      // TODO: this shouldn't happen, but seems to be happening with fast layout changes/filter changes/etc.
+      console.warn("Canvas#addRender: Canvas element already contains render element - not re-adding", render.element);
+    } else {
+      dom.append(this.element, render.element);
+    }
+
     render.isInCanvas = true;
 
     this.emit(DecksEvent("canvas:render:added", this, render));
@@ -358,7 +365,13 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
 
     validate(render.element, "Canvas#removeRender: render.element", { isElement: true });
 
-    dom.remove(this.element, render.element);
+    if (!this.element.contains(render.element)) {
+      // TODO: this shouldn't happen, but seems to be happening with fast layout changes/filter changes/etc.
+      console.warn("Canvas#removeRender: Canvas element does not contain render element - not removing", render.element);
+    } else {
+      dom.remove(this.element, render.element);
+    }
+
     render.isInCanvas = false;
 
     this.emit(DecksEvent("canvas:render:removed", this, render));
