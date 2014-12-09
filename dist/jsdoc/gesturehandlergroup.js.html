@@ -240,12 +240,14 @@ _.extend(GestureHandlerGroup.prototype, binder, hasEmitter, /** @lends GestureHa
     var methodName = this.getEventHandlerMethodName(e);
 
     _.each(this.gestureHandlers, function(gestureHandler) {
-      // Don't apply the gesture to the element that originally created the event (it's already handled by that gesture handler)
+      // Don't apply the gesture to the element that originally emitted the event (it's already handled by that gesture handler)
       // Don't apply the gesture to elements that aren't in this gesture handler group
       if (gestureHandler.element === e.sender.element || !this.hasGestureHandlerForElement(e.sender.element)) {
         return;
       }
 
+      // Allows the event to be handled by a GestureHandler that does not match the element
+      // that emitted the event
       var options = {
         elementOverride: gestureHandler.element
       };
@@ -254,18 +256,33 @@ _.extend(GestureHandlerGroup.prototype, binder, hasEmitter, /** @lends GestureHa
     }, this);
   },
 
+  /**
+   * Gets all of the elements managed by this {@link GestureHandlerGroup}
+   *
+   * @return {Element[]}
+   */
   getElements: function() {
     return _.map(this.gestureHandlers, function(gestureHandler) {
       return gestureHandler.element;
     });
   },
 
+  /**
+   * Gets the bounding client rects for all the elements in this {@link GestureHandlerGroup}
+   *
+   * @return {Object[]}
+   */
   getElementRects: function() {
     return _.map(this.getElements(), function(element) {
       return rect.normalize(element);
     });
   },
 
+  /**
+   * Updates the bounds for all the {@link GestureHandler}s in the {@link GestureHandlerGroup}.
+   *
+   * @return {undefined}
+   */
   updateBounds: function() {
     var elementRects = this.getElementRects();
     var containerElementBounds = rect.normalize(this.containerElement);
