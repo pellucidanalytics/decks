@@ -1125,6 +1125,62 @@ This is to provide the <a href="Layout.html">Layout</a> methods with more contex
         
             
 <dt>
+    <h4 class="name" id="renderAnimationCount"><span class="type-signature"></span>renderAnimationCount<span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Keeps track of how many renders are currently being drawn
+    </div>
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line143">line 143</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="renders"><span class="type-signature"></span>renders<span class="type-signature"></span></h4>
 
     
@@ -1223,62 +1279,6 @@ the second level is the render object, e.g.
    }
  }
 }</code></pre>
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="rendersDrawingCount"><span class="type-signature"></span>rendersDrawingCount<span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        Keeps track of how many renders are currently being drawn
-    </div>
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line143">line 143</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
 
     
 </dd>
@@ -1404,6 +1404,139 @@ the second level is the render object, e.g.
         <dl>
             
 <dt>
+    <h4 class="name" id="addRenderGestureHandler"><span class="type-signature"></span>addRenderGestureHandler<span class="signature">(render)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Adds a <a href="GestureHandler.html">GestureHandler</a> for the render, and puts it in a <a href="GestureHandlerGroup.html">GestureHandlerGroup</a>
+according to the render.gestureHandlerGroupId.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>render</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1174">line 1174</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="bind"><span class="type-signature"></span>bind<span class="signature">()</span><span class="type-signature"> &rarr; {undefined}</span></h4>
 
     
@@ -1445,7 +1578,228 @@ the second level is the render object, e.g.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line258">line 258</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line263">line 263</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="configureAllRenderGestures"><span class="type-signature"></span>configureAllRenderGestures<span class="signature">()</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Configures gestures for all renders
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1141">line 1141</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="configureRenderGestures"><span class="type-signature"></span>configureRenderGestures<span class="signature">(render)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Configures gestures for a single render.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>render</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1128">line 1128</a>
     </li></ul></dd>
     
 
@@ -1577,7 +1931,7 @@ the second level is the render object, e.g.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1081">line 1081</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1094">line 1094</a>
     </li></ul></dd>
     
 
@@ -1666,7 +2020,7 @@ the second level is the render object, e.g.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line799">line 799</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line806">line 806</a>
     </li></ul></dd>
     
 
@@ -1705,6 +2059,95 @@ the second level is the render object, e.g.
     <dd>
         
 <span class="param-type">HTMLElement</span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="destroyRenderGestures"><span class="type-signature"></span>destroyRenderGestures<span class="signature">()</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Destroys gestures for all renders.
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1154">line 1154</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
 
 
     </dd>
@@ -1802,7 +2245,7 @@ the second level is the render object, e.g.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line976">line 976</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line984">line 984</a>
     </li></ul></dd>
     
 
@@ -1891,7 +2334,7 @@ the second level is the render object, e.g.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1007">line 1007</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1017">line 1017</a>
     </li></ul></dd>
     
 
@@ -2127,7 +2570,7 @@ the <a href="Canvas.html">Canvas</a> (e.g. if one <a href="Item.html">Item</a> s
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line353">line 353</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line358">line 358</a>
     </li></ul></dd>
     
 
@@ -2216,7 +2659,7 @@ the <a href="Canvas.html">Canvas</a> (e.g. if one <a href="Item.html">Item</a> s
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line397">line 397</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line402">line 402</a>
     </li></ul></dd>
     
 
@@ -2502,7 +2945,7 @@ and callbacks are used to track completion of the animation.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line552">line 552</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line559">line 559</a>
     </li></ul></dd>
     
 
@@ -2669,7 +3112,7 @@ the new render transforms for any existing elements.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line675">line 675</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line682">line 682</a>
     </li></ul></dd>
     
 
@@ -2759,7 +3202,7 @@ after a certain threshold, and staggers small groups of them to gain better anim
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line600">line 600</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line608">line 608</a>
     </li></ul></dd>
     
 
@@ -2873,7 +3316,7 @@ after a certain threshold, and staggers small groups of them to gain better anim
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1035">line 1035</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1045">line 1045</a>
     </li></ul></dd>
     
 
@@ -2962,7 +3405,7 @@ after a certain threshold, and staggers small groups of them to gain better anim
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1052">line 1052</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1064">line 1064</a>
     </li></ul></dd>
     
 
@@ -3103,7 +3546,7 @@ removed from the renders data structure.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line421">line 421</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line426">line 426</a>
     </li></ul></dd>
     
 
@@ -3192,7 +3635,7 @@ removed from the renders data structure.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line435">line 435</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line441">line 441</a>
     </li></ul></dd>
     
 
@@ -3373,7 +3816,7 @@ removal of the render is done after the animation completes.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line737">line 737</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line744">line 744</a>
     </li></ul></dd>
     
 
@@ -3588,7 +4031,7 @@ removal of the render is done after the animation completes.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line754">line 754</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line761">line 761</a>
     </li></ul></dd>
     
 
@@ -3720,7 +4163,7 @@ removal of the render is done after the animation completes.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line929">line 929</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line939">line 939</a>
     </li></ul></dd>
     
 
@@ -3809,7 +4252,7 @@ removal of the render is done after the animation completes.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line919">line 919</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line929">line 929</a>
     </li></ul></dd>
     
 
@@ -4075,7 +4518,7 @@ removal of the render is done after the animation completes.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line500">line 500</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line506">line 506</a>
     </li></ul></dd>
     
 
@@ -4231,7 +4674,7 @@ it does not request new renders from the Layout.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line474">line 474</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line480">line 480</a>
     </li></ul></dd>
     
 
@@ -4324,7 +4767,7 @@ it does not request new renders from the Layout.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line966">line 966</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line974">line 974</a>
     </li></ul></dd>
     
 
@@ -4474,7 +4917,7 @@ data structure.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line515">line 515</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line521">line 521</a>
     </li></ul></dd>
     
 
@@ -4569,7 +5012,7 @@ a previous render, and the element will be re-used for a transition, this method
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line820">line 820</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line827">line 827</a>
     </li></ul></dd>
     
 
@@ -4689,7 +5132,7 @@ frame element, etc.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line878">line 878</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line886">line 886</a>
     </li></ul></dd>
     
 
@@ -4778,7 +5221,7 @@ frame element, etc.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line891">line 891</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line899">line 899</a>
     </li></ul></dd>
     
 
@@ -4915,7 +5358,7 @@ frame element, etc.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line831">line 831</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line838">line 838</a>
     </li></ul></dd>
     
 
@@ -5004,7 +5447,7 @@ frame element, etc.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1474">line 1474</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1589">line 1589</a>
     </li></ul></dd>
     
 
@@ -5093,7 +5536,7 @@ frame element, etc.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1422">line 1422</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1536">line 1536</a>
     </li></ul></dd>
     
 
@@ -5182,7 +5625,7 @@ frame element, etc.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1499">line 1499</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1616">line 1616</a>
     </li></ul></dd>
     
 
@@ -5318,7 +5761,7 @@ logic at the end of the cycle.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1455">line 1455</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1570">line 1570</a>
     </li></ul></dd>
     
 
@@ -5407,7 +5850,7 @@ logic at the end of the cycle.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1248">line 1248</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1290">line 1290</a>
     </li></ul></dd>
     
 
@@ -5496,7 +5939,7 @@ logic at the end of the cycle.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1273">line 1273</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1318">line 1318</a>
     </li></ul></dd>
     
 
@@ -5585,7 +6028,7 @@ logic at the end of the cycle.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1260">line 1260</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1304">line 1304</a>
     </li></ul></dd>
     
 
@@ -5677,7 +6120,7 @@ This draw cycle can be prevented from happening by setting the drawOnDeckReady t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1226">line 1226</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1268">line 1268</a>
     </li></ul></dd>
     
 
@@ -5766,7 +6209,7 @@ This draw cycle can be prevented from happening by setting the drawOnDeckReady t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1299">line 1299</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1348">line 1348</a>
     </li></ul></dd>
     
 
@@ -5855,7 +6298,7 @@ This draw cycle can be prevented from happening by setting the drawOnDeckReady t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1287">line 1287</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1335">line 1335</a>
     </li></ul></dd>
     
 
@@ -5987,7 +6430,139 @@ This draw cycle can be prevented from happening by setting the drawOnDeckReady t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1487">line 1487</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1603">line 1603</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="onItemChanged"><span class="type-signature"></span>onItemChanged<span class="signature">(e)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Called when an <a href="Item.html">Item</a> is changed
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>e</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1362">line 1362</a>
     </li></ul></dd>
     
 
@@ -6122,7 +6697,7 @@ erased.  It also checks for the completion of a full render cycle, which might t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1399">line 1399</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1511">line 1511</a>
     </li></ul></dd>
     
 
@@ -6319,7 +6894,7 @@ erased.  It also checks for the completion of a full render cycle, which might t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1098">line 1098</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1111">line 1111</a>
     </li></ul></dd>
     
 
@@ -6451,7 +7026,7 @@ erased.  It also checks for the completion of a full render cycle, which might t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line953">line 953</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line961">line 961</a>
     </li></ul></dd>
     
 
@@ -6590,7 +7165,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line457">line 457</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line463">line 463</a>
     </li></ul></dd>
     
 
@@ -6730,7 +7305,139 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line769">line 769</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line776">line 776</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+        
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="removeRenderGestureHandler"><span class="type-signature"></span>removeRenderGestureHandler<span class="signature">(render)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Removes the <a href="GestureHandler.html">GestureHandler</a> for a render.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>render</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1237">line 1237</a>
     </li></ul></dd>
     
 
@@ -6862,7 +7569,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line277">line 277</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line282">line 282</a>
     </li></ul></dd>
     
 
@@ -6994,7 +7701,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line332">line 332</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line337">line 337</a>
     </li></ul></dd>
     
 
@@ -7126,7 +7833,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line288">line 288</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line293">line 293</a>
     </li></ul></dd>
     
 
@@ -7258,7 +7965,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line939">line 939</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line949">line 949</a>
     </li></ul></dd>
     
 
@@ -7390,7 +8097,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1064">line 1064</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line1076">line 1076</a>
     </li></ul></dd>
     
 
@@ -7527,7 +8234,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line784">line 784</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line791">line 791</a>
     </li></ul></dd>
     
 
@@ -7663,7 +8370,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line321">line 321</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line326">line 326</a>
     </li></ul></dd>
     
 
@@ -7795,7 +8502,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line299">line 299</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line304">line 304</a>
     </li></ul></dd>
     
 
@@ -7927,7 +8634,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line310">line 310</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line315">line 315</a>
     </li></ul></dd>
     
 
@@ -8067,7 +8774,7 @@ This should not be called directly.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line528">line 528</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line534">line 534</a>
     </li></ul></dd>
     
 
@@ -8209,7 +8916,7 @@ If the <a href="Layout.html">Layout</a> returns false
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line863">line 863</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line871">line 871</a>
     </li></ul></dd>
     
 
@@ -8341,7 +9048,7 @@ If the <a href="Layout.html">Layout</a> returns false
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line903">line 903</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line911">line 911</a>
     </li></ul></dd>
     
 
@@ -8430,7 +9137,7 @@ If the <a href="Layout.html">Layout</a> returns false
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line267">line 267</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line272">line 272</a>
     </li></ul></dd>
     
 
@@ -8567,7 +9274,7 @@ If the <a href="Layout.html">Layout</a> returns false
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line847">line 847</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line854">line 854</a>
     </li></ul></dd>
     
 
