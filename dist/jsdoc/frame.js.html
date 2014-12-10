@@ -136,6 +136,7 @@ _.extend(Frame.prototype, binder, hasEmitter, /** @lends Frame.prototype */ {
    */
   setConfig: function setConfig(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
+
     this.config = config;
   },
 
@@ -163,6 +164,7 @@ _.extend(Frame.prototype, binder, hasEmitter, /** @lends Frame.prototype */ {
     }
 
     dom.setStyle(this.element, "overflow", this.overflow);
+
     this.emit(DecksEvent("frame:element:set", this, element));
 
     this.setBounds();

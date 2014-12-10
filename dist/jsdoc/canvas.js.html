@@ -58,6 +58,7 @@ function Canvas(options) {
   this.watchWindowScroll = options.watchWindowScroll;
   this.debouncedOnWindowResize = _.debounce(this.onWindowResize, options.debouncedWindowResizeWait);
   this.debouncedOnWindowScroll = _.debounce(this.onWindowScroll, options.debouncedWindowScrollWait);
+  this.debouncedOnGestureElementMoved = _.debounce(this.onGestureElementMoved, options.debouncedOnGestureElementMovedWait);
 
   this.setAnimator(options.animator);
   this.setConfig(options.config);
@@ -77,7 +78,8 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     watchWindowScroll: true,
     watchWindowResize: true,
     debouncedWindowScrollWait: 200,
-    debouncedWindowResizeWait: 200
+    debouncedWindowResizeWait: 200,
+    debouncedOnGestureElementMovedWait: 200
   },
 
   /**
@@ -120,7 +122,7 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
       "viewport:custom:render:drawing": "onViewportCustomRenderDrawing",
       "viewport:custom:render:erased": "onViewportCustomRenderErased",
       "viewport:all:renders:drawn": "onViewportAllRendersDrawn",
-      "gesture:element:moved": "onGestureElementMoved"
+      "gesture:element:moved": "debouncedOnGestureElementMoved"
     };
   },
 
