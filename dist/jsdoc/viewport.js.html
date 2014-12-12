@@ -628,15 +628,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       this.stopRenderAnimation(render);
     }
 
-    // Mark the render as animating
-    render.isAnimating = true;
-    self.renderAnimationCount++;
-
-    if (self.config.debugDrawing) {
-      console.log("Viewport#drawRender: render animating: ", render);
-      console.log("Viewport#drawRender: render animation count: " + self.renderAnimationCount);
-    }
-
     raf(function() {
       var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
       self.emit(DecksEvent(eventName, self, render));
@@ -647,6 +638,15 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
           if (render.animateOptions) {
             render.animateOptions.duration = 0;
           }
+        }
+
+        // Mark the render as animating
+        render.isAnimating = true;
+        self.renderAnimationCount++;
+
+        if (self.config.debugDrawing) {
+          console.log("Viewport#drawRender: render animating: ", render);
+          console.log("Viewport#drawRender: render animation count: " + self.renderAnimationCount);
         }
 
         // Start the animation
@@ -693,14 +693,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       this.stopRenderAnimation(render);
     }
 
-    render.isAnimating = true;
-    self.renderAnimationCount++;
-
-    if (self.config.debugDrawing) {
-      console.log("Viewport#drawRender: render animating: ", render);
-      console.log("Viewport#drawRender: renders drawing count: " + self.renderAnimationCount);
-    }
-
     _.delay(function () {
       raf(function() {
         var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
@@ -712,6 +704,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
             if (render.animateOptions) {
               render.animateOptions.duration = 0;
             }
+          }
+
+          render.isAnimating = true;
+          self.renderAnimationCount++;
+
+          if (self.config.debugDrawing) {
+            console.log("Viewport#drawRender: render animating: ", render);
+            console.log("Viewport#drawRender: renders drawing count: " + self.renderAnimationCount);
           }
 
           // Start the animation
@@ -1052,19 +1052,20 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(customRender, "customRender", { isRequired: true });
 
     self.setDefaultCustomRenderAnimateOptions(customRender);
-    self.customRenderAnimationCount++;
-
-    if (self.config.debugDrawing) {
-      console.log("Viewport#drawCustomRender: custom renders drawing count: " + self.customRenderAnimationCount);
-    }
-
-    var eventName = customRender.isErasing ? "viewport:custom:render:erasing" : "viewport:custom:render:drawing";
 
     this.setCustomRender(customRender);
 
     raf(function() {
+      var eventName = customRender.isErasing ? "viewport:custom:render:erasing" : "viewport:custom:render:drawing";
       self.emit(DecksEvent(eventName, self, customRender));
+
       raf(function() {
+        self.customRenderAnimationCount++;
+
+        if (self.config.debugDrawing) {
+          console.log("Viewport#drawCustomRender: custom renders drawing count: " + self.customRenderAnimationCount);
+        }
+
         self.animator.animate({
           elements: customRender.element,
           properties: customRender.transform,
