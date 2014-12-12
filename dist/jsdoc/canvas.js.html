@@ -64,7 +64,7 @@ function Canvas(options) {
   this.setConfig(options.config);
   this.setEmitter(options.emitter);
   this.setLayout(options.layout);
-  this.setElement(options.element);
+  this.setElement(options.element || dom.create("div")); // Don't make this a defaultOptions - otherwise all Canvases will share it
 
   this.bind();
 
@@ -73,7 +73,6 @@ function Canvas(options) {
 
 _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   defaultOptions: {
-    element: dom.create("div"),
     overflow: "hidden",
     watchWindowScroll: true,
     watchWindowResize: true,
@@ -158,6 +157,41 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   unbind: function unbind() {
     this.unbindEvents(this.emitter, this.getEmitterEvents());
     this.unbindEvents(window, this.getWindowEvents());
+  },
+
+  /**
+   * Binds the {@link GestureHandler} managed by the {@link Canvas}
+   *
+   * @return {undefined}
+   */
+  bindGestures: function bindGestureHandler() {
+    if (this.gestureHandler) {
+      this.gestureHandler.bind();
+    }
+  },
+
+  /**
+   * Unbinds the {@link GestureHandler} managed by the {@link Canvas}
+   *
+   * @return {undefined}
+   */
+  unbindGestures: function unbindGestureHandler() {
+    if (this.gestureHandler) {
+      this.gestureHandler.unbind();
+    }
+  },
+
+  /**
+   * Destroys the {@link Canvas}
+   *
+   * @return {undefined}
+   */
+  destroy: function destroy() {
+    this.unbind();
+
+    if (this.gestureHandler) {
+      this.gestureHandler.destroy();
+    }
   },
 
   /**
@@ -492,22 +526,6 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     }
 
     this.gestureHandler = new GestureHandler(gestureHandlerOptions);
-  },
-
-  bindGestureHandler: function bindGestureHandler() {
-    if (!this.gestureHandler) {
-      return;
-    }
-
-    this.gestureHandler.bind();
-  },
-
-  unbindGestureHandler: function unbindGestureHandler() {
-    if (!this.gestureHandler) {
-      return;
-    }
-
-    this.gestureHandler.unbind();
   },
 
   onDeckLayoutSet: function onDeckLayoutSet(e) {

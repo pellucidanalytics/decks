@@ -129,6 +129,15 @@ _.extend(Frame.prototype, binder, hasEmitter, /** @lends Frame.prototype */ {
   },
 
   /**
+   * Destroys the {@link Frame}
+   *
+   * @return {undefined}
+   */
+  destroy: function() {
+    this.unbind();
+  },
+
+  /**
    * Sets the config object.
    *
    * @param config

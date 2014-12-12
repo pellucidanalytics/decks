@@ -70,6 +70,14 @@ describe("decks.Frame", function() {
     });
   });
 
+  describe("destroy", function() {
+    it("should destroy the instance", function() {
+      var unbindSpy = sinon.spy(frame, "unbind");
+      frame.destroy();
+      expect(unbindSpy).to.have.been.called;
+    });
+  });
+
   describe("setElement", function() {
     it("should require an element", function() {
       expect(function() { new Frame(); }).to.Throw(Error);

@@ -27,6 +27,24 @@ describe("decks.ItemCollection", function() {
     });
   });
 
+  describe("destroy", function() {
+    it("should destroy the instance", function() {
+      var unbindSpy = sinon.spy(itemCollection, "unbind");
+      var item1 = new Item();
+      var item2 = new Item();
+      itemCollection.addItem(item1);
+      itemCollection.addItem(item2);
+      var destroyItem1Spy = sinon.spy(item1, "destroy");
+      var destroyItem2Spy = sinon.spy(item2, "destroy");
+
+      itemCollection.destroy();
+
+      expect(unbindSpy).to.have.been.called;
+      expect(destroyItem1Spy).to.have.been.called;
+      expect(destroyItem2Spy).to.have.been.called;
+    });
+  });
+
   describe("getItem", function(){
     var items;
     beforeEach(function(){

@@ -90,6 +90,14 @@ describe("decks.Viewport", function() {
     });
   });
 
+  describe("destroy", function() {
+    it("should destroy the instance", function() {
+      var unbindSpy = sinon.spy(viewport, "unbind");
+      viewport.destroy();
+      expect(unbindSpy).to.have.been.called;
+    });
+  });
+
   describe("drawItem", function() {
     it("should throw for no item", function() {
       expect(function() { viewport.drawItem(); }).to.Throw(Error);

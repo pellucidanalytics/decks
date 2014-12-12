@@ -62,6 +62,12 @@ describe("decks.Item", function() {
     });
   });
 
+  describe("destroy", function() {
+    it("should do nothing", function() {
+      item.destroy();
+    });
+  });
+
   describe("setId", function() {
     it("should throw if already set", function() {
       item = new Item(10);

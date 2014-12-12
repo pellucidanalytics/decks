@@ -80,6 +80,17 @@ describe("decks.Canvas", function() {
     });
   });
 
+  describe("destroy", function() {
+    it("should destroy the instance", function() {
+      var unbindSpy = sinon.spy(canvas, "unbind");
+      canvas.gestureHandler = { destroy: function() { } };
+      var destroySpy = sinon.spy(canvas.gestureHandler, "destroy");
+      canvas.destroy();
+      expect(unbindSpy).to.have.been.called;
+      expect(destroySpy).to.have.been.called;
+    });
+  });
+
   describe("setAnimator", function() {
     it("should be set by the constructor", function() {
       expect(canvas.animator).to.eql(animator);

@@ -90,6 +90,28 @@ describe("decks.Deck", function () {
     });
   });
 
+  describe("destroy", function() {
+    it("should destroy the instance", function() {
+      var unbindSpy = sinon.spy(deck, "unbind");
+      var unbindLayoutSpy = sinon.spy(deck, "unbindLayout");
+      var itemCollectionDestroySpy = sinon.spy(deck.itemCollection, "destroy");
+      var layoutDestroySpy = sinon.spy(deck.layout, "destroy");
+      var frameDestroySpy = sinon.spy(deck.frame, "destroy");
+      var canvasDestroySpy = sinon.spy(deck.canvas, "destroy");
+      var viewportDestroySpy = sinon.spy(deck.viewport, "destroy");
+
+      deck.destroy();
+
+      expect(unbindSpy).to.have.been.called;
+      expect(unbindLayoutSpy).to.have.been.called;
+      expect(itemCollectionDestroySpy).to.have.been.called;
+      expect(layoutDestroySpy).to.have.been.called;
+      expect(frameDestroySpy).to.have.been.called;
+      expect(canvasDestroySpy).to.have.been.called;
+      expect(viewportDestroySpy).to.have.been.called;
+    });
+  });
+
   describe("itemCollection methods", function() {
     var mockItemCollection;
 

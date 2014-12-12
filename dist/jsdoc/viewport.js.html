@@ -289,6 +289,47 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   },
 
   /**
+   * Binds all {@link GestureHandlerGroup}s managed by the {@link Viewport}
+   *
+   * @return {undefined}
+   */
+  bindGestures: function bindGestures() {
+    if (this.gestureHandlerGroups) {
+      _.each(this.gestureHandlerGroups, function(gestureHandlerGroup) {
+        gestureHandlerGroup.bind();
+      }, this);
+    }
+  },
+
+  /**
+   * Unbinds all {@link GestureHandlerGroup}s managed by the {@link Viewport}
+   *
+   * @return {undefined}
+   */
+  unbindGestures: function bindGestures() {
+    if (this.gestureHandlerGroups) {
+      _.each(this.gestureHandlerGroups, function(gestureHandlerGroup) {
+        gestureHandlerGroup.unbind();
+      }, this);
+    }
+  },
+
+  /**
+   * Destroys the {@link Viewport}
+   *
+   * @return {undefined}
+   */
+  destroy: function destroy() {
+    this.unbind();
+
+    if (this.gestureHandlerGroups) {
+      _.each(this.gestureHandlerGroups, function(gestureHandlerGroup) {
+        gestureHandlerGroup.destroy();
+      }, this);
+    }
+  },
+
+  /**
    * Sets the animator instance
    *
    * @param animator

@@ -30,6 +30,12 @@ describe("decks.Layout", function() {
     });
   });
 
+  describe("destroy", function() {
+    it("should no-op by default", function() {
+      expect(layout.destroy).to.equal(_.noop);
+    });
+  });
+
   describe("getRenders", function() {
     it("should throw a not implemented error by default", function() {
       layout = new Layout();
