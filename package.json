@@ -1,6 +1,6 @@
 {
   "name": "decks",
-  "version": "0.0.1-66",
+  "version": "0.0.1-67",
   "description": "JavaScript UI library for viewing collections of items.",
   "main": "index.js",
   "browser": {
