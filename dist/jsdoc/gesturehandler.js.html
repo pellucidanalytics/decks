@@ -274,6 +274,33 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   },
 
   /**
+   * Destroys the GestureHandler and all GestureEmitter instances
+   *
+   * @return {undefined}
+   */
+  destroy: function destroy() {
+    _.each(this.gestureEmitters, function(gestureEmitter, key) {
+      if (this.config.debugGestures) {
+        console.log("GestureHandler#destroy: destroying gesture emitter: " + key);
+      }
+
+      gestureEmitter.destroy();
+
+      delete this.gestureEmitters[key];
+    }, this);
+
+    if (this.config.debugGestures) {
+      console.log("GestureHandler#destroy: destroying hammer: ", this.hammer);
+    }
+
+    // Destory the Hammer instance
+    this.hammer.destroy();
+    delete this.hammer;
+
+    this.unbind();
+  },
+
+  /**
    * Sets the animator instance
    *
    * @param animator
@@ -399,33 +426,6 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
     }
 
     this.bounds = bounds;
-  },
-
-  /**
-   * Destroys the GestureHandler and all GestureEmitter instances
-   *
-   * @return {undefined}
-   */
-  destroy: function destroy() {
-    _.each(this.gestureEmitters, function(gestureEmitter, key) {
-      if (this.config.debugGestures) {
-        console.log("GestureHandler#destroy: destroying gesture emitter: " + key);
-      }
-
-      gestureEmitter.destroy();
-
-      delete this.gestureEmitters[key];
-    }, this);
-
-    if (this.config.debugGestures) {
-      console.log("GestureHandler#destroy: destroying hammer: ", this.hammer);
-    }
-
-    // Destory the Hammer instance
-    this.hammer.destroy();
-    delete this.hammer;
-
-    this.unbind();
   },
 
   /**

@@ -137,10 +137,18 @@ _.extend(GestureHandlerGroup.prototype, binder, hasEmitter, /** @lends GestureHa
     }, this);
 
     this.bindEvents(this.emitter, this.getEmitterEvents());
+
+    _.each(this.gestureHandlers, function(gestureHandler) {
+      gestureHandler.bind();
+    }, this);
   },
 
   unbind: function unbind() {
     this.unbindEvents(this.emitter, this.getEmitterEvents());
+
+    _.each(this.gestureHandlers, function(gestureHandler) {
+      gestureHandler.unbind();
+    }, this);
   },
 
   destroy: function destroy() {

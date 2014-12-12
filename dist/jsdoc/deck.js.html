@@ -104,7 +104,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
   /**
    * Events to bind to on the shared {@link Emitter}.
    */
-  getEmitterEvents: function() {
+  getEmitterEvents: function getEmitterEvents() {
     return {
       "*": "onAnyEmitterEvent"
     };
@@ -113,7 +113,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
   /**
    * Events to bind to on the {@link ItemCollection}
    */
-  getItemCollectionEvents: function() {
+  getItemCollectionEvents: function getItemCollectionEvents() {
     return {
       "*": "onAnyItemCollectionEvent"
     };
@@ -124,7 +124,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    *
    * @return {undefined}
    */
-  bind: function() {
+  bind: function bind() {
     this.bindEvents(this.emitter, this.getEmitterEvents());
 
     if (this.itemCollection.emitter !== this.emitter) {
@@ -137,12 +137,67 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
    *
    * @return {undefined}
    */
-  unbind: function() {
+  unbind: function unbind() {
     this.unbindEvents(this.emitter, this.getEmitterEvents());
 
     if (this.itemCollection.emitter !== this.emitter) {
       this.unbindEvents(this.itemCollection, this.getItemCollectionEvents());
     }
+  },
+
+  /**
+   * Binds the {@link Layout} {@link Emitter} events.
+   *
+   * @return {undefined}
+   */
+  bindLayout: function bindLayout() {
+    this.layout.bindEvents(this.emitter, this.layout.getEmitterEvents());
+  },
+
+  /**
+   * Unbinds the {@link Layout} {@link Emitter} events.
+   *
+   * @return {undefined}
+   */
+  unbindLayout: function unbindLayout() {
+    this.layout.unbindEvents(this.emitter, this.layout.getEmitterEvents());
+  },
+
+  /**
+   * Binds all {@link GestureHandler}s and {@link GestureHandlerGroup}s.
+   *
+   * @return {undefined}
+   */
+  bindGestures: function bindGestures() {
+    this.canvas.bindGestures();
+    this.viewport.bindGestures();
+  },
+
+  /**
+   * Binds all {@link GestureHandler}s and {@link GestureHandlerGroup}s.
+   *
+   * @return {undefined}
+   */
+  unbindGestures: function unbindCanvasGestureHandler() {
+    this.canvas.unbindGestures();
+    this.viewport.unbindGestures();
+  },
+
+  /**
+   * Destroys the {@link Deck} and all sub-components.  The {@link Deck} is no longer
+   * usable after calling this.
+   *
+   * @return {undefined}
+   */
+  destroy: function destroy() {
+    this.unbind();
+    this.unbindLayout();
+
+    this.itemCollection.destroy();
+    this.layout.destroy();
+    this.frame.destroy();
+    this.canvas.destroy();
+    this.viewport.destroy();
   },
 
   /**
@@ -313,24 +368,6 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
   },
 
   /**
-   * Binds the {@link Canvas}'s {@link GestureHandler} events.
-   *
-   * @return {undefined}
-   */
-  bindCanvasGestureHandler: function bindCanvasGestureHandler() {
-    this.canvas.bindGestureHandler();
-  },
-
-  /**
-   * Unbinds the {@link Canvas}'s {@link GestureHandler} events.
-   *
-   * @return {undefined}
-   */
-  unbindCanvasGestureHandler: function unbindCanvasGestureHandler() {
-    this.canvas.unbindGestureHandler();
-  },
-
-  /**
    * Sets the config object.
    *
    * @param config
@@ -393,7 +430,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
 
     // Unbind the previous layout from emitter events
     if (this.layout) {
-      this.layout.unbindEvents(this.emitter, this.layout.getEmitterEvents());
+      this.unbindLayout();
     }
 
     if (!(layout instanceof Layout)) {
@@ -401,7 +438,7 @@ _.extend(Deck.prototype, binder, hasEmitter, /** @lends Deck.prototype */ {
     }
 
     this.layout = layout;
-    this.layout.bindEvents(this.emitter, this.layout.getEmitterEvents());
+    this.bindLayout();
 
     this.emit(DecksEvent("deck:layout:set", this, this.layout));
   },

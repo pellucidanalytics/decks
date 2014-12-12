@@ -73,6 +73,43 @@ _.extend(ItemCollection.prototype, binder, hasEmitter, /** @lends ItemCollection
   },
 
   /**
+   * Binds to all {@link Item} events.
+   *
+   * It's not necessary to call this directly, unless you called this.unbind at some point.
+   *
+   * @return {undefined}
+   */
+  bind: function bind() {
+    _.each(this.getItems(), function(item) {
+      this.bindEvents(item, this.getItemEvents());
+    }, this);
+  },
+
+  /**
+   * Unbinds from all {@link Item} events.
+   *
+   * @return {undefined}
+   */
+  unbind: function bind() {
+    _.each(this.getItems(), function(item) {
+      this.unbindEvents(item, this.getItemEvents());
+    }, this);
+  },
+
+  /**
+   * Destroys the {@link ItemCollection}
+   *
+   * @return {undefined}
+   */
+  destroy: function() {
+    this.unbind();
+
+    _.each(this.getItems(), function(item) {
+      item.destroy();
+    }, this);
+  },
+
+  /**
    * Gets a single item from the collection
    *
    * @param {!String} id - Item id to find
