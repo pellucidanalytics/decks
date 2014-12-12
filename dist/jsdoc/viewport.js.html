@@ -169,6 +169,9 @@ function Viewport(options) {
   /** Keeps track of {@link GestureHandlerGroup}s */
   this.gestureHandlerGroups = {};
 
+  /** Whether to stop animations when a new cycle starts while one is already running */
+  this.useAnimationStopping = options.useAnimationStopping;
+
   /**
    * Flag that indicates if the deck is ready.  Drawing actions are suppressed
    * until the deck is signaled as ready
@@ -214,6 +217,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   defaultOptions: {
     /** Whether to run a draw cycle on deck:ready */
     drawOnDeckReady: true,
+
+    /** Whether to stop animations when a draw cycle happens while another cycle is running */
+    useAnimationStopping: false,
 
     /** Whether to forcefully run animations in small, staggered slots */
     useAnimationSlots: false,
@@ -969,6 +975,10 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   stopRenderAnimation: function stopRenderAnimation(render) {
+    if (!this.useAnimationStopping) {
+      return;
+    }
+
     validate(render, "Viewport#stopRenderAnimation: render", { isRequired: true });
 
     if (this.config.debugDrawing) {
