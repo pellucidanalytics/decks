@@ -1021,7 +1021,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
   setSwiping: function setSwiping() {
     var self = this;
     self.isSwiping = true;
-    setTimeout(function() {
+    _.delay(function() {
       self.isSwiping = false;
     }, self.movement.swipingTimeout);
   },
