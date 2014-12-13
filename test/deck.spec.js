@@ -112,6 +112,22 @@ describe("decks.Deck", function () {
     });
   });
 
+  describe("enableDrawing", function() {
+    it("should enable drawing", function() {
+      var spy = sinon.spy(deck.viewport, "enableDrawing");
+      deck.enableDrawing();
+      expect(spy).to.have.been.called;
+    });
+  });
+
+  describe("disableDrawing", function() {
+    it("should disable drawing", function() {
+      var spy = sinon.spy(deck.viewport, "disableDrawing");
+      deck.disableDrawing();
+      expect(spy).to.have.been.called;
+    });
+  });
+
   describe("itemCollection methods", function() {
     var mockItemCollection;
 

@@ -98,6 +98,22 @@ describe("decks.Viewport", function() {
     });
   });
 
+  describe("enableDrawing", function() {
+    it("should enable drawing", function() {
+      viewport.isDrawingEnabled = false;
+      viewport.enableDrawing();
+      expect(viewport.isDrawingEnabled).to.be.True;
+    });
+  });
+
+  describe("disableDrawing", function() {
+    it("should disable drawing", function() {
+      viewport.isDrawingEnabled = true;
+      viewport.disableDrawing();
+      expect(viewport.isDrawingEnabled).to.be.False;
+    });
+  });
+
   describe("drawItem", function() {
     it("should throw for no item", function() {
       expect(function() { viewport.drawItem(); }).to.Throw(Error);
@@ -127,6 +143,20 @@ describe("decks.Viewport", function() {
 
       mockLayout.verify();
       mockViewport.verify();
+    });
+
+    it("should not draw if deck is not ready", function() {
+      var spy = sinon.spy(viewport, "emit");
+      viewport.isDeckReady = false;
+      viewport.drawItem(new Item());
+      expect(spy).not.to.have.been.called;
+    });
+
+    it("should not draw if drawing is disabled", function() {
+      var spy = sinon.spy(viewport, "emit");
+      viewport.isDrawingEnabled = false;
+      viewport.drawItem(new Item());
+      expect(spy).not.to.have.been.called;
     });
   });
 
