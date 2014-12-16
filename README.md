@@ -9,7 +9,6 @@
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/pelluciddecks.svg?auth=ece3dc76af60a49515da2a7b0bbfa51c)](https://saucelabs.com/u/pelluciddecks?auth=ece3dc76af60a49515da2a7b0bbfa51c)
 
-
 ## Overview
 
 A flexible layout library for rendering collections of items in the DOM.
