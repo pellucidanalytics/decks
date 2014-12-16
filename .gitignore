@@ -2,5 +2,8 @@
 node_modules/
 npm-debug.log
 
+# dist files
+dist/
+
 # gh-pages Jekyll build folder
 _site/
