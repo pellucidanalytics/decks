@@ -114,6 +114,33 @@ describe("decks.Viewport", function() {
     });
   });
 
+  describe("canDraw", function() {
+    beforeEach(function() {
+      viewport.isDeckReady = false;
+      viewport.isDrawingEnabled = false;
+      viewport.drawOnDeckReady = true;
+    });
+
+    it("should check for deck ready", function() {
+      expect(viewport.canDraw(viewport.drawOnDeckReady)).to.be.False;
+
+      viewport.isDeckReady = true;
+      expect(viewport.canDraw(viewport.drawOnDeckReady)).to.be.True;
+
+      viewport.drawOnDeckReady = false;
+      expect(viewport.canDraw(viewport.drawOnDeckReady)).to.be.False;
+    });
+
+    it("should check for drawing enabled", function() {
+      expect(viewport.canDraw()).to.be.False;
+
+      viewport.isDeckReady = true;
+      viewport.isDrawingEnabled = true;
+
+      expect(viewport.canDraw()).to.be.True;
+    });
+  });
+
   describe("drawItem", function() {
     it("should throw for no item", function() {
       expect(function() { viewport.drawItem(); }).to.Throw(Error);
@@ -143,20 +170,6 @@ describe("decks.Viewport", function() {
 
       mockLayout.verify();
       mockViewport.verify();
-    });
-
-    it("should not draw if deck is not ready", function() {
-      var spy = sinon.spy(viewport, "emit");
-      viewport.isDeckReady = false;
-      viewport.drawItem(new Item());
-      expect(spy).not.to.have.been.called;
-    });
-
-    it("should not draw if drawing is disabled", function() {
-      var spy = sinon.spy(viewport, "emit");
-      viewport.isDrawingEnabled = false;
-      viewport.drawItem(new Item());
-      expect(spy).not.to.have.been.called;
     });
   });
 
