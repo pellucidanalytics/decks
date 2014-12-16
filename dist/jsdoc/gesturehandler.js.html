@@ -694,7 +694,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     _.extend(completeOptions, {
       snapToBounds: false,
-      snapToNearestChildElement: true,
+      snapToNearestChildElement: false,
       clearPositionData: true
     });
 
@@ -755,7 +755,7 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
 
     _.extend(completeOptions, {
       snapToBounds: false,
-      snapToNearestChildElement: true,
+      snapToNearestChildElement: false,
       clearPositionData: true
     });
 
@@ -1212,12 +1212,6 @@ _.extend(GestureHandler.prototype, binder, hasEmitter, /** @lends GestureHandler
       }
 
       if (!self.isAnimating()) {
-        if (self.snapping.toNearestChildElement) {
-          self.snapToNearestChildElement();
-        } else if (self.snapping.toBounds) {
-          self.snapToBounds();
-        }
-
         self.clearPositionData();
       }
     });
