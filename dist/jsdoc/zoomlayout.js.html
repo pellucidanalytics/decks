@@ -118,7 +118,13 @@ ZoomLayout.prototype = _.create(Layout.prototype, /** @lends ZoomLayout.prototyp
         mouseWheel: {
           horizontal: this.horizontal,
           vertical: this.vertical
+        },
+        scroll: {
+          enabled: true
         }
+      },
+      snapping: {
+        toNearestChildElement: true
       }
     };
   },
