@@ -20,7 +20,7 @@ echo "Temporarily adding dist files to master..."
 git add -f dist
 
 echo "Committing dist files to master..."
-git commit -m "Temporarily updating dist files for publish $(date)"
+git commit -m "Temporarily adding dist files for publish $(date)"
 
 echo "Checking out gh-pages branch..."
 git checkout gh-pages
@@ -28,7 +28,7 @@ git checkout gh-pages
 echo "Merging origin/gh-pages..."
 git merge origin/gh-pages
 
-echo "Updating dist files from master..."
+echo "Checking out dist files from master..."
 git checkout master -- dist
 
 # Record the last sync time (this also makes sure there is at least one change
