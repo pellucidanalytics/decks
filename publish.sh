@@ -16,13 +16,11 @@ fi
 echo "Fetching origin..."
 git fetch origin
 
-echo "Last publish $(date)" > last-publish.txt
-
-echo "Adding dist files to master..."
-git add -A .
+echo "Temporarily adding dist files to master..."
+git add -f dist
 
 echo "Committing dist files to master..."
-git commit -m "Updating dist files for publish $(date)"
+git commit -m "Temporarily updating dist files for publish $(date)"
 
 echo "Checking out gh-pages branch..."
 git checkout gh-pages
@@ -48,6 +46,9 @@ git push origin gh-pages
 
 echo "Going back to master..."
 git checkout master
+
+echo "Resetting master back to previous commit (before temporarily adding dist files)..."
+git reset --hard HEAD~1
 
 echo "Running npm version..."
 # TODO: need to pass version string as argument to script
