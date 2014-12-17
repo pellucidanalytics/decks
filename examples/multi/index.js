@@ -262,7 +262,7 @@ $(function() {
   var deckOptions = {
     config: {
       debugEvents: false,
-      debugDrawing: false,
+      debugDrawing: true,
       debugGestures: false
     },
     animator: {
