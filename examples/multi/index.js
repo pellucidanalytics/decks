@@ -262,8 +262,9 @@ $(function() {
   var deckOptions = {
     config: {
       debugEvents: false,
-      debugDrawing: true,
-      debugGestures: false
+      debugDrawing: false,
+      debugGestures: false,
+      debugLoading: true
     },
     animator: {
       animate: Velocity
