@@ -192,6 +192,7 @@ function Viewport(options) {
   this.setAnimator(options.animator);
   this.setConfig(options.config);
   this.setEmitter(options.emitter);
+  this.setDeck(options.deck);
   this.setItemCollection(options.itemCollection);
   this.setLayout(options.layout);
   this.setFrame(options.frame);
@@ -361,6 +362,17 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   setConfig: function setConfig(config) {
     validate(config, "config", { isPlainObject: true, isNotSet: this.config });
     this.config = this.layoutMethodOptions.config = config;
+  },
+
+  /**
+   * Sets the deck instance.
+   *
+   * @param deck
+   * @return {undefined}
+   */
+  setDeck: function setDeck(deck) {
+    validate(deck, "Viewport#setDeck: deck", { isRequired: true });
+    this.deck = this.layoutMethodOptions.deck = deck;
   },
 
   /**
@@ -1042,7 +1054,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     validate(render, "render", { isRequired: true });
 
-    return this.layout.shouldLoadRender(render) ||
+    return this.layout.shouldLoadRender(render, this.layoutMethodOptions) ||
       render.isLoadNeeded ||
       this.frame.isElementVisible(render.element);
   },
