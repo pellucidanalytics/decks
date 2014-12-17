@@ -18,6 +18,7 @@ describe("decks.Viewport", function() {
   var config;
   var animator;
   var emitter;
+  var deck;
   var itemCollection;
   var layout;
   var frame;
@@ -45,6 +46,7 @@ describe("decks.Viewport", function() {
       animate: function() { }
     };
     emitter = new Emitter();
+    deck = {}; // stub
     itemCollection = new ItemCollection();
     layout = new Layout({ });
     canvas = new Canvas({
@@ -63,6 +65,7 @@ describe("decks.Viewport", function() {
       config: config,
       animator: animator,
       emitter: emitter,
+      deck: deck,
       itemCollection: itemCollection,
       layout: layout,
       frame: frame,
