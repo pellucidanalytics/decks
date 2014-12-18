@@ -44,40 +44,58 @@ function getRandomGroups(count) {
   }, []);
 }
 
-function loadRender(render) {
-  //console.log("loadRender");
-
-  var item = render.item;
-
-  if (!render.image) {
-    //console.log("loadRender - image loading");
-    render.image = new Image(imageWidth, imageHeight);
-
-    render.image.ondragstart = function() {
-      return false;
-    };
-
-    render.image.onload = function() {
-      if (!render.image) {
-        return;
-      }
-      //console.log("loadRender - image loaded");
-      render.element.innerHTML = "";
-      render.element.appendChild(render.image);
-    };
-
-    render.image.onerror = render.image.onabort = function() {
-      console.error("Failed to load image");
-    };
-
-    render.image.src = item.get("imgUrl");
-  }
+function initializeRender(render) {
+  this.unloadRender(render);
 }
 
-function unloadRender(/*render*/) {
-  //console.log("unloadRender");
-  //render.element.innerHTML = "<span>Loading...</span>";
-  //render.image = null;
+function shouldLoadRender(render, options) {
+  return !render.isLoaded && !render.isLoading && options.frame.isElementVisible(render.element);
+}
+
+function shouldUnloadRender(render, options) {
+  return render.isLoaded && !options.frame.isElementVisible(render.element);
+}
+
+function loadRender(render) {
+  var item = render.item;
+
+  render.isLoading = true;
+  render.isLoaded = false;
+  render.isFailed = false;
+
+  var image = new Image(imageWidth, imageHeight);
+
+  // Prevent dragging on the image
+  image.ondragstart = function() {
+    return false;
+  };
+
+  image.onload = function() {
+    render.isLoading = false;
+    render.isLoaded = true;
+    render.isFailed = false;
+
+    render.element.innerHTML = "";
+    render.element.appendChild(image);
+  };
+
+  image.onerror = image.onabort = function() {
+    render.isLoading = false;
+    render.isLoaded = false;
+    render.isFailed = true;
+
+    render.element.innerHTML = "<span>Error!</span>";
+  };
+
+  image.src = item.get("imgUrl");
+}
+
+function unloadRender(render) {
+  render.isLoaded = false;
+  render.isLoading = false;
+  render.isFailed = false;
+
+  render.element.innerHTML = "<span>Loading...</span>";
 }
 
 var layouts = {
@@ -86,42 +104,8 @@ var layouts = {
     itemHeight: 80,
     itemPadding: 10,
     itemsPerRow: 9,
-    loadRender: loadRender,
-    unloadRender: unloadRender,
     transform: {
       rotateZ: 1080
-    },
-    animateOptions: {
-    },
-    onCanvasBoundsSet: function() {
-      //console.info("canvas bounds set!");
-    },
-    onFrameBoundsSet: function() {
-      //console.info("frame bounds set!");
-    },
-    onViewportRenderDrawing: function() {
-      //console.info("render drawing!");
-    },
-    onViewportRenderDrawn: function() {
-      //console.info("render drawn!");
-    },
-    onViewportRenderErasing: function() {
-      //console.info("render erasing!");
-    },
-    onViewportRenderErased: function() {
-      //console.info("render erased!");
-    },
-    onItemCollectionFilterSet: function() {
-      //console.info("deck filter set!");
-    },
-    onItemCollectionSortBySet: function() {
-      //console.info("deck sort by set!");
-    },
-    onItemCollectionReversedSet: function() {
-      //console.info("deck reversed set!");
-    },
-    onItemCollectionIndexed: function() {
-      //console.info("item collection indexed!");
     }
   }),
   grid2: new BasicGridLayout({
@@ -129,44 +113,41 @@ var layouts = {
     itemHeight: 120,
     itemPadding: 15,
     itemsPerRow: 6,
-    loadRender: loadRender,
-    unloadRender: unloadRender,
     transform: {
       rotateZ: 360
-    },
-    animateOptions: {
     }
   }),
   stack: new BasicStackLayout({
     itemWidth: 200,
     itemHeight: 160,
     itemPadding: 40,
-    itemsPerRow: 4,
-    loadRender: loadRender,
-    unloadRender: unloadRender
+    itemsPerRow: 4
   }),
   zoom: new ZoomLayout({
-    padding: 10,
-    loadRender: loadRender,
-    unloadRender: unloadRender
+    padding: 10
   }),
   row: new RowLayout({
     itemWidth: 150,
     itemHeight: 120,
     itemPadding: 40,
-    itemsPerRow: 15,
-    loadRender: loadRender,
-    unloadRender: unloadRender
+    itemsPerRow: 15
   }),
   column: new ColumnLayout({
     itemWidth: 150,
     itemHeight: 120,
     itemPadding: 40,
-    itemsPerColumn: 15,
-    loadRender: loadRender,
-    unloadRender: unloadRender
+    itemsPerColumn: 15
   })
 };
+
+// Set common layout methods on all layouts
+_.each(layouts, function(layout) {
+  layout.initializeRender = initializeRender;
+  layout.shouldLoadRender = shouldLoadRender;
+  layout.shouldUnloadRender = shouldUnloadRender;
+  layout.loadRender = loadRender;
+  layout.unloadRender = unloadRender;
+});
 
 $(function() {
   var $root = $("#root");
@@ -264,7 +245,7 @@ $(function() {
       debugEvents: false,
       debugDrawing: false,
       debugGestures: false,
-      debugLoading: true
+      debugLoading: false
     },
     animator: {
       animate: Velocity

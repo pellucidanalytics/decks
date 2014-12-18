@@ -345,7 +345,7 @@ describe("decks.Viewport", function() {
     it("should run a draw cycle", function() {
       var spy = sinon.spy(viewport, "drawItems");
       viewport.onDeckReady();
-      expect(spy).to.have.been.calledWith({ isLoadNeeded: true });
+      expect(spy).to.have.been.called;
       viewport.drawItems.restore();
     });
 
