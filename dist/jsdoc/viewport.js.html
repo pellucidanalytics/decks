@@ -62,9 +62,6 @@ function Viewport(options) {
 
   options = _.merge({}, this.defaultOptions, options);
 
-  /** Wait time for debounced onGestureElementMoved */
-  this.debounedOnGestureElementMovedWait = options.debouncedOnGestureElementMovedWait;
-
   /** Whether to run a draw cycle when the deck:ready event is handled */
   this.drawOnDeckReady = options.drawOnDeckReady;
 
@@ -81,7 +78,7 @@ function Viewport(options) {
   this.slotRenderDelay = options.slotRenderDelay;
 
   /** Debounced version of {@link Viewport#onGestureElementMoved} */
-  this.debouncedOnGestureElementMoved = _.debounce(this.onGestureElementMoved, this.debouncedOnGestureElementMovedWait);
+  this.debouncedLoadOrUnloadRenders = _.debounce(this.loadOrUnloadRenders, options.debouncedLoadOrUnloadRendersWait);
 
   /**
    * Data structure for storing the items and corresponding renders
@@ -234,11 +231,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     /** Number of items created and animated in each rendering slot */
     itemsPerRenderSlot: 15,
 
-    /* animations are applied for total items = itemsPerRenderSlot * maxSlotsWithAnimations */
+    /** Animations are applied for total items = itemsPerRenderSlot * maxSlotsWithAnimations */
     maxSlotsWithAnimations: 3,
 
-    /* delay between each render slot */
-    slotRenderDelay: 100
+    /** Delay between each render slot */
+    slotRenderDelay: 100,
+
+    /** Wait time for debounced loadOrUnloadRenders function */
+    debouncedLoadOrUnloadRendersWait: 400
   },
 
   /**
@@ -279,7 +279,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       "item:collection:indexed": "onItemCollectionIndexed",
 
       // Gestures
-      "gesture:element:moved": "debouncedOnGestureElementMoved"
+      "gesture:element:moved": "onGestureElementMoved"
     };
   },
 
@@ -492,12 +492,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @param {!Item} item item to draw
    * @param {?Object} options - additional options for drawing
-   * @param {boolean} options.isLoadNeeded - indicates if the item should be re-loaded after the animation completes.
    * @return {undefined}
    */
-  drawItem: function drawItem(item, options) {
+  drawItem: function drawItem(item) {
     if (this.config.debugDrawing) {
-      console.log("Viewport#drawItem: drawing item", item, options);
+      console.log("Viewport#drawItem: drawing item", item);
     }
 
     validate(item, "item", { isInstanceOf: Item });
@@ -521,9 +520,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       render.id = "" + index;
       render.index = index;
       render.item = item;
-      if (options) {
-        render.isLoadNeeded = !!options.isLoadNeeded;
-      }
 
       renders[render.id] = render;
     });
@@ -536,9 +532,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  drawItems: function drawItems(options) {
+  drawItems: function drawItems() {
     if (this.config.debugDrawing) {
-      console.log("Viewport#drawItems: drawing items", options);
+      console.log("Viewport#drawItems: drawing items");
     }
 
     var items = this.itemCollection.getItems();
@@ -550,7 +546,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.emit(DecksEvent("viewport:items:drawing", this, items));
 
     _.each(items, function(item) {
-      this.drawItem(item, options);
+      this.drawItem(item);
     }, this);
   },
 
@@ -847,7 +843,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       // but fake it as if it happened, so we can still rely on the normal render cycle
       // completion logic (like detecting when all items have been processed, even if none
       // of them have changed.
-      if (_.isEqual(previousRender.transform, mergedRender.transform) &amp;&amp; !mergedRender.isLoadNeeded) {
+      if (_.isEqual(previousRender.transform, mergedRender.transform)) {
         if (this.config.debugDrawing) {
           console.warn("Viewport#drawRenders: not animating item render (no change to transform)", item, mergedRender);
         }
@@ -1009,10 +1005,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(render, "render", { isRequired: true });
 
     this.layout.loadRender(render, this.layoutMethodOptions);
-
-    if (render.isLoadNeeded) {
-      render.isLoadNeeded = false;
-    }
   },
 
   /**
@@ -1023,7 +1015,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   unloadRender: function unloadRender(render) {
     if (this.config.debugLoading) {
-      console.log("Viewport#unloadRender: initializing render", render);
+      console.log("Viewport#unloadRender: unloading render", render);
     }
 
     validate(render, "render", { isRequired: true });
@@ -1037,7 +1029,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * The {@link Layout} can implement a method "shouldLoadRender" to specifiy whether
    * any given render should be loaded.
    *
-   * If the {@link Layout} returns false
+   * If the {@link Layout#shouldLoadRender} method returns false, the {@link Viewport}
+   * will call the {@link Layout#shouldUnloadRender} method to see if the render should
+   * be unloaded.
    *
    * @param {!Object} render - render to check whether it needs to be loaded
    * @return {boolean}
@@ -1045,25 +1039,25 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   shouldLoadRender: function shouldLoadRender(render) {
     validate(render, "render", { isRequired: true });
 
-    // Ask the layout if the render should be loaded
-    var layoutShouldLoadRender = this.layout.shouldLoadRender(render, this.layoutMethodOptions);
+    return this.layout.shouldLoadRender(render, this.layoutMethodOptions);
+  },
 
-    // Check if the render "isLoadNeeded" flag is set
-    var renderShouldLoadRender = render.isLoadNeeded;
+  /**
+   * Returns a boolean indicating whether this render should be unloaded at this time.
+   *
+   * The {@link Layout} can implement a method "shouldUnloadRender" to specifiy whether
+   * any given render should be loaded.
+   *
+   * {@link Layout#shouldUnloadRender} is only called if {@link Layout#shouldLoadRender} returns
+   * false;
+   *
+   * @param {!Object} render - render to check whether it needs to be loaded
+   * @return {boolean}
+   */
+  shouldUnloadRender: function shouldUnloadRender(render) {
+    validate(render, "render", { isRequired: true });
 
-    // Check if the render element is visible in the frame
-    var frameShouldLoadRender = this.frame.isElementVisible(render.element);
-
-    if (this.config.debugLoading) {
-      console.log(
-        "Viewport#shouldLoadRender: layout: %s, render: %s, frame: %s",
-        layoutShouldLoadRender,
-        renderShouldLoadRender,
-        frameShouldLoadRender,
-        render);
-    }
-
-    return layoutShouldLoadRender || renderShouldLoadRender || frameShouldLoadRender;
+    return this.layout.shouldUnloadRender(render, this.layoutMethodOptions);
   },
 
   /**
@@ -1076,7 +1070,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   loadOrUnloadRender: function loadOrUnloadRender(render) {
     if (this.shouldLoadRender(render)) {
       this.loadRender(render);
-    } else {
+    } else if (this.shouldUnloadRender(render)) {
       this.unloadRender(render);
     }
   },
@@ -1192,21 +1186,22 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     validate(customRender, "customRender", { isRequired: true });
 
+    this.setCustomRender(customRender);
+
     self.setDefaultCustomRenderAnimateOptions(customRender);
 
-    this.setCustomRender(customRender);
+    customRender.isAnimating = true;
+    self.customRenderAnimationCount++;
+
+    if (self.config.debugDrawing) {
+      console.log("Viewport#drawCustomRender: drawing custom render (" + self.customRenderAnimationCount + ")", customRender);
+    }
 
     raf(function() {
       var eventName = customRender.isErasing ? "viewport:custom:render:erasing" : "viewport:custom:render:drawing";
       self.emit(DecksEvent(eventName, self, customRender));
 
       raf(function() {
-        self.customRenderAnimationCount++;
-
-        if (self.config.debugDrawing) {
-          console.log("Viewport#drawCustomRender: custom renders drawing count: " + self.customRenderAnimationCount);
-        }
-
         self.animator.animate({
           elements: customRender.element,
           properties: customRender.transform,
@@ -1499,7 +1494,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
-    this.drawItems({ isLoadNeeded: true }); // Needs loading because the items haven't been loaded before
+    this.drawItems();
   },
 
   /**
@@ -1518,7 +1513,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     this.eraseCustomRenders();
 
-    this.drawItems({ isLoadNeeded: true }); // Needs loading because this is a manual, programmatic draw request
+    this.drawItems();
   },
 
   /**
@@ -1558,7 +1553,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
-    this.drawItems({ isLoadNeeded: true }); // Needs loading because different layouts may have different item representations.
+    this.drawItems();
   },
 
   /**
@@ -1592,7 +1587,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
-    this.drawItems({ isLoadNeeded: false }); // Doesn't need loading because we should just be moving things around based on new frame bounds
+    this.drawItems();
   },
 
   /**
@@ -1614,7 +1609,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     this.eraseCustomRenders();
 
-    this.drawItem(item, { isLoadNeeded: true }); // Needs loading because change to item might require new representation.
+    this.drawItem(item);
   },
 
   onItemIndexChanged: function onItemIndexChanged() {
@@ -1642,7 +1637,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
-    this.drawItems({ isLoadNeeded: true });
+    this.drawItems();
   },
 
   onItemCollectionItemsAdding: function onItemCollectionItemAdding() {
@@ -1666,7 +1661,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       return;
     }
 
-    this.drawItems({ isLoadNeeded: true });
+    this.drawItems();
   },
 
   onItemCollectionItemRemoving: function onItemCollectionItemRemoving() {
@@ -1699,7 +1694,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     // require other items to be re-drawn too.
     // The Item is already removed from the ItemCollection when this is called, so re-draw all the other
     // Items
-    this.drawItems({ isLoadNeeded: false });
+    this.drawItems();
   },
 
   onItemCollectionClearing: function onItemCollectionClearing() {
@@ -1888,6 +1883,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   onCustomRenderAnimationComplete: function onCustomRenderAnimationComplete(customRender) {
     validate(customRender, "Viewport#onCustomRenderAnimationComplete: customRender", { isRequired: true });
 
+    customRender.isAnimating = false;
     this.customRenderAnimationCount--;
 
     if (this.config.debugDrawing) {
@@ -1932,12 +1928,20 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param e
    * @return {undefined}
    */
-  onGestureElementMoved: function onGestureElementMoved(e) {
+  onGestureElementMoved: function onGestureElementMoved(/*e*/) {
+    /*
     var element = e.data;
 
     if (element === this.canvas.element) {
-      this.onCanvasElementMoved(e);
+      this.onCanvasElementMoved();
     }
+
+    if (dom.hasClass(element, this.config.itemClassName)) {
+      this.onRenderElementMoved(e);
+    }
+    */
+
+    this.debouncedLoadOrUnloadRenders();
   },
 
   /**
@@ -1946,7 +1950,24 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   onCanvasElementMoved: function onCanvasElementMoved() {
-    this.loadOrUnloadRenders();
+    this.debouncedLoadOrUnloadRenders();
+  },
+
+  onRenderElementMoved: function onRenderElementMoved() {
+    /*
+    var element = e.data;
+    var itemId = dom.attr(element, "data-item-id");
+    var renderId = dom.attr(element, "data-render-id");
+    var render = this.renders[itemId][renderId];
+
+    if (!render) {
+      return;
+    }
+
+    // (would like to debounce this, but that would required a memoized debounce per render argument)
+    this.loadOrUnloadRender(render);
+    */
+    this.debouncedLoadOrUnloadRenders();
   }
 });
 

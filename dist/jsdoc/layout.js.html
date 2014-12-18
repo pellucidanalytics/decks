@@ -81,8 +81,12 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
       "getRenders",
       "initializeRender",
       "shouldLoadRender",
+      "shouldUnloadRender",
       "loadRender",
       "unloadRender",
+
+      // Custom render-related methods
+      "getCustomRenders",
 
       // Animation-related methods
       "getShowAnimation",
@@ -94,19 +98,22 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
       "getCanvasGestureOptions",
       "getMoveToElementOffsets",
 
-      // Custom render-related methods
-      "getCustomRenders",
-
       // Emitter event handlers
       "onViewportItemDrawing",
       "onViewportItemsDrawing",
+
       "onViewportRenderDrawing",
       "onViewportRenderErasing",
       "onViewportRenderDrawn",
       "onViewportRenderErased",
       "onViewportAllRendersDrawn",
+
+      // TODO: add custom render event handlers?
+
       "onCanvasBoundsSet",
+
       "onFrameBoundsSet",
+
       "onItemCollectionFilterSet",
       "onItemCollectionSortBySet",
       "onItemCollectionReversedSet",
@@ -211,11 +218,12 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    * The {@link Layout} can implement this method if there are cases where a render
    * might not be normally loaded, but should be.
    *
-   * @param render
+   * @param {!Object} render - render object to check for loading
+   * @param {!Object} options - hash of all deck-related objects
    * @return {undefined}
    */
   shouldLoadRender: function shouldLoadRender(/*render, options*/) {
-    return false;
+    return true;
   },
 
   /**
@@ -226,6 +234,19 @@ _.extend(Layout.prototype, binder, /** @lends Layout.prototype */ {
    */
   loadRender: function loadRender(/*render, options*/) {
     throw new Error("Layout#loadRender not implemented");
+  },
+
+  /**
+   * Returns whether the given render should be unloaded at the time of invocation.
+   * The {@link Layout} can implement this method if there are cases where a render
+   * should be unloaded (e.g. to save on memory).
+   *
+   * @param {!Object} render - render object to check for unloading.
+   * @param {!Object} options - hash of all deck-related objects
+   * @return {undefined}
+   */
+  shouldUnloadRender: function shouldUnloadRender(/*render, options*/) {
+    return false;
   },
 
   /**
