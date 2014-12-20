@@ -543,8 +543,12 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
   },
 
   onItemCollectionFilterSet: function onItemCollectionFilterSet() {
-    if (this.resetPositionOnFilter) {
-      this.resetPosition();
+    var self = this;
+
+    if (self.resetPositionOnFilter) {
+      self.once("viewport:all:renders:drawn", function() {
+        self.resetPosition();
+      });
     }
   },
 
