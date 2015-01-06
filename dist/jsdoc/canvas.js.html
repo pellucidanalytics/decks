@@ -282,7 +282,8 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     var layoutBoundsOptions = this.layout.getCanvasBoundsOptions();
 
     if (!options.noResize) {
-      var applyMargins = true;
+      var applyMarginRight = true;
+      var applyMarginBottom = true;
 
       if (layoutBoundsOptions.smartMarginRight || layoutBoundsOptions.smartMarginBottom) {
         // Smart margin right and bottom - only add margin if child elements are close to the edge
@@ -291,27 +292,31 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
 
         if (!renderElementsBounds) {
           // No child elements or no bounds - don't apply margins
-          applyMargins = false;
+          applyMarginRight = false;
+          applyMarginBottom = false;
         } else {
           // Only add margin right if the child elements are close to the right edge of the bounds
           if (layoutBoundsOptions.smartMarginRight) {
             if (bounds.right - renderElementsBounds.right > layoutBoundsOptions.marginRight) {
-              applyMargins = false;
+              applyMarginRight = false;
             }
           }
 
           // Only add margin bottom if the child elements are close to the right edge of the bounds
           if (layoutBoundsOptions.smartMarginBottom) {
             if (bounds.bottom - renderElementsBounds.bottom > layoutBoundsOptions.marginBottom) {
-              applyMargins = false;
+              applyMarginBottom = false;
             }
           }
         }
       }
 
       // Add margin right and bottom to the bounds (from the layout canvas bounds options)
-      if (applyMargins) {
+      if (applyMarginRight) {
         bounds = rect.resizeWidth(bounds, layoutBoundsOptions.marginRight);
+      }
+
+      if (applyMarginBottom) {
         bounds = rect.resizeHeight(bounds, layoutBoundsOptions.marginBottom);
       }
 
