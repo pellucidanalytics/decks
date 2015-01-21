@@ -79,6 +79,14 @@ describe("decks.Frame", function() {
   });
 
   describe("setElement", function() {
+    beforeEach(function() {
+      dom.append(document.body, element);
+    });
+
+    afterEach(function() {
+      dom.remove(document.body, element);
+    });
+
     it("should require an element", function() {
       expect(function() { new Frame(); }).to.Throw(Error);
     });

@@ -12,6 +12,51 @@ describe("decks.utils.rect", function() {
     });
   });
 
+  describe("isEqual", function() {
+    it("should return true for rects with the same values", function() {
+      var r1, r2;
+
+      r1 = { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 };
+      r2 = { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 };
+      expect(rect.isEqual(r1, r2)).to.be.True;
+
+      r1 = { top: 10, bottom: 20, left: 30, right: 40, width: 10, height: 10 };
+      r2 = { top: 10, bottom: 20, left: 30, right: 40, width: 10, height: 10 };
+      expect(rect.isEqual(r1, r2)).to.be.True;
+    });
+
+    it("should return false for rects with different values", function() {
+      var r1, r2;
+
+      r1 = { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 };
+      r2 = { top: 10, bottom: 20, left: 30, right: 40, width: 10, height: 10 };
+      expect(rect.isEqual(r1, r2)).to.be.True;
+
+      r1 = { top: 10, bottom: 20, left: 30, right: 40, width: 10, height: 10 };
+      r2 = { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 };
+      expect(rect.isEqual(r1, r2)).to.be.True;
+    });
+  });
+
+  describe("isEmpty", function() {
+    it("should return true for null or undefined", function() {
+      expect(rect.isEmpty(null)).to.be.True;
+      expect(rect.isEmpty(undefined)).to.be.True;
+      expect(rect.isEmpty()).to.be.True;
+    });
+
+    it("should return true for all 0 values", function() {
+      expect(rect.isEmpty({ top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 })).to.be.True;
+      expect(rect.isEmpty({})).to.be.True;
+    });
+
+    it("should return false for any non-zero value", function() {
+      expect(rect.isEmpty({ top: 10 })).to.be.False;
+      expect(rect.isEmpty({ top: 10, bottom: 0, left: 0, right: 0, width: 0, height: 0 })).to.be.False;
+      expect(rect.isEmpty({ top: -10, bottom: 10, left: 0, right: 0, width: 0, height: 0 })).to.be.False;
+    });
+  });
+
   describe("intersects", function() {
     it("should return true for intersecting rectangles", function() {
       var r1 = { top: 10, bottom: 90, left: 20, right: 120 };

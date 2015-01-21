@@ -15,6 +15,7 @@ var Frame = decks.Frame;
 var Viewport = decks.Viewport;
 
 describe("decks.Deck", function () {
+  var frameElement;
   var animator;
   var config;
   var emitter;
@@ -27,6 +28,8 @@ describe("decks.Deck", function () {
   var deck;
 
   beforeEach(function(){
+    frameElement = dom.create("div");
+    dom.append(document.body, frameElement);
     animator = {
       animate: function() { }
     };
@@ -36,7 +39,7 @@ describe("decks.Deck", function () {
     layout = new Layout();
     canvas = {};
     frame = {
-      element: dom.create("div")
+      element: frameElement
     };
     viewport = {};
     deckOptions = {
@@ -49,6 +52,10 @@ describe("decks.Deck", function () {
       viewport: viewport
     };
     deck = new Deck(deckOptions);
+  });
+
+  afterEach(function() {
+    dom.remove(document.body, frameElement);
   });
 
   describe("constructor", function() {

@@ -52,7 +52,7 @@ git reset --hard HEAD~1
 
 echo "Running npm version..."
 # TODO: need to pass version string as argument to script
-npm version prerelease
+npm version patch
 
 echo "Running npm publish..."
 npm publish .
