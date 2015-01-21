@@ -188,7 +188,8 @@ _.extend(Frame.prototype, binder, hasEmitter, /** @lends Frame.prototype */ {
   setBounds: function setBounds() {
     var bounds = rect.normalize(this.element);
 
-    if (rect.isEqual(this.bounds, bounds)) {
+    // Ignore empty or unchanging bounds
+    if (rect.isEmpty(bounds) || rect.isEqual(this.bounds, bounds)) {
       return;
     }
 

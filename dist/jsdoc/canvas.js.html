@@ -278,6 +278,11 @@ _.extend(Canvas.prototype, binder, hasEmitter, /** @lends Canvas.prototype */ {
     bounds = rect.normalize(bounds || this.element);
     options = options || {};
 
+    // Ignore empty bounds (this can happen if the decks elements or ancestors become display: none)
+    if (rect.isEmpty(bounds)) {
+      return;
+    }
+
     // Allow the Layout to control how the canvas bounds are set
     var layoutBoundsOptions = this.layout.getCanvasBoundsOptions();
 
