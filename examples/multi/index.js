@@ -243,7 +243,7 @@ $(function() {
   var deckOptions = {
     config: {
       debugEvents: false,
-      debugDrawing: true,
+      debugDrawing: false,
       debugGestures: false,
       debugLoading: false
     },
@@ -256,6 +256,7 @@ $(function() {
     },
     layout: layout,
     viewport: {
+      useAnimationStopping: true
     }
   };
 
