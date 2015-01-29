@@ -65,18 +65,6 @@ function Viewport(options) {
   /** Whether to run a draw cycle when the deck:ready event is handled */
   this.drawOnDeckReady = options.drawOnDeckReady;
 
-  /** Whether to use animation slots */
-  this.useAnimationSlots = options.useAnimationSlots;
-
-  /** Number of items to animate per animation slot */
-  this.itemsPerRenderSlot = options.itemsPerRenderSlot;
-
-  /** Max number of animation slots that will be animated in one animation cycle.  */
-  this.maxSlotsWithAnimations = options.maxSlotsWithAnimations;
-
-  /** Delay value for each successive animation slot */
-  this.slotRenderDelay = options.slotRenderDelay;
-
   /** Debounced version of {@link Viewport#onGestureElementMoved} */
   this.debouncedLoadOrUnloadRenders = _.debounce(this.loadOrUnloadRenders, options.debouncedLoadOrUnloadRendersWait);
 
@@ -197,15 +185,6 @@ function Viewport(options) {
 
   this.layoutMethodOptions.emitter = this.emitter;
 
-  // Optionally use animation slots for drawing renders (better performance at the expense of number
-  // of animations allowed.
-  if (this.useAnimationSlots) {
-    if (this.config.debugDrawing) {
-      console.log("Viewport#constructor: using animation slots");
-    }
-    this.drawRender = this.drawRenderWithAnimationSlots;
-  }
-
   this.bind();
 
   this.emit(DecksEvent("viewport:ready", this));
@@ -223,19 +202,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     isDrawingEnabled: true,
 
     /** Whether to stop animations when a draw cycle happens while another cycle is running */
-    useAnimationStopping: false,
-
-    /** Whether to forcefully run animations in small, staggered slots */
-    useAnimationSlots: false,
-
-    /** Number of items created and animated in each rendering slot */
-    itemsPerRenderSlot: 15,
-
-    /** Animations are applied for total items = itemsPerRenderSlot * maxSlotsWithAnimations */
-    maxSlotsWithAnimations: 3,
-
-    /** Delay between each render slot */
-    slotRenderDelay: 100,
+    useAnimationStopping: true,
 
     /** Wait time for debounced loadOrUnloadRenders function */
     debouncedLoadOrUnloadRendersWait: 400
@@ -686,6 +653,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     }
 
     validate(render, "render", { isRequired: true });
+    validate(render.item, "render.item", { isInstanceOf: Item });
 
     var renders = this.getRenders(render.item);
 
@@ -714,88 +682,30 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(render, "render", { isRequired: true });
     validate(render.element, "render.element", { isElement: true });
 
-    this.setRender(render);
-
-    self.setDefaultRenderAnimateOptions(render);
-
     if (render.isAnimating) {
-      this.stopRenderAnimation(render);
+      self.stopRenderAnimation(render);
     }
 
     render.isAnimating = true;
     self.renderAnimationCount++;
+    self.setDefaultRenderAnimateOptions(render);
+
+    var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
+    self.emit(DecksEvent(eventName, self, render));
+
+    self.setRender(render);
 
     if (self.config.debugDrawing) {
       console.log("Viewport#drawRender: drawing render (" + self.renderAnimationCount + ")", render);
     }
 
     raf(function() {
-      var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
-      self.emit(DecksEvent(eventName, self, render));
-
-      raf(function() {
-        self.animator.animate({
-          elements: render.element,
-          properties: render.transform,
-          options: render.animateOptions
-        });
+      self.animator.animate({
+        elements: render.element,
+        properties: render.transform,
+        options: render.animateOptions
       });
     });
-  },
-
-  /**
-   * Alternate version of drawRender which forcibly slots out the animations, disables animations
-   * after a certain threshold, and staggers small groups of them to gain better animation performance.
-   */
-  drawRenderWithAnimationSlots: function drawRenderWithAnimationSlots(render) {
-    var self = this;
-    validate(render, "render", { isRequired: true });
-    validate(render.element, "render.element", { isElement: true });
-
-    this.setRender(render);
-
-    self.setDefaultRenderAnimateOptions(render);
-
-    // stagger the element creation and animation into batches
-    var renderSlotIndex = parseInt(self.renderAnimationCount / this.itemsPerRenderSlot, 10);
-    var slotRenderDelay = this.slotRenderDelay;
-
-    // Disable animation if the item falls in later slots
-    if (renderSlotIndex >= this.maxSlotsWithAnimations ||
-        render.animateOptions.display &amp;&amp; render.animateOptions.display === "none") {
-      // disable animation
-      render.animateOptions.duration = 0;
-
-      // cut the slot render delay by half when there are no animations
-      slotRenderDelay = parseInt(slotRenderDelay / 2, 10);
-    }
-
-    // Stop any previous animations for this element
-    if (render.isAnimating) {
-      this.stopRenderAnimation(render);
-    }
-
-    render.isAnimating = true;
-    self.renderAnimationCount++;
-
-    if (self.config.debugDrawing) {
-      console.log("Viewport#drawRender: drawing render (" + self.renderAnimationCount + ")", render);
-    }
-
-    _.delay(function () {
-      raf(function() {
-        var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
-        self.emit(DecksEvent(eventName, self, render));
-
-        raf(function() {
-          self.animator.animate({
-            elements: render.element,
-            properties: render.transform,
-            options: render.animateOptions
-          });
-        });
-      });
-    }, renderSlotIndex * slotRenderDelay /* stagger item creation and animation */);
   },
 
   /**
