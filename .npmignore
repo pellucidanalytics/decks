@@ -1,0 +1,26 @@
+# .gitignore files
+
+# node/npm
+node_modules/
+npm-debug.log
+
+# dist files
+dist/
+
+# gh-pages Jekyll build folder
+_site/
+
+# .npmignore
+
+.DS_Store
+.ackrc
+.git
+.gitignore
+.jshintrc
+.lvimrc
+.npmignore
+.travis.yml
+examples/
+gulpfile.js
+publish.sh
+test/
