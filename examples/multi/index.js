@@ -11,7 +11,7 @@ var ZoomLayout = decks.layouts.ZoomLayout;
 var RowLayout = decks.layouts.RowLayout;
 var ColumnLayout = decks.layouts.ColumnLayout;
 
-var count = 3;
+var count = 50;
 var id = 0;
 var imageWidth = 800;
 var imageHeight = 600;
@@ -181,7 +181,7 @@ $(function() {
 
   $(".remove-items-slow-button").on("click", function() {
     var items = deck.getItems();
-    var delay = 200;
+    var delay = 20;
 
     if (_.isEmpty(items)) {
       return;
@@ -189,7 +189,6 @@ $(function() {
 
     function remove(item) {
       return function() {
-        console.log("%cRemoving item %s", item.id);
         deck.removeItem(item);
       };
     }
@@ -287,7 +286,7 @@ $(function() {
   var deckOptions = {
     config: {
       debugEvents: false,
-      debugDrawing: true,
+      debugDrawing: false,
       debugGestures: false,
       debugLoading: false
     },
