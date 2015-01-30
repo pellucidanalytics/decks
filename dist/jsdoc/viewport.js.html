@@ -36,9 +36,10 @@ var Layout = require("./layout");
 var Frame = require("./frame");
 var Canvas = require("./canvas");
 var validate = require("./utils/validate");
-var raf = require("raf");
+//var raf = require("raf");
 var GestureHandler = require("./ui/gesturehandler");
 var GestureHandlerGroup = require("./ui/gesturehandlergroup");
+var logger = require("./utils/logger");
 
 /**
  * Viewport - manages visual (DOM) components
@@ -225,7 +226,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
       // Item
       "item:changed": "onItemChanged",
-      "item:index:changed": "onItemIndexChanged",
 
       // ItemCollection
       "item:collection:item:adding": "onItemCollectionItemAdding",
@@ -237,11 +237,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       "item:collection:clearing": "onItemCollectionClearing",
       "item:collection:cleared": "onItemCollectionCleared",
       "item:collection:filter:setting": "onItemCollectionFilterSetting",
-      "item:collection:filter:set": "onItemCollectionFilterSet",
       "item:collection:sort:by:setting": "onItemCollectionSortBySetting",
-      "item:collection:sort:by:set": "onItemCollectionSortBySet",
       "item:collection:reversed:setting": "onItemCollectionReversedSetting",
-      "item:collection:reversed:set": "onItemCollectionReversedSet",
       "item:collection:indexing": "onItemCollectionIndexing",
       "item:collection:indexed": "onItemCollectionIndexed",
 
@@ -461,14 +458,17 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {?Object} options - additional options for drawing
    * @return {undefined}
    */
-  drawItem: function drawItem(item) {
+  drawItem: function drawItem(item, options) {
+    validate(item, "item", { isInstanceOf: Item });
+    options = options || {};
+
     if (this.config.debugDrawing) {
-      console.log("Viewport#drawItem: drawing item", item);
+      console.log("Viewport#drawItem: drawing item", item.id);
     }
 
-    validate(item, "item", { isInstanceOf: Item });
-
-    this.emit(DecksEvent("viewport:item:drawing", this, item));
+    if (!options.silent) {
+      this.emit(DecksEvent("viewport:item:drawing", this, item));
+    }
 
     var layoutRenders = this.layout.getRenders(item, this.layoutMethodOptions);
 
@@ -499,21 +499,24 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  drawItems: function drawItems() {
-    if (this.config.debugDrawing) {
-      console.log("Viewport#drawItems: drawing items");
-    }
-
-    var items = this.itemCollection.getItems();
+  drawItems: function drawItems(items, options) {
+    items = _.isArray(items) ? items : this.itemCollection.getItems();
+    options = options || {};
 
     if (items.length === 0) {
       return;
     }
 
-    this.emit(DecksEvent("viewport:items:drawing", this, items));
+    if (this.config.debugDrawing) {
+      console.log("Viewport#drawItems: drawing items (length %d)", items.length);
+    }
+
+    if (!options.silent) {
+      this.emit(DecksEvent("viewport:items:drawing", this, items));
+    }
 
     _.each(items, function(item) {
-      this.drawItem(item);
+      this.drawItem(item, { silent: true });
     }, this);
   },
 
@@ -527,14 +530,21 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {Item} item item for which to remove renders
    * @return {undefined}
    */
-  eraseItem: function eraseItem(item) {
-    if (this.config.debugDrawing) {
-      console.log("Viewport#eraseItem: erasing item", item);
+  eraseItem: function eraseItem(item, options) {
+    validate(item, "item", { isInstanceOf: Item });
+    options = options || {};
+
+    if (item.isErasing) {
+      return;
     }
 
-    validate(item, "item", { isInstanceOf: Item });
+    if (this.config.debugDrawing) {
+      console.log("Viewport#eraseItem: erasing item", item.id);
+    }
 
-    this.emit(DecksEvent("viewport:item:erasing", this, item));
+    if (!options.silent) {
+      this.emit(DecksEvent("viewport:item:erasing", this, item));
+    }
 
     item.isErasing = true;
 
@@ -546,21 +556,24 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    *
    * @return {undefined}
    */
-  eraseItems: function eraseItems(items) {
+  eraseItems: function eraseItems(items, options) {
     items = _.isArray(items) ? items : this.itemCollection.getItems();
-
-    if (this.config.debugDrawing) {
-      console.log("Viewport#eraseItem: erasing items", items);
-    }
+    options = options || {};
 
     if (items.length === 0) {
       return;
     }
 
-    this.emit(DecksEvent("viewport:items:erasing", this, items));
+    if (this.config.debugDrawing) {
+      console.log("Viewport#eraseItem: erasing items (length %d)", items.length);
+    }
+
+    if (!options.silent) {
+      this.emit(DecksEvent("viewport:items:erasing", this, items));
+    }
 
     _.each(items, function(item) {
-      this.eraseItem(item);
+      this.eraseItem(item, { silent: true });
     }, this);
   },
 
@@ -572,16 +585,19 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @param {!Item} item Item to remove
    * @return {undefined}
    */
-  removeItem: function removeItem(item) {
-    if (this.config.debugDrawing) {
-      console.log("Viewport#removeItem: removing items", item);
-    }
-
+  removeItem: function removeItem(item, options) {
     validate(item, "item", { isInstanceOf: Item });
+    options = options || {};
+
+    if (this.config.debugDrawing) {
+      console.log("Viewport#removeItem: removing item", item.id);
+    }
 
     delete this.renders[item.id];
 
-    this.emit(DecksEvent("viewport:item:erased", this, item));
+    if (!options.silent) {
+      this.emit(DecksEvent("viewport:item:erased", this, item));
+    }
   },
 
   /**
@@ -648,12 +664,12 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   setRender: function setRender(render) {
-    if (this.config.debugDrawing) {
-      console.log("Viewport#setRender: setting render", render);
-    }
-
     validate(render, "render", { isRequired: true });
     validate(render.item, "render.item", { isInstanceOf: Item });
+
+    if (this.config.debugDrawing) {
+      console.log("Viewport#setRender: setting render", render.item.id, render.id);
+    }
 
     var renders = this.getRenders(render.item);
 
@@ -678,33 +694,31 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   drawRender: function drawRender(render) {
-    var self = this;
     validate(render, "render", { isRequired: true });
     validate(render.element, "render.element", { isElement: true });
 
     if (render.isAnimating) {
-      self.stopRenderAnimation(render);
+      this.stopRenderAnimation(render);
     }
 
     render.isAnimating = true;
-    self.renderAnimationCount++;
-    self.setDefaultRenderAnimateOptions(render);
+    this.renderAnimationCount++;
+    this.setDefaultRenderAnimateOptions(render);
+    this.setRender(render);
 
-    var eventName = render.isErasing ? "viewport:render:erasing" : "viewport:render:drawing";
-    self.emit(DecksEvent(eventName, self, render));
-
-    self.setRender(render);
-
-    if (self.config.debugDrawing) {
-      console.log("Viewport#drawRender: drawing render (" + self.renderAnimationCount + ")", render);
+    if (this.config.debugDrawing) {
+      console.log("%cViewport#drawRender: %s render (animations %d)",
+        logger.GREEN_BG,
+        render.isErasing ? "erasing" : "drawing",
+        this.renderAnimationCount,
+        render.item.id,
+        render.id);
     }
 
-    raf(function() {
-      self.animator.animate({
-        elements: render.element,
-        properties: render.transform,
-        options: render.animateOptions
-      });
+    this.animator.animate({
+      elements: render.element,
+      properties: render.transform,
+      options: render.animateOptions
     });
   },
 
@@ -734,13 +748,13 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     var renderIdsToAdd = _.difference(newRenderIds, renderIdsToMerge); // renders that did not exist before, but exist in new set
 
     if (this.config.debugDrawing) {
-      console.log("Viewport#drawRenders: drawing renders for item", JSON.stringify({
+      console.log("Viewport#drawRenders: drawing/erasing renders for item", JSON.stringify({
         item: item.id,
-        previousRenderIds: previousRenderIds,
-        newRenderIds: newRenderIds,
-        renderIdsToMerge: renderIdsToMerge,
-        renderIdsToRemove: renderIdsToRemove,
-        renderIdsToAdd: renderIdsToAdd
+        prevIds: previousRenderIds,
+        newIds: newRenderIds,
+        mergeIds: renderIdsToMerge,
+        removeIds: renderIdsToRemove,
+        addIds: renderIdsToAdd
       }));
     }
 
@@ -755,9 +769,9 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       // of them have changed.
       if (_.isEqual(previousRender.transform, mergedRender.transform)) {
         if (this.config.debugDrawing) {
-          console.warn("Viewport#drawRenders: not animating item render (no change to transform)", item, mergedRender);
+          console.info("Viewport#drawRenders: not animating item render (no change to transform)", item.id, mergedRender.id);
         }
-        mergedRender.immediateCompleteAnimation = true;
+        return;
       }
 
       this.drawRender(mergedRender);
@@ -767,6 +781,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
       var newRender = renders[renderId];
       newRender.element = this.createRenderElement(item, newRender);
       this.initializeRender(newRender);
+      this.canvas.addRender(newRender);
       this.drawRender(newRender);
     }, this);
 
@@ -785,16 +800,14 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   eraseRender: function eraseRender(render) {
-    if (this.config.debugDrawing) {
-      console.log("Viewport#eraseRender: erasing render", render);
-    }
-
     validate(render, "render", { isRequired: true });
 
+    if (render.isErasing) {
+      return;
+    }
+
     render.isErasing = true;
-
     this.layout.setHideAnimation(render, this.layoutMethodOptions);
-
     this.drawRender(render);
   },
 
@@ -809,8 +822,12 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   eraseRenders: function eraseRenders(item) {
     var renders = this.getRenders(item);
 
+    if (!renders || _.isEmpty(renders)) {
+      return;
+    }
+
     if (this.config.debugDrawing) {
-      console.log("Viewport#eraseRenders: erasing renders", renders);
+      console.log("Viewport#eraseRenders: erasing renders (length %d)", _.keys(renders).length);
     }
 
     _.each(renders, function(render) {
@@ -831,13 +848,55 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(render, "render", { isRequired: true });
 
     if (this.config.debugDrawing) {
-      console.log("Viewport#removeRender: removing render", render);
+      console.log("Viewport#removeRender: removing render", render.item.id, render.id);
     }
 
     var renders = this.getRenders(render.item);
     delete renders[render.id];
 
-    this.emit(DecksEvent("viewport:render:erased", this, render));
+    this.canvas.removeRender(render);
+  },
+
+  /**
+   * Stops the animation for a render.  This does not call the "complete" callback
+   * for the animation.
+   *
+   * @param render
+   * @return {undefined}
+   */
+  stopRenderAnimation: function stopRenderAnimation(render) {
+    if (!this.useAnimationStopping) {
+      return;
+    }
+
+    validate(render, "Viewport#stopRenderAnimation: render", { isRequired: true });
+
+    if (this.config.debugDrawing) {
+      console.log("%cStopping animation for render", logger.RED_BG, render.item.id, render.id);
+    }
+
+    this.animator.animate(render.element, "stop", true);
+
+    render.isAnimating = false;
+    this.renderAnimationCount--;
+  },
+
+  /**
+   * Finds all renders marked as isErasing and removes them.
+   * Then if all renders have been removed for an item, and the item is marked
+   * as isErasing, the Item is removed too.
+   */
+  cleanErasedRendersAndItems: function cleanErasedRendersAndItems() {
+    // Remove all renders and items that have been successfully erased
+    _.each(this.getRenders(), function(render) {
+      if (render.isErasing) {
+        this.removeRender(render);
+
+        if (render.item.isErasing &amp;&amp; !this.hasRenders(render.item)) {
+          this.removeItem(render.item);
+        }
+      }
+    }, this);
   },
 
   /**
@@ -851,14 +910,15 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     validate(render, "render", { isRequired: true });
 
+    render.animateOptions = render.animateOptions || {};
+
     render.animateOptions.complete = function() {
       self.onRenderAnimationComplete(render);
     };
 
-    if (render.immediateCompleteAnimation) {
-      render.immediateCompleteAnimation = false;
-      render.animateOptions.duration = 0;
-    }
+    // Don't queue animations.  They are stopped if a new animation is needed while
+    // one is already running (rather than being queued).
+    render.animateOptions.queue = false;
   },
 
   /**
@@ -871,7 +931,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(render, "render", { isRequired: true });
 
     if (this.config.debugDrawing) {
-      console.log("Viewport#createRenderElement: creating element for render", render);
+      console.log("Viewport#createRenderElement: creating element for render", render.item.id, render.id);
     }
 
     var element = dom.create("div");
@@ -893,7 +953,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   initializeRender: function initializeRender(render) {
     if (this.config.debugLoading) {
-      console.log("Viewport#initializeRender: initializing render", render);
+      console.log("Viewport#initializeRender: initializing render", render.item.id, render.id);
     }
 
     validate(render, "render", { isRequired: true });
@@ -909,7 +969,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   loadRender: function loadRender(render) {
     if (this.config.debugLoading) {
-      console.log("Viewport#loadRender: loading render", render);
+      console.log("Viewport#loadRender: loading render", render.item.id, render.id);
     }
 
     validate(render, "render", { isRequired: true });
@@ -925,7 +985,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   unloadRender: function unloadRender(render) {
     if (this.config.debugLoading) {
-      console.log("Viewport#unloadRender: unloading render", render);
+      console.log("Viewport#unloadRender: unloading render", render.item.id, render.id);
     }
 
     validate(render, "render", { isRequired: true });
@@ -1001,37 +1061,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
   },
 
   /**
-   * Stops the animation for a render.
-   *
-   * @param render
-   * @return {undefined}
-   */
-  stopRenderAnimation: function stopRenderAnimation(render) {
-    if (!this.useAnimationStopping) {
-      return;
-    }
-
-    validate(render, "Viewport#stopRenderAnimation: render", { isRequired: true });
-
-    if (this.config.debugDrawing) {
-      console.log("Viewport#stopRenderAnimation: stopping animation for render", render);
-    }
-
-    this.animator.animate(render.element, "stop", true);
-
-    render.isAnimating = false;
-    this.renderAnimationCount--;
-
-    if (this.config.debugDrawing) {
-      console.log(
-        "Viewport#stopRenderAnimation: stopped animation for render (" +
-        this.renderAnimationCount +
-        ")",
-        render);
-    }
-  },
-
-  /**
    * Gets the custom renders
    *
    * @return {undefined}
@@ -1072,8 +1101,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     validate(customRender, "customRender", { isRequired: true });
 
     delete this.customRenders[customRender.id];
-
-    this.emit(DecksEvent("viewport:custom:render:erased", this, customRender));
+    this.canvas.removeRender(customRender);
   },
 
   /**
@@ -1095,29 +1123,26 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     var self = this;
 
     validate(customRender, "customRender", { isRequired: true });
-
-    this.setCustomRender(customRender);
-
-    self.setDefaultCustomRenderAnimateOptions(customRender);
+    validate(customRender.element, "customRender.element", { isElement: true });
 
     customRender.isAnimating = true;
     self.customRenderAnimationCount++;
+    self.setDefaultCustomRenderAnimateOptions(customRender);
+    self.setCustomRender(customRender);
+    self.canvas.addRender(customRender);
 
     if (self.config.debugDrawing) {
-      console.log("Viewport#drawCustomRender: drawing custom render (" + self.customRenderAnimationCount + ")", customRender);
+      console.log("%cViewport#drawCustomRender: %s custom render (animations %d)",
+        logger.GREEN_FG,
+        customRender.isErasing ? "erasing" : "drawing",
+        self.customRenderAnimationCount,
+        customRender.id);
     }
 
-    raf(function() {
-      var eventName = customRender.isErasing ? "viewport:custom:render:erasing" : "viewport:custom:render:drawing";
-      self.emit(DecksEvent(eventName, self, customRender));
-
-      raf(function() {
-        self.animator.animate({
-          elements: customRender.element,
-          properties: customRender.transform,
-          options: customRender.animateOptions
-        });
-      });
+    self.animator.animate({
+      elements: customRender.element,
+      properties: customRender.transform,
+      options: customRender.animateOptions
     });
   },
 
@@ -1166,9 +1191,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     }
 
     customRender.isErasing = true;
-
     this.layout.setHideAnimation(customRender, this.layoutMethodOptions);
-
     this.drawCustomRender(customRender);
   },
 
@@ -1179,11 +1202,22 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    */
   eraseCustomRenders: function eraseCustomRenders() {
     if (this.config.debugDrawing) {
-      console.log("Viewport#eraseCustomRenders: erasing custom renders");
+      console.log("Viewport#eraseCustomRenders: erasing custom renders (length %d)", _.keys(this.getCustomRenders()).length);
     }
 
     _.each(this.getCustomRenders(), function(customRender) {
       this.eraseCustomRender(customRender);
+    }, this);
+  },
+
+  /**
+   * Removes all custom render elements which have been hidden (completed the hide animation).
+   */
+  cleanErasedCustomRenders: function cleanErasedCustomRenders() {
+    _.each(this.customRenders, function(customRender) {
+      if (customRender.isErasing) {
+        this.canvas.removeRender(customRender);
+      }
     }, this);
   },
 
@@ -1203,6 +1237,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     customRender.animateOptions.complete = function() {
       self.onCustomRenderAnimationComplete(customRender);
     };
+
+    customRender.animateOptions.queue = false;
   },
 
   /**
@@ -1522,10 +1558,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.drawItem(item);
   },
 
-  onItemIndexChanged: function onItemIndexChanged() {
-    // TODO: remove if not needed
-  },
-
   onItemCollectionItemAdding: function onItemCollectionItemAdding() {
     if (this.config.debugDrawing) {
       console.log("Viewport#onItemCollectionItemAdding");
@@ -1550,7 +1582,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.drawItems();
   },
 
-  onItemCollectionItemsAdding: function onItemCollectionItemAdding() {
+  onItemCollectionItemsAdding: function onItemCollectionItemsAdding() {
     if (this.config.debugDrawing) {
       console.log("Viewport#onItemCollectionItemAdding");
     }
@@ -1562,7 +1594,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.eraseCustomRenders();
   },
 
-  onItemCollectionItemsAdded: function onItemCollectionItemAdded() {
+  onItemCollectionItemsAdded: function onItemCollectionItemsAdded() {
     if (this.config.debugDrawing) {
       console.log("Viewport#onItemCollectionItemsAdded");
     }
@@ -1602,8 +1634,8 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     // Re-draw all the other items - this is needed because the removal of an item might
     // require other items to be re-drawn too.
-    // The Item is already removed from the ItemCollection when this is called, so re-draw all the other
-    // Items
+    // The Item is already removed from the ItemCollection when this is called, so calling
+    // drawItems() here will draw the remaining items (not including the removed one).
     this.drawItems();
   },
 
@@ -1633,7 +1665,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.eraseItems(items);
   },
 
-  onItemCollectionFilterSetting: function() {
+  onItemCollectionFilterSetting: function onItemCollectionFilterSetting() {
     if (this.config.debugDrawing) {
       console.log("Viewport#onItemCollectionFilterSetting");
     }
@@ -1645,11 +1677,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.destroyRenderGestures();
   },
 
-  onItemCollectionFilterSet: function() {
-    // TODO: remove if not needed
-  },
-
-  onItemCollectionSortBySetting: function() {
+  onItemCollectionSortBySetting: function onItemCollectionSortBySetting() {
     if (this.config.debugDrawing) {
       console.log("Viewport#onItemCollectionSortBySetting");
     }
@@ -1661,11 +1689,7 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.destroyRenderGestures();
   },
 
-  onItemCollectionSortBySet: function() {
-    // TODO: remove if not needed
-  },
-
-  onItemCollectionReversedSetting: function() {
+  onItemCollectionReversedSetting: function onItemCollectionReversedSetting() {
     if (this.config.debugDrawing) {
       console.log("Viewport#onItemCollectionReversedSetting");
     }
@@ -1675,10 +1699,6 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     }
 
     this.destroyRenderGestures();
-  },
-
-  onItemCollectionReversedSet: function() {
-    // TODO: remove if not needed
   },
 
   onItemCollectionIndexing: function onItemCollectionIndexing() {
@@ -1730,20 +1750,12 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     if (this.config.debugDrawing) {
       console.log(
-        "Viewport#onRenderAnimationComplete: render animation complete (" +
-        this.renderAnimationCount +
-        ")",
-        render);
-    }
-
-    if (render.isErasing) {
-      this.removeRender(render);
-
-      if (render.item.isErasing &amp;&amp; !this.hasRenders(render.item)) {
-        this.removeItem(render.item);
-      }
-    } else {
-      this.emit(DecksEvent("viewport:render:drawn", this, render));
+        "%cViewport#onRenderAnimationComplete: render %s complete (animations %d)",
+        logger.BLUE_BG,
+        render.isErasing ? "erasing" : "drawing",
+        this.renderAnimationCount,
+        render.item.id,
+        render.id);
     }
 
     if (this.renderAnimationCount === 0) {
@@ -1764,16 +1776,27 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     }
 
     _.defer(function() {
+      // Notify listeners that all renders have been drawn
+      // TODO: should this be done last?
       self.emit(DecksEvent("viewport:all:renders:drawn", self));
 
       _.defer(function() {
-        self.loadOrUnloadRenders();
+        // Start drawing the custom renders (labels, lines, whatever, etc.)
+        self.drawCustomRenders();
 
         _.defer(function() {
-          self.drawCustomRenders();
+          // Start checking if items should be loaded or unloaded
+          self.loadOrUnloadRenders();
 
           _.defer(function() {
+            // Configure the render gestures (if layout calls for it)
             self.configureAllRenderGestures();
+
+            _.defer(function() {
+              // Remove the erased render elements from the DOM, and Items that are
+              // marked to be erased.
+              self.cleanErasedRendersAndItems();
+            });
           });
         });
       });
@@ -1798,16 +1821,10 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     if (this.config.debugDrawing) {
       console.log(
-        "Viewport#onCustomRenderAnimationComplete: custom render animation complete (" +
-        this.customRenderAnimationCount +
-        ")",
-        customRender);
-    }
-
-    if (customRender.isErasing) {
-      this.removeCustomRender(customRender);
-    } else {
-      this.emit(DecksEvent("viewport:custom:render:drawn", this, customRender));
+        "%cViewport#onCustomRenderAnimationComplete: custom render animation complete (animations %s)",
+        logger.BLUE_FG,
+        this.customRenderAnimationCount,
+        customRender.id);
     }
 
     if (this.customRenderAnimationCount === 0) {
@@ -1829,6 +1846,10 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
 
     _.defer(function() {
       self.emit(DecksEvent("viewport:all:custom:renders:drawn", self));
+
+      _.defer(function() {
+        self.cleanErasedCustomRenders();
+      });
     });
   },
 
@@ -1839,23 +1860,11 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
    * @return {undefined}
    */
   onGestureElementMoved: function onGestureElementMoved(/*e*/) {
-    /*
-    var element = e.data;
-
-    if (element === this.canvas.element) {
-      this.onCanvasElementMoved();
-    }
-
-    if (dom.hasClass(element, this.config.itemClassName)) {
-      this.onRenderElementMoved(e);
-    }
-    */
-
     this.debouncedLoadOrUnloadRenders();
   },
 
   /**
-   * Called when the {@link Canvas} element is moved via a touch gesture.
+   * Called when the {@link Canvas} element is moved via a touch gesture, or scrolled.
    *
    * @return {undefined}
    */
@@ -1863,20 +1872,13 @@ _.extend(Viewport.prototype, binder, hasEmitter, /** @lends Viewport.prototype *
     this.debouncedLoadOrUnloadRenders();
   },
 
+
+  /**
+   * Called when a render element is moved (e.g. row layout where rows scroll independently)
+   *
+   * @return {undefined}
+   */
   onRenderElementMoved: function onRenderElementMoved() {
-    /*
-    var element = e.data;
-    var itemId = dom.attr(element, "data-item-id");
-    var renderId = dom.attr(element, "data-render-id");
-    var render = this.renders[itemId][renderId];
-
-    if (!render) {
-      return;
-    }
-
-    // (would like to debounce this, but that would required a memoized debounce per render argument)
-    this.loadOrUnloadRender(render);
-    */
     this.debouncedLoadOrUnloadRenders();
   }
 });
