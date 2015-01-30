@@ -471,7 +471,8 @@ describe("decks.Canvas", function() {
     });
   });
 
-  describe("onViewportRenderDrawing", function(){
+  // Note: viewport now calls canvas directly
+  xdescribe("onViewportRenderDrawing", function(){
     it("should add the render", function() {
       var spy = sinon.spy(canvas, "addRender");
       var render = { element: dom.create("div") };
@@ -482,7 +483,8 @@ describe("decks.Canvas", function() {
     });
   });
 
-  describe("onViewportRenderErased", function(){
+  // Note: viewport now calls canvas directly
+  xdescribe("onViewportRenderErased", function(){
     it("should remove the render", function() {
       var spy = sinon.spy(canvas, "removeRender");
       var element = dom.create("div");
