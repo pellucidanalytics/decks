@@ -375,7 +375,7 @@ gulp.task("notify", function() {
 
 gulp.task("default", function(cb) {
   return runSequence(
-    ["lib-watch", "test-watch", "examples-watch"],
+    ["lib-watch", /*"test-watch",*/ "examples-watch"],
     "serve",
     "notify",
     cb

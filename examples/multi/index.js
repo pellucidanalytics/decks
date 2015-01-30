@@ -11,14 +11,14 @@ var ZoomLayout = decks.layouts.ZoomLayout;
 var RowLayout = decks.layouts.RowLayout;
 var ColumnLayout = decks.layouts.ColumnLayout;
 
+var count = 3;
 var id = 0;
 var imageWidth = 800;
 var imageHeight = 600;
 
 function createItem() {
-  id++;
   return {
-    id: id,
+    id: id++,
     width: 300,
     height: 200,
     random: Math.random(),
@@ -28,8 +28,7 @@ function createItem() {
   };
 }
 
-function createItems(count) {
-  count = count || 20;
+function createItems() {
   var items = _.map(_.range(count), createItem);
   return items;
 }
@@ -152,7 +151,6 @@ _.each(layouts, function(layout) {
 $(function() {
   var $root = $("#root");
 
-  // Layout select box
   var $layoutSelect = $(".layout-select");
 
   _.each(layouts, function(layout, key) {
@@ -181,15 +179,61 @@ $(function() {
     deck.addItem(createItem());
   });
 
-  // Remove item button
-  $(".remove-item-button").on("click", function() {
+  $(".remove-items-slow-button").on("click", function() {
     var items = deck.getItems();
+    var delay = 200;
+
     if (_.isEmpty(items)) {
       return;
     }
-    var index = Math.floor(Math.random() * (items.length - 1));
-    var item = items[index];
-    deck.removeItem(item);
+
+    function remove(item) {
+      return function() {
+        console.log("%cRemoving item %s", item.id);
+        deck.removeItem(item);
+      };
+    }
+
+    _.each(items, function(item, i) {
+      _.delay(remove(item), delay * i);
+    });
+  });
+
+  // Remove item button
+  $(".remove-item-button").on("click", function(e) {
+    var done = false;
+
+    while (!done) {
+      var items = deck.getItems();
+
+      if (_.isEmpty(items)) {
+        done = true;
+        return;
+      }
+
+      var type = e.target.classList;
+      var index = 0;
+
+      if (type.contains("single")) {
+        index = Math.floor(Math.random() * (items.length - 1));
+        done = true;
+      } else if (type.contains("middle")) {
+        index = Math.floor(items.length / 2);
+      } else if (type.contains("end")) {
+        index = items.length - 1; // Last item
+      }
+
+      var item = items[index];
+
+      console.log(
+        "%cErasing item %s (%d of %d)",
+        'background-color: blue; color: white',
+        item.id,
+        index,
+        items.length);
+
+      deck.removeItem(item);
+    }
   });
 
   // Clear items button
@@ -243,7 +287,7 @@ $(function() {
   var deckOptions = {
     config: {
       debugEvents: false,
-      debugDrawing: false,
+      debugDrawing: true,
       debugGestures: false,
       debugLoading: false
     },
